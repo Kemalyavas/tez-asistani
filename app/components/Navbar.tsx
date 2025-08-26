@@ -1,18 +1,44 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FileText, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { FileText, Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function Navbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+    router.refresh();
+    setIsMenuOpen(false);
+  };
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false); // Close mobile menu after scroll
+      setIsMenuOpen(false);
     }
   };
 
@@ -61,6 +87,34 @@ export default function Navbar() {
             >
               Gizlilik
             </Link>
+            
+            {/* Auth Buttons */}
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/profile"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-all duration-300 group"
+                >
+                  <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-300"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Çıkış</span>
+                </button>
+              </div>
+            ) : (
+              <Link 
+                href="/auth" 
+                className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Giriş Yap</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -107,6 +161,36 @@ export default function Navbar() {
               >
                 Gizlilik
               </Link>
+              
+              {/* Mobile Auth Section */}
+              <div className="border-t pt-4">
+                {user ? (
+                  <>
+                    <Link 
+                      href="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300 py-2"
+                    >
+                      <User className="h-4 w-4" />
+                      <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
+                    </Link>
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full text-left text-red-600 hover:bg-red-50 font-medium transition-colors duration-300 py-2"
+                    >
+                      Çıkış Yap
+                    </button>
+                  </>
+                ) : (
+                  <Link 
+                    href="/auth"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block text-blue-600 hover:bg-blue-50 font-medium transition-colors duration-300 py-2"
+                  >
+                    Giriş Yap / Kayıt Ol
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         )}

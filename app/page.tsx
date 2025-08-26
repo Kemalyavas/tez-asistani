@@ -4,6 +4,7 @@ import FileUploader from './components/FileUploader';
 import ResultDisplay from './components/ResultDisplay';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
+import TestimonialsCarousel from './components/TestimonialsCarousel';
 import { Zap, CheckCircle, BookOpen, FileSearch, Check, X, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -51,15 +52,16 @@ export default function Home() {
       description: 'Denemek için ideal',
       features: [
         '1 tez analizi',
-        'Temel format kontrolü',
+        '1 özet oluşturma',
         '5 kaynak formatlama',
-        'Topluluk desteği',
+        'Temel AI desteği',
+        'Topluluk forumları',
       ],
       notIncluded: [
-        'Özet oluşturma',
-        'Gelişmiş özellikler',
+        'Sınırsız kullanım',
         'Öncelikli destek',
-        'Export özelliği',
+        'Gelişmiş AI modelleri',
+        'Premium özellikler',
       ],
       cta: 'Ücretsiz Başla',
       popular: false,
@@ -68,19 +70,19 @@ export default function Home() {
       name: 'Pro',
       price: isHydrated ? (billingPeriod === 'monthly' ? 10 : 96) : 10, // Yıllık %20 indirim
       
-      description: 'Öğrenciler için',
+      description: 'Akademisyenler için',
       features: [
         '50 tez analizi',
-        'Gelişmiş format kontrolü',
-        '50 kaynak formatlama',
-        'AI özet oluşturma',
-        'Word/PDF export',
-        'E-posta desteği',
-        'Revizyon önerileri',
+        '20 özet oluşturma',
+        '100 kaynak formatlama',
+        'Gelişmiş AI modelleri',
+        'Hızlı e-posta desteği',
+        'Detaylı kullanım raporları',
+        'Çoklu format desteği (APA, MLA, Chicago, IEEE)',
       ],
       notIncluded: [
         'Sınırsız kullanım',
-        'Özel raporlar',
+        '7/24 özel destek',
         'API erişimi',
       ],
       cta: 'Pro\'yu Seç',
@@ -89,18 +91,16 @@ export default function Home() {
     {
       name: 'Expert',
       price: isHydrated ? (billingPeriod === 'monthly' ? 25 : 240) : 25, // Yıllık %20 indirim
-      description: 'Profesyoneller için',
+      description: 'Kurumsal kullanım için',
       features: [
         'Sınırsız tez analizi',
-        'Gelişmiş format kontrolü',
+        'Sınırsız özet oluşturma',
         'Sınırsız kaynak formatlama',
-        'AI özet oluşturma (Türkçe & İngilizce)',
-        'Özel analiz raporları',
-        'Tez şablonları',
-        'Öncelikli destek',
-        'Toplu işlem özelliği',
-        'Versiyon karşılaştırma',
-        'API erişimi',
+        'En gelişmiş AI modelleri',
+        'Türkçe ve İngilizce özet desteği',
+        '7/24 öncelikli destek',
+        'Özel kullanıcı yönetimi',
+        'Detaylı analitik raporlar',
       ],
       notIncluded: [],
       cta: 'Expert\'i Seç',
@@ -142,7 +142,7 @@ export default function Home() {
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in">
               YÖK formatında hatasız tez yazımı için AI destekli asistanınız. 
-              <span className="text-blue-600 font-semibold">Profesyonel sonuçlar, dakikalar içinde.</span>
+              <span className="text-blue-600 font-semibold"> Profesyonel sonuçlar, dakikalar içinde.</span>
             </p>
             
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12 animate-slide-in">
@@ -514,64 +514,7 @@ export default function Home() {
             Kullanıcılarımız Ne Diyor?
           </h2>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-4">
-                "YÖK formatında tez yazmak artık çok kolay. 
-                Format hatalarını anında gösteriyor."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-blue-600 rounded-full mr-3"></div>
-                <div>
-                  <p className="font-semibold">Ahmet Y.</p>
-                  <p className="text-sm text-gray-500">YL Öğrencisi</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-4">
-                "Kaynak gösterimi için harika bir araç. 
-                APA formatına çevirmek çok pratik."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-purple-600 rounded-full mr-3"></div>
-                <div>
-                  <p className="font-semibold">Zeynep K.</p>
-                  <p className="text-sm text-gray-500">Doktora Öğrencisi</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-4">
-                "Expert plan ile tüm tez sürecim kolaylaştı. 
-                Sınırsız kullanım harika!"
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-green-600 rounded-full mr-3"></div>
-                <div>
-                  <p className="font-semibold">Mehmet A.</p>
-                  <p className="text-sm text-gray-500">Araş. Gör.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TestimonialsCarousel />
         </div>
       </section>
 
