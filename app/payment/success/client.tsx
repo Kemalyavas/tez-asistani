@@ -10,7 +10,7 @@ export default function PaymentSuccessClient() {
   const [sessionData, setSessionData] = useState<any>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
-  const sessionId = searchParams.get('session_id')
+  const sessionId = searchParams.get('token')
 
   useEffect(() => {
     if (sessionId) {
@@ -22,7 +22,7 @@ export default function PaymentSuccessClient() {
 
   const verifyPayment = async () => {
     try {
-      const response = await fetch(`/api/stripe/verify-payment?session_id=${sessionId}`)
+      const response = await fetch(`/api/iyzico/verify-payment?token=${sessionId}`)
       const data = await response.json()
       
       if (response.ok) {

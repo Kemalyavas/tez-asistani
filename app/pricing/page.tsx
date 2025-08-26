@@ -33,9 +33,9 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '10',
+    price: '399',
     period: 'aylık',
-    description: 'Akademisyenler için',
+    description: 'Akademisyenler ve öğrenciler için',
     features: [
       '50 tez analizi',
       '20 özet oluşturma',
@@ -51,11 +51,11 @@ const PLANS = [
     disabled: false
   },
   {
-    id: 'enterprise',
+    id: 'expert',
     name: 'Expert',
-    price: '25',
+    price: '950',
     period: 'aylık',
-    description: 'Kurumsal kullanım için',
+    description: 'Kapsamlı kullanım için',
     features: [
       'Sınırsız tez analizi',
       'Sınırsız özet oluşturma',
@@ -100,7 +100,7 @@ export default function PricingPage() {
     setLoading(planId)
 
     try {
-      const response = await fetch('/api/stripe/checkout', {
+      const response = await fetch('/api/iyzico/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ export default function PricingPage() {
         throw new Error(data.error || 'Ödeme işlemi başlatılamadı')
       }
 
-      // Stripe Checkout'a yönlendir
+      // İyzico Checkout'a yönlendir
       window.location.href = data.url
 
     } catch (error: any) {
@@ -185,14 +185,14 @@ export default function PricingPage() {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                   <p className="text-gray-600 mb-4">{plan.description}</p>
                   <div className="flex items-baseline justify-center">
-                    <span className="text-5xl font-bold text-gray-900">${plan.price}</span>
+                    <span className="text-5xl font-bold text-gray-900">{plan.price}₺</span>
                     {plan.price !== '0' && (
                       <span className="text-gray-500 ml-2">/{plan.period}</span>
                     )}
                   </div>
                   {billingCycle === 'yearly' && plan.price !== '0' && (
                     <p className="text-sm text-green-600 mt-2">
-                      Yıllık ödeme: ${Math.floor(parseInt(plan.price) * 12 * 0.8)} (${Math.floor(parseInt(plan.price) * 12 * 0.2)} tasarruf)
+                      Yıllık ödeme: {Math.floor(parseInt(plan.price) * 12 * 0.8)}₺ ({Math.floor(parseInt(plan.price) * 12 * 0.2)}₺ tasarruf)
                     </p>
                   )}
                 </div>
@@ -249,7 +249,7 @@ export default function PricingPage() {
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-2">Ödeme güvenli mi?</h3>
-              <p className="text-gray-600">Tüm ödemelerimiz SSL şifreli ve PCI DSS standartlarında güvenli Stripe altyapısı üzerinden işlenmektedir.</p>
+              <p className="text-gray-600">Tüm ödemelerimiz SSL şifreli ve PCI DSS standartlarında güvenli İyzico altyapısı üzerinden işlenmektedir.</p>
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-2">Fatura alabilir miyim?</h3>
