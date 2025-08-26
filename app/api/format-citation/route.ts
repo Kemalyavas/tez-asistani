@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { rateLimit, getClientIP } from '../../lib/rateLimit';
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -15,6 +16,25 @@ const USAGE_LIMITS = {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIP = getClientIP(request, request.headers);
+    const rateLimitResult = rateLimit(`citation_${clientIP}`, {
+      windowMs: 60 * 1000, // 1 minute
+      maxAttempts: 10, // 10 requests per minute
+      blockDurationMs: 5 * 60 * 1000 // 5 minutes block
+    });
+
+    if (!rateLimitResult.allowed) {
+      const waitTime = rateLimitResult.blockedUntil 
+        ? Math.ceil((rateLimitResult.blockedUntil - Date.now()) / 1000 / 60)
+        : Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
+        
+      return NextResponse.json(
+        { error: `Çok fazla istek. ${waitTime} dakika sonra tekrar deneyin.` },
+        { status: 429 }
+      );
+    }
+
     const { source, type, format } = await request.json();
     
     // Supabase auth kontrolü
