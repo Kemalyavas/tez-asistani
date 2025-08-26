@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 export default function AbstractGenerator() {
   const [text, setText] = useState('');
   const [language, setLanguage] = useState('tr');
-  const [wordCount, setWordCount] = useState('250');
+  const [wordCount, setWordCount] = useState('200-300');
   const [abstract, setAbstract] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +21,7 @@ export default function AbstractGenerator() {
       const response = await fetch('/api/generate-abstract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, language, wordCount: parseInt(wordCount) }),
+        body: JSON.stringify({ text, language, wordCount }),
       });
 
       const data = await response.json();
@@ -45,7 +45,7 @@ export default function AbstractGenerator() {
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="input-modern"
           >
             <option value="tr">Türkçe (Özet)</option>
             <option value="en">İngilizce (Abstract)</option>
@@ -55,16 +55,16 @@ export default function AbstractGenerator() {
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Kelime Sayısı
+            Özet Uzunluğu
           </label>
           <select
             value={wordCount}
             onChange={(e) => setWordCount(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="input-modern"
           >
-            <option value="150">150 kelime</option>
-            <option value="250">250 kelime</option>
-            <option value="350">350 kelime</option>
+            <option value="100-150">Kısa Özet (100-150 kelime) - Temel bulgular</option>
+            <option value="200-300">Standart Özet (200-300 kelime) - Akademik standart</option>
+            <option value="400-500">Detaylı Özet (400-500 kelime) - Kapsamlı analiz</option>
           </select>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function AbstractGenerator() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Tezinizin ana içeriğini veya bölümlerini buraya yapıştırın..."
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="input-modern"
           rows={8}
         />
         <p className="text-sm text-gray-500 mt-1">

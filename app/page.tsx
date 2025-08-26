@@ -121,46 +121,95 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-purple-50 py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold mb-6">
-              Tez Yazımını <span className="text-blue-600">Kolaylaştırıyoruz</span>
+      <section className="gradient-bg py-24 relative overflow-hidden">
+        {/* Background Decorations */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-4xl mx-auto animate-fade-in">
+            <div className="mb-6">
+              <span className="inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mb-4 animate-bounce-gentle">
+                🎓 YÖK Standartlarında
+              </span>
+            </div>
+            <h1 className="text-6xl md:text-7xl font-bold mb-8 leading-tight">
+              Tez Yazımını <br/>
+              <span className="text-gradient animate-slide-in">Kolaylaştırıyoruz</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              YÖK formatında hatasız tez yazımı için AI destekli asistanınız
+            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in">
+              YÖK formatında hatasız tez yazımı için AI destekli asistanınız. 
+              <span className="text-blue-600 font-semibold">Profesyonel sonuçlar, dakikalar içinde.</span>
             </p>
-            <div className="flex justify-center space-x-4">
+            
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12 animate-slide-in">
               <button 
                 onClick={scrollToApp}
-                className="btn-primary"
+                className="btn-primary text-lg px-8 py-4 min-w-[200px]"
               >
                 Ücretsiz Dene
               </button>
               <button 
                 onClick={scrollToHowItWorks}
-                className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50"
+                className="btn-secondary text-lg px-8 py-4 min-w-[200px]"
               >
-                Nasıl Çalışır?
+                📖 Nasıl Çalışır?
               </button>
             </div>
             
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-12 animate-fade-in">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">10K+</div>
+                <div className="text-gray-600">Analiz Edilen Tez</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">98%</div>
+                <div className="text-gray-600">Doğruluk Oranı</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">2 Dakika</div>
+                <div className="text-gray-600">Ortalama Süre</div>
+              </div>
+            </div>
+            
             {/* Güvenlik Garantisi */}
-            <div className="mt-12 max-w-2xl mx-auto">
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
-                <div className="flex items-center justify-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">🔒</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800">%100 Güvenli ve Gizli</h3>
+            <div className="max-w-2xl mx-auto animate-fade-in">
+              <div className="bg-white/80 backdrop-blur-sm border border-white/40 rounded-2xl p-8 shadow-2xl">
+                <div className="flex items-center justify-center mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
+                  <h3 className="text-2xl font-bold text-gray-800">%100 Güvenli ve Gizli</h3>
                 </div>
-                <p className="text-gray-600 text-center text-sm">
-                  Tez dosyalarınız SSL şifreleme ile korunur, analiz sonrası otomatik silinir ve 
-                  hiçbir zaman üçüncü taraflarla paylaşılmaz. 
-                  <a href="/privacy-policy" className="text-blue-600 hover:underline ml-1 font-medium">
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  Tez dosyalarınız SSL şifreleme ile korunur, analiz sonrası otomatik silinir ve hiçbir zaman 
+                  üçüncü taraflarla paylaşılmaz. <button 
+                    onClick={() => document.getElementById('privacy-policy')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200 cursor-pointer underline"
+                  >
                     Gizlilik Politikası →
-                  </a>
+                  </button>
                 </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="flex items-center text-green-600">
+                    <Check className="h-4 w-4 mr-2" />
+                    <span>SSL Güvenlik</span>
+                  </div>
+                  <div className="flex items-center text-green-600">
+                    <Check className="h-4 w-4 mr-2" />
+                    <span>Auto Delete</span>
+                  </div>
+                  <div className="flex items-center text-green-600">
+                    <Check className="h-4 w-4 mr-2" />
+                    <span>KVKK Uyumlu</span>
+                  </div>
+                  <div className="flex items-center text-green-600">
+                    <Check className="h-4 w-4 mr-2" />
+                    <span>Zero Share</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -168,16 +217,24 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-16">
+      <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold mb-4">Tez Yazımınızı <span className="text-gradient">Güçlendirin</span></h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Modern AI teknolojisi ile akademik standartlarda tez hazırlama sürecinizi hızlandırın
+            </p>
+          </div>
+          <div className="grid md:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="card text-center">
-                <div className="text-blue-600 flex justify-center mb-4">
-                  {feature.icon}
+              <div key={index} className="feature-card text-center group">
+                <div className="text-blue-600 flex justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="p-4 bg-blue-50 rounded-xl">
+                    {feature.icon}
+                  </div>
                 </div>
-                <h3 className="font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm">{feature.desc}</p>
+                <h3 className="font-bold text-lg mb-3 text-gray-800">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -185,92 +242,140 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section ref={howItWorksRef} className="py-16 bg-white">
+      <section id="how-it-works" ref={howItWorksRef} className="py-24 gradient-bg">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Nasıl <span className="text-blue-600">Çalışır?</span>
-          </h2>
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold mb-4">Nasıl <span className="text-gradient">Çalışır?</span></h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              3 basit adımda tezinizi analiz edin ve profesyonel sonuçlar alın
+            </p>
+          </div>
           
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                  1
+          <div className="max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-12">
+              
+              <div className="text-center group animate-slide-in">
+                <div className="mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
+                    1
+                  </div>
                 </div>
-                <h3 className="font-semibold mb-2">Tezi Yükle</h3>
-                <p className="text-gray-600">
-                  PDF veya DOCX formatında tez dosyanızı yükleyin
+                <h3 className="text-xl font-bold mb-4 text-gray-800">📄 Tezi Yükle</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  PDF veya DOCX formatında tez dosyanızı güvenli sistemimize yükleyin. 
+                  <span className="text-blue-600 font-semibold">Otomatik format algılama</span> ile hızlıca başlayın.
                 </p>
               </div>
 
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                  2
+              <div className="text-center group animate-slide-in animation-delay-200">
+                <div className="mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
+                    2
+                  </div>
                 </div>
-                <h3 className="font-semibold mb-2">AI Analizi</h3>
-                <p className="text-gray-600">
-                  Yapay zeka tezinizi YÖK standartlarına göre inceler
+                <h3 className="text-xl font-bold mb-4 text-gray-800 no-decoration">🤖 AI Analizi</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Gelişmiş yapay zeka teknolojisi tezinizi <span className="text-purple-600 font-semibold">YÖK standartlarına</span> göre 
+                  detaylı analiz eder ve format kontrolü yapar.
                 </p>
               </div>
 
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                  3
+              <div className="text-center group animate-slide-in animation-delay-400">
+                <div className="mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
+                    3
+                  </div>
                 </div>
-                <h3 className="font-semibold mb-2">Rapor Al</h3>
-                <p className="text-gray-600">
-                  Detaylı analiz raporu ve düzeltme önerilerini alın
+                <h3 className="text-xl font-bold mb-4 text-gray-800">📊 Rapor Al</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Kapsamlı analiz raporu, <span className="text-green-600 font-semibold">düzeltme önerileri</span> ve 
+                  profesyonel formatlama tavsiyeleri ile tezinizi mükemmelleştirin.
                 </p>
               </div>
+            </div>
+            
+            {/* Call to Action */}
+            <div className="text-center mt-16 animate-fade-in">
+              <button 
+                onClick={scrollToApp}
+                className="btn-primary text-lg px-10 py-4"
+              >
+                Ücretsiz Dene!
+              </button>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main App */}
-      <section ref={mainAppRef} className="py-16 bg-gray-50">
+      <section id="app" ref={mainAppRef} className="py-24 bg-white">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            {/* Tabs */}
-            <div className="flex space-x-1 mb-8 bg-white rounded-lg p-1 shadow">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold mb-4">Tez <span className="text-gradient">Asistanınız</span></h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Profesyonel tez hazırlama araçlarını ücretsiz deneyin
+            </p>
+          </div>
+          
+          <div className="max-w-5xl mx-auto">
+            {/* Modern Tabs */}
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-12 bg-gray-100 rounded-2xl p-2">
               <button
                 onClick={() => setActiveTab('upload')}
-                className={`flex-1 py-2 px-4 rounded-md transition ${
-                  activeTab === 'upload' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+                className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                  activeTab === 'upload' 
+                    ? 'bg-white text-blue-600 shadow-lg transform scale-105' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
                 }`}
               >
-                Tez Yükle
+                📄 Tez Yükle
               </button>
               <button
                 onClick={() => setActiveTab('citation')}
-                className={`flex-1 py-2 px-4 rounded-md transition ${
-                  activeTab === 'citation' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+                className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                  activeTab === 'citation' 
+                    ? 'bg-white text-blue-600 shadow-lg transform scale-105' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
                 }`}
               >
-                Kaynak Formatla
+                📚 Kaynak Formatla
               </button>
               <button
                 onClick={() => setActiveTab('abstract')}
-                className={`flex-1 py-2 px-4 rounded-md transition ${
-                  activeTab === 'abstract' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+                className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                  activeTab === 'abstract' 
+                    ? 'bg-white text-blue-600 shadow-lg transform scale-105' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
                 }`}
               >
-                Özet Oluştur
+                ✨ Özet Oluştur
               </button>
             </div>
 
             {/* Tab Content */}
-            <div className="card">
-              {activeTab === 'upload' && (
-                <FileUploader onAnalysisComplete={setAnalysisResult} />
-              )}
-              {activeTab === 'citation' && <CitationFormatter />}
-              {activeTab === 'abstract' && <AbstractGenerator />}
+            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+              <div className="p-8">
+                {activeTab === 'upload' && (
+                  <div className="animate-fade-in">
+                    <FileUploader onAnalysisComplete={setAnalysisResult} />
+                  </div>
+                )}
+                {activeTab === 'citation' && (
+                  <div className="animate-fade-in">
+                    <CitationFormatter />
+                  </div>
+                )}
+                {activeTab === 'abstract' && (
+                  <div className="animate-fade-in">
+                    <AbstractGenerator />
+                  </div>
+                )}
+              </div>
             </div>
-
-            {/* Results */}
-            {analysisResult && (
-              <div className="mt-8">
+            
+            {/* Result Display */}
+            {analysisResult && activeTab === 'upload' && (
+              <div className="mt-8 animate-fade-in">
                 <ResultDisplay result={analysisResult} />
               </div>
             )}
@@ -279,16 +384,15 @@ export default function Home() {
       </section>
 
       {/* PRICING SECTION - YENİ YER */}
-      <section ref={pricingRef} className="py-20 bg-white">
+      <section id="pricing" ref={pricingRef} className="py-24 gradient-bg">
         <div className="container mx-auto px-4">
           {/* Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl font-bold mb-4">
-              Basit ve Şeffaf <span className="text-blue-600">Fiyatlandırma</span>
+              Basit ve Şeffaf <span className="text-gradient">Fiyatlandırma</span>
             </h2>
-            <p className="text-xl text-gray-600 mb-8">
-              Size uygun planı seçin, istediğiniz zaman iptal edin
-            </p>
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              Size uygun planı seçin, istediğiniz zaman iptal edin.</p>
 
             {/* Billing Toggle */}
             <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
@@ -510,7 +614,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+              <div id="privacy-policy" className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
                 <h3 className="font-semibold mb-2 text-green-800 flex items-center">
                   🔒 Tezim güvende mi? Gizliliğim korunuyor mu?
                 </h3>

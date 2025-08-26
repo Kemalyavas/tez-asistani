@@ -70,7 +70,7 @@ export default function CitationFormatter() {
         <select
           value={format}
           onChange={(e) => setFormat(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="input-modern"
         >
           <option value="apa">APA 7</option>
           <option value="mla">MLA 9</option>
@@ -94,7 +94,7 @@ export default function CitationFormatter() {
               ? 'Yazar adı, kitap adı, yayınevi, yıl...'
               : 'Makale başlığı, dergi adı, cilt, sayı...'
           }
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="input-modern"
           rows={3}
         />
       </div>

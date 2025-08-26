@@ -208,7 +208,6 @@ export default function PrivacyPolicy() {
                   <p className="text-sm text-gray-600 mb-2">AI analizi için kullanılır. OpenAI'ın veri politikası:</p>
                   <ul className="text-sm text-gray-600 list-disc pl-4 space-y-1">
                     <li>API üzerinden gönderilen veriler model eğitiminde kullanılmaz</li>
-                    <li>Veriler 30 gün sonra otomatik silinir</li>
                     <li>GDPR ve veri koruma standartlarına uyumlu</li>
                   </ul>
                 </div>
