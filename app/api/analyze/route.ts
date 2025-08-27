@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from "openai";
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+
+// Kullanım limitleri
+const USAGE_LIMITS = {
+  free: { thesis_analyses: 1 },
+  pro: { thesis_analyses: 50 },
+  expert: { thesis_analyses: -1 } // sınırsız
+};
 
 export async function POST(request: NextRequest) {
   console.log('API Route çalıştı');
@@ -7,6 +16,36 @@ export async function POST(request: NextRequest) {
   console.log('Key başlangıcı:', process.env.OPENAI_API_KEY?.substring(0, 10));
   
   try {
+    // Kullanıcı authentication kontrolü
+    const supabase = createServerComponentClient({ cookies });
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Giriş yapmanız gerekiyor' },
+        { status: 401 }
+      );
+    }
+
+    // Kullanıcı profilini al
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    const subscription = profile?.subscription_status || 'free';
+    const currentUsage = profile?.thesis_count || 0;
+    const limit = USAGE_LIMITS[subscription as keyof typeof USAGE_LIMITS].thesis_analyses;
+
+    // Limit kontrolü
+    if (limit !== -1 && currentUsage >= limit) {
+      return NextResponse.json(
+        { error: 'Daha fazla tez analizi için Pro üyelik alın' },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
@@ -169,6 +208,29 @@ Lütfen yukarıdaki sistem talimatlarında belirtilen tüm kriterleri değerlend
     
     try {
       const result = JSON.parse(rawMessage);
+      
+      // Başarılı analiz sonrası kullanım sayısını artır
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ thesis_count: currentUsage + 1 })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Kullanım sayısı güncellenirken hata:', updateError);
+      }
+      
+      // Documents tablosuna kayıt ekle (isteğe bağlı - istatistik için)
+      await supabase
+        .from('documents')
+        .insert({
+          user_id: user.id,
+          title: file.name,
+          file_type: file.type,
+          file_size: file.size,
+          processed: true,
+          analysis_result: result
+        });
+      
       return NextResponse.json(result);
     } catch (parseError) {
       console.error('JSON parse hatası:', parseError);
