@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 // Site ana metadata
 export const siteMetadata = {
-  title: 'Tez Asistanı - AI Destekli Akademik Yazım Aracı | Türkiye',
+  title: 'TezAI - Tez Yazım Asistanı | AI Destekli Akademik Yazım Aracı',
   description: 'Tez, makale ve akademik çalışmalarınız için AI destekli kaynak formatı, özet oluşturma ve yazım asistanı. APA, MLA, Chicago stillerinde otomatik referans formatı. Türkiye\'nin en gelişmiş akademik yazım platformu.',
   keywords: [
     // Ana hedef kelimeler
@@ -24,7 +24,7 @@ export const siteMetadata = {
     'akıllı akademik araçlar', 'dijital tez yazım', 'online akademik platform'
   ],
   url: 'https://tez-asistani.vercel.app',
-  siteName: 'Tez Asistanı',
+  siteName: 'TezAI',
   images: [
     {
       url: '/og-image.jpg',
@@ -42,13 +42,22 @@ export const siteMetadata = {
 // Ana sayfa metadata
 export const homeMetadata: Metadata = {
   metadataBase: new URL('https://tez-asistani.vercel.app'),
-  title: 'Tez Asistanı - AI Destekli Akademik Yazım Aracı | Türkiye #1',
+  title: 'TezAI - Tez Yazım Asistanı | AI Destekli Akademik Yazım Aracı',
   description: 'Tez ve akademik çalışmalarınızı hızlandırın! AI destekli kaynak formatı (APA, MLA, Chicago), otomatik özet oluşturma, referans düzenleme. Türkiye\'nin en gelişmiş akademik yazım platformu. Ücretsiz deneyin!',
   keywords: siteMetadata.keywords.join(', '),
   authors: [{ name: siteMetadata.author }],
   creator: siteMetadata.author,
   publisher: siteMetadata.siteName,
   robots: siteMetadata.robots,
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/logo.png',
+    other: {
+      rel: 'apple-touch-icon-precomposed',
+      url: '/logo.png',
+    },
+  },
   openGraph: {
     title: 'Tez Asistanı - AI Destekli Akademik Yazım Aracı | Türkiye #1',
     description: 'Tez ve akademik çalışmalarınızı hızlandırın! AI destekli kaynak formatı, otomatik özet oluşturma, referans düzenleme. Türkiye\'nin en gelişmiş akademik yazım platformu.',

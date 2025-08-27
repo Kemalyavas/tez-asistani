@@ -1,6 +1,6 @@
 {
-  "name": "Tez Asistanı",
-  "short_name": "TezAsistanı",
+  "name": "TezAI - Tez Yazım Asistanı",
+  "short_name": "TezAI",
   "description": "AI destekli akademik yazım aracı. Tez, makale ve akademik çalışmalarınız için otomatik referans formatı ve özet oluşturma.",
   "start_url": "/",
   "display": "standalone",

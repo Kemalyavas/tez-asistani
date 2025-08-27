@@ -1,9 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FileText, Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import Image from 'next/image';
 
 export default function Navbar() {
   const router = useRouter();
@@ -46,13 +47,17 @@ export default function Navbar() {
     <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <FileText className="h-8 w-8 text-white" />
+          <Link href="/" className="flex items-center group">
+            <div className="relative w-20 h-20 group-hover:scale-110 transition-transform duration-300">
+              <Image 
+                src="/logo.png" 
+                alt="TezAI Logo" 
+                width={80}
+                height={80}
+                className="object-contain"
+                priority
+              />
             </div>
-            <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Tez Asistanı
-            </span>
           </Link>
           
           {/* Desktop Navigation Menu */}
