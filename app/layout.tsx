@@ -3,11 +3,13 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import { homeMetadata } from './lib/metadata';
 import { structuredData } from './lib/structuredData';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -98,6 +100,7 @@ export default function RootLayout({
           <main role="main">
             {children}
           </main>
+          <Footer />
           <Toaster 
             position="top-right"
             toastOptions={{
@@ -109,6 +112,13 @@ export default function RootLayout({
             }}
           />
         </div>
+          <footer className="bg-gray-50 border-t border-gray-200 mt-8 py-6 text-center text-sm text-gray-600">
+            <div className="container mx-auto flex flex-col md:flex-row items-center justify-between px-4">
+              <div>
+                © {new Date().getFullYear()} TezAI. Tüm hakları saklıdır.
+              </div>
+            </div>
+          </footer>
         
         {/* Google Analytics */}
         <Script

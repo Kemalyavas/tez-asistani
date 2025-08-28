@@ -231,7 +231,7 @@ export default function PrivacyPolicy() {
                   Veri gizliliği ile ilgili sorularınız, talepleriniz veya şikayetleriniz için:
                 </p>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>E-posta:</strong> privacy@tez-asistani.com</p>
+                  <p><strong>E-posta:</strong>info@tezasistani.com</p>
                   <p><strong>Adres:</strong> Kocaeli/Izmit</p>
                   <p><strong>KVKK Sorumlusu:</strong> Ali Kemal Yavaş</p>
                 </div>

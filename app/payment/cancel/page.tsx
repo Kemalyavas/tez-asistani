@@ -84,10 +84,12 @@ export default function PaymentCancelPage() {
           </p>
           <div className="space-y-2">
             <a
-              href="mailto:destek@tezasistani.com"
+              href="mailto:info@tezasistani.com
+"
               className="block text-blue-600 hover:underline text-sm"
             >
-              📧 destek@tezasistani.com
+              📧 info@tezasistani.com
+
             </a>
             <a
               href="tel:+905551234567"

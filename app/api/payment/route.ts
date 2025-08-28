@@ -5,11 +5,7 @@ import crypto from 'crypto';
 export async function POST(request: NextRequest) {
   try {
     const { email, plan } = await request.json();
-    
-    // Iyzico entegrasyonu için:
-    // 1. npm install iyzipay
-    // 2. Merchant bilgilerinizi .env'ye ekleyin
-    // 3. Aşağıdaki kodu Iyzico dokümantasyonuna göre güncelleyin
+      
     
     const paymentData = {
       locale: 'tr',

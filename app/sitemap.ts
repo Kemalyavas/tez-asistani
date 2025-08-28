@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://tez-asistani.vercel.app'
+  const baseUrl = 'https://www.tezai.com.tr'
   const currentDate = new Date()
 
   // Ana sayfalar

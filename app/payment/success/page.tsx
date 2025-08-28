@@ -112,8 +112,9 @@ function PaymentSuccessContent() {
         {/* Support */}
         <p className="text-xs text-gray-500 mt-6">
           Herhangi bir sorunuz varsa{' '}
-          <a href="mailto:destek@tezasistani.com" className="text-blue-600 hover:underline">
-            destek@tezasistani.com
+          <a href="mailto:info@tezasistani.com" className="text-blue-600 hover:underline">
+            info@tezasistani.com
+
           </a>{' '}
           adresinden bizimle iletişime geçebilirsiniz.
         </p>

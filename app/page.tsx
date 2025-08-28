@@ -70,7 +70,7 @@ export default function Home() {
       name: 'Pro',
       price: isHydrated ? (billingPeriod === 'monthly' ? 10 : 96) : 10, // Yıllık %20 indirim
       
-      description: 'Akademisyenler için',
+      description: 'Akademisyenler ve Öğrenciler için',
       features: [
         '50 tez analizi',
         '20 özet oluşturma',
@@ -91,7 +91,7 @@ export default function Home() {
     {
       name: 'Expert',
       price: isHydrated ? (billingPeriod === 'monthly' ? 25 : 240) : 25, // Yıllık %20 indirim
-      description: 'Kurumsal kullanım için',
+      description: 'Sınırsız kullanım için',
       features: [
         'Sınırsız tez analizi',
         'Sınırsız özet oluşturma',
