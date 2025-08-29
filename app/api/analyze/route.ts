@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from "openai";
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { rateLimit, getClientIP } from '../../lib/rateLimit'; // Rate limit fonksiyonlarını import et
 
 // Kullanım limitleri
 const USAGE_LIMITS = {
@@ -11,11 +12,28 @@ const USAGE_LIMITS = {
 };
 
 export async function POST(request: NextRequest) {
-  console.log('API Route çalıştı');
-  console.log('OpenAI Key var mı:', !!process.env.OPENAI_API_KEY);
-  console.log('Key başlangıcı:', process.env.OPENAI_API_KEY?.substring(0, 10));
-  
   try {
+    // --- YENİ EKLENEN KOD BAŞLANGICI ---
+    // Rate limiting
+    const clientIP = getClientIP(request, request.headers);
+    const rateLimitResult = rateLimit(`analyze_${clientIP}`, {
+      windowMs: 15 * 60 * 1000, // 15 dakika
+      maxAttempts: 10, // 15 dakikada 10 istek
+      blockDurationMs: 30 * 60 * 1000 // 30 dakika engelle
+    });
+
+    if (!rateLimitResult.allowed) {
+      const waitTime = rateLimitResult.blockedUntil 
+        ? Math.ceil((rateLimitResult.blockedUntil - Date.now()) / 1000 / 60)
+        : Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
+        
+      return NextResponse.json(
+        { error: `Çok fazla istek denemesi. Lütfen ${waitTime} dakika sonra tekrar deneyin.` },
+        { status: 429 }
+      );
+    }
+    // --- YENİ EKLENEN KOD SONU ---
+
     // Kullanıcı authentication kontrolü
     const supabase = createServerComponentClient({ cookies });
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -49,8 +67,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
-    console.log('Dosya alındı:', file?.name);
-    
     if (!file) {
       return NextResponse.json({ error: 'Dosya bulunamadı' }, { status: 400 });
     }
@@ -60,31 +76,22 @@ export async function POST(request: NextRequest) {
     
     let text = '';
     
-    // File type ve extension kontrolü
     const isDocx = file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     const isPdf = file.name.endsWith('.pdf') || file.type === 'application/pdf';
     
     if (isDocx) {
-      console.log('DOCX dosyası işleniyor');
-      // Dynamic import for mammoth
       const mammoth = await import('mammoth');
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else if (isPdf) {
-      console.log('PDF dosyası işleniyor');
-      // Dynamic import for pdf-parse
       const pdfParse = await import('pdf-parse');
       const data = await pdfParse.default(buffer);
       text = data.text;
     } else {
-      console.log('Desteklenmeyen dosya tipi:', file.type, 'Dosya adı:', file.name);
       return NextResponse.json({ 
         error: 'Desteklenmeyen dosya formatı. Lütfen PDF veya DOCX dosyası yükleyin.' 
       }, { status: 400 });
     }
-    
-    console.log('Text uzunluğu:', text.length);
-    console.log('İlk 100 karakter:', text.substring(0, 100));
     
     if (!text || text.length < 10) {
       return NextResponse.json({ 
@@ -92,8 +99,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log('OpenAI çağrısı yapılıyor...');
-    
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -200,16 +205,12 @@ Lütfen yukarıdaki sistem talimatlarında belirtilen tüm kriterleri değerlend
       temperature: 0.4,
       response_format: { type: "json_object" }
     });
-
-    console.log('OpenAI yanıtı alındı');
     
     const rawMessage = completion.choices[0].message?.content || "{}";
-    console.log('Ham yanıt:', rawMessage);
     
     try {
       const result = JSON.parse(rawMessage);
       
-      // Başarılı analiz sonrası kullanım sayısını artır
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ thesis_count: currentUsage + 1 })
@@ -219,7 +220,6 @@ Lütfen yukarıdaki sistem talimatlarında belirtilen tüm kriterleri değerlend
         console.error('Kullanım sayısı güncellenirken hata:', updateError);
       }
       
-      // Documents tablosuna kayıt ekle (isteğe bağlı - istatistik için)
       await supabase
         .from('documents')
         .insert({
@@ -249,8 +249,6 @@ Lütfen yukarıdaki sistem talimatlarında belirtilen tüm kriterleri değerlend
     
   } catch (error: any) {
     console.error('API Route Hatası:', error);
-    console.error('Hata detayı:', error.message);
-    console.error('Hata kodu:', error.code);
     
     if (error.message?.includes('API key')) {
       return NextResponse.json(

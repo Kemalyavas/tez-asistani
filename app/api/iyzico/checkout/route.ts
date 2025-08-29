@@ -9,7 +9,7 @@ const supabase = createClient(
 // TL fiyatları (İyzico TL destekliyor)
 const PRICING_PLANS = {
   pro: {
-    amount: 399, // 399 TL/ay
+    amount: 199,
     currency: 'TRY',
     name: 'Pro Plan',
     features: [
@@ -23,7 +23,7 @@ const PRICING_PLANS = {
     ]
   },
   expert: {
-    amount: 950, // 950 TL/ay
+    amount: 750,
     currency: 'TRY', 
     name: 'Expert Plan',
     features: [
