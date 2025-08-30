@@ -144,9 +144,9 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
+        // --- DEĞİŞİKLİK: user_id ARTIK GÖNDERİLMİYOR ---
         body: JSON.stringify({
           plan: planId,
-          user_id: user.id,
           billing_cycle: billingPeriod
         }),
       });
@@ -157,7 +157,6 @@ export default function Home() {
         throw new Error(data.error || 'Ödeme işlemi başlatılamadı');
       }
       
-      // Iyzico Checkout'a yönlendir
       window.location.href = data.url;
 
     } catch (error: any) {
