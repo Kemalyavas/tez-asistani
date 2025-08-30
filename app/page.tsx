@@ -68,7 +68,7 @@ export default function Home() {
     },
     {
       name: 'Pro',
-      price: isHydrated ? (billingPeriod === 'monthly' ? 199 : 1900) : 199, // Yıllık %20 indirim
+      price: isHydrated ? (billingPeriod === 'monthly' ? 199 : 1990) : 199, // Yıllık indirimli fiyat
       
       description: 'Akademisyenler ve Öğrenciler için',
       features: [
@@ -90,7 +90,7 @@ export default function Home() {
     },
     {
       name: 'Expert',
-      price: isHydrated ? (billingPeriod === 'monthly' ? 750 : 8999) : 750, // Yıllık %20 indirim
+      price: isHydrated ? (billingPeriod === 'monthly' ? 499 : 4990) : 499, // Yıllık indirimli fiyat
       description: 'Sınırsız kullanım için',
       features: [
         'Sınırsız tez analizi',
@@ -449,7 +449,6 @@ export default function Home() {
                     {typeof plan.price === 'number' ? (
                       <>
                         <div className="text-4xl font-bold">
-                          {/* DEĞİŞİKLİK BURADA */}
                           {plan.price === 0 ? '0₺' : `${plan.price}₺`}
                           <span className="text-lg text-gray-500 font-normal">
                             /{billingPeriod === 'monthly' ? 'ay' : 'yıl'}
