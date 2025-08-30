@@ -1,5 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import FileUploader from './components/FileUploader';
 import ResultDisplay from './components/ResultDisplay';
 import CitationFormatter from './components/CitationFormatter';
@@ -13,11 +15,21 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [isHydrated, setIsHydrated] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+  const supabase = createClientComponentClient();
   
-  // Hydration tamamlandığında flag'i set et
-  useEffect(() => {
+    useEffect(() => {
     setIsHydrated(true);
-  }, []);
+    
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    getUser();
+   
+  }, [supabase]);
   
   // Scroll için ref'ler
   const howItWorksRef = useRef<HTMLDivElement>(null);
@@ -47,6 +59,7 @@ export default function Home() {
   // Fiyatlandırma planları
   const plans = [
     {
+      id: 'free',
       name: 'Ücretsiz',
       price: 0,
       description: 'Denemek için ideal',
@@ -67,6 +80,7 @@ export default function Home() {
       popular: false,
     },
     {
+      id: 'pro',
       name: 'Pro',
       price: isHydrated ? (billingPeriod === 'monthly' ? 199 : 1990) : 199, // Yıllık indirimli fiyat
       
@@ -89,6 +103,7 @@ export default function Home() {
       popular: true,
     },
     {
+      id: 'expert',
       name: 'Expert',
       price: isHydrated ? (billingPeriod === 'monthly' ? 499 : 4990) : 499, // Yıllık indirimli fiyat
       description: 'Sınırsız kullanım için',
@@ -108,13 +123,48 @@ export default function Home() {
     },
   ];
 
-  const handleSelectPlan = (planName: string) => {
-    if (planName === 'Ücretsiz') {
+  const handleSelectPlan = async (planId: string) => {
+    if (planId === 'free') {
       scrollToApp();
       toast.success('Ücretsiz denemeniz başladı! 1 analiz hakkınız var.');
-    } else {
-      toast.success(`${planName} planı için ödeme sayfasına yönlendiriliyorsunuz...`);
-      // İleride payment integration
+      return;
+    }
+
+    if (!user) {
+      toast.error('Lütfen önce giriş yapın');
+      router.push('/auth');
+      return;
+    }
+
+    setLoadingPlan(planId);
+
+    try {
+      const response = await fetch('/api/iyzico/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan: planId,
+          user_id: user.id,
+          billing_cycle: billingPeriod
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ödeme işlemi başlatılamadı');
+      }
+      
+      // Iyzico Checkout'a yönlendir
+      window.location.href = data.url;
+
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      toast.error(error.message || 'Ödeme işlemi başlatılamadı');
+    } finally {
+      setLoadingPlan(null);
     }
   };
 
@@ -383,10 +433,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PRICING SECTION - YENİ YER */}
+      {/* PRICING SECTION - GÜNCELLENMİŞ BUTONLAR */}
       <section id="pricing" ref={pricingRef} className="py-24 gradient-bg">
         <div className="container mx-auto px-4">
-          {/* Header */}
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl font-bold mb-4">
               Basit ve Şeffaf <span className="text-gradient">Fiyatlandırma</span>
@@ -394,14 +443,11 @@ export default function Home() {
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Size uygun planı seçin, istediğiniz zaman iptal edin.</p>
 
-            {/* Billing Toggle */}
             <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setBillingPeriod('monthly')}
                 className={`px-6 py-2 rounded-md transition font-medium ${
-                  billingPeriod === 'monthly'
-                    ? 'bg-white text-blue-600 shadow'
-                    : 'text-gray-600 hover:text-gray-900'
+                  billingPeriod === 'monthly' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Aylık
@@ -409,9 +455,7 @@ export default function Home() {
               <button
                 onClick={() => setBillingPeriod('yearly')}
                 className={`px-6 py-2 rounded-md transition font-medium ${
-                  billingPeriod === 'yearly'
-                    ? 'bg-white text-blue-600 shadow'
-                    : 'text-gray-600 hover:text-gray-900'
+                  billingPeriod === 'yearly' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Yıllık
@@ -422,15 +466,12 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Pricing Cards */}
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {plans.map((plan, index) => (
               <div
                 key={index}
                 className={`relative bg-white rounded-2xl shadow-xl p-8 ${
-                  plan.popular
-                    ? 'ring-2 ring-blue-600 transform scale-105'
-                    : 'hover:shadow-2xl transition-shadow'
+                  plan.popular ? 'ring-2 ring-blue-600 transform scale-105' : 'hover:shadow-2xl transition-shadow'
                 }`}
               >
                 {plan.popular && (
@@ -446,20 +487,12 @@ export default function Home() {
                   <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                   <p className="text-gray-600 mb-4">{plan.description}</p>
                   <div className="mb-2">
-                    {typeof plan.price === 'number' ? (
-                      <>
-                        <div className="text-4xl font-bold">
-                          {plan.price === 0 ? '0₺' : `${plan.price}₺`}
-                          <span className="text-lg text-gray-500 font-normal">
-                            /{billingPeriod === 'monthly' ? 'ay' : 'yıl'}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-4xl font-bold text-gray-900">
-                        {plan.price}
-                      </div>
-                    )}
+                    <div className="text-4xl font-bold">
+                      {plan.price === 0 ? '0₺' : `${plan.price}₺`}
+                      <span className="text-lg text-gray-500 font-normal">
+                        /{billingPeriod === 'monthly' ? 'ay' : 'yıl'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -481,28 +514,17 @@ export default function Home() {
                 </ul>
 
                 <button
-                  onClick={() => handleSelectPlan(plan.name)}
+                  onClick={() => handleSelectPlan(plan.id)} // plan.name yerine plan.id kullandık
+                  disabled={loadingPlan === plan.id}
                   className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
-                      : plan.name === 'Expert'
-                      ? 'bg-gray-900 text-white hover:bg-gray-800'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                    plan.popular ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800' : 
+                    plan.id === 'free' ? 'bg-gray-100 text-gray-800 hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
-                  {plan.cta}
+                  {loadingPlan === plan.id ? 'Yönlendiriliyor...' : plan.cta}
                 </button>
               </div>
             ))}
-          </div>
-
-          {/* Payment Methods */}
-          <div className="mt-12 text-center">
-            <p className="text-gray-600 mb-4">Güvenli ödeme yöntemleri</p>
-            <div className="flex justify-center space-x-6">
-              <span className="text-gray-400">💳 Kredi Kartı</span>
-              <span className="text-gray-400">🏦 Banka Kartı</span>
-            </div>
           </div>
         </div>
       </section>
