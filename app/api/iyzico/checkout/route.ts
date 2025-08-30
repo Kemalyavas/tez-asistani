@@ -35,20 +35,20 @@ export async function POST(request: NextRequest) {
 
     const price = PLANS[plan as keyof typeof PLANS][billing_cycle as keyof typeof PLANS['pro']];
     const planName = PLAN_NAMES[plan as keyof typeof PLAN_NAMES];
+    
+    const fullName = user.user_metadata?.username || user.email?.split('@')[0] || 'Kullanıcı';
+    const nameParts = fullName.split(' ');
+    const name = nameParts[0];
+    const surname = nameParts.slice(1).join(' ') || 'Soyad';
 
-    // --- HATANIN DÜZELTİLDİĞİ YER ---
-    // 'profiles' tablosundan artık 'created_at' istenmiyor, sadece 'full_name' alınıyor.
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('full_name') // Sadece full_name istiyoruz
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profileData) {
-      console.error('Supabase profile error:', profileError);
-      // Hata mesajını daha anlaşılır hale getirdik.
-      return NextResponse.json({ error: 'Ödeme işlemi için kullanıcı profili bulunamadı. Lütfen destek ile iletişime geçin.' }, { status: 404 });
-    }
+    // --- HATANIN ÇÖZÜLDÜĞÜ YER ---
+    // registrationDate için bir güvenlik kontrolü ekliyoruz.
+    // Eğer user.created_at geçerli bir tarih değilse, o anki zamanı kullan.
+    const registrationDate = new Date(user.created_at);
+    const formattedRegistrationDate = (isNaN(registrationDate.getTime()) ? new Date() : registrationDate)
+      .toISOString()
+      .slice(0, 19)
+      .replace('T', ' ');
     // --- HATA DÜZELTİLDİ ---
 
     const iyzipay = new Iyzipay({
@@ -70,14 +70,13 @@ export async function POST(request: NextRequest) {
       enabledInstallments: ['1'],
       buyer: {
         id: user.id,
-        name: profileData.full_name?.split(' ')[0] || 'Ad',
-        surname: profileData.full_name?.split(' ').slice(1).join(' ') || 'Soyad',
+        name: name,
+        surname: surname,
         gsmNumber: '+905555555555',
         email: user.email,
         identityNumber: '11111111111',
         lastLoginDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        // Kayıt tarihi (registrationDate) doğrudan ana kullanıcı objesinden alınıyor
-        registrationDate: new Date(user.created_at).toISOString().slice(0, 19).replace('T', ' '),
+        registrationDate: formattedRegistrationDate, // Güvenli tarih formatını kullan
         registrationAddress: 'Test Adres',
         ip: request.headers.get('x-forwarded-for') || '127.0.0.1',
         city: 'Istanbul',
@@ -85,10 +84,10 @@ export async function POST(request: NextRequest) {
         zipCode: '34000'
       },
       shippingAddress: {
-        contactName: profileData.full_name || 'Test User', city: 'Istanbul', country: 'Turkey', address: 'Test Adres', zipCode: '34000'
+        contactName: fullName, city: 'Istanbul', country: 'Turkey', address: 'Test Adres', zipCode: '34000'
       },
       billingAddress: {
-        contactName: profileData.full_name || 'Test User', city: 'Istanbul', country: 'Turkey', address: 'Test Adres', zipCode: '34000'
+        contactName: fullName, city: 'Istanbul', country: 'Turkey', address: 'Test Adres', zipCode: '34000'
       },
       basketItems: [
         {
