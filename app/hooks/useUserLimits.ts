@@ -28,7 +28,6 @@ const USAGE_LIMITS = {
   }
 };
 
-// --- KODUN BU KISMI DEĞİŞMEDİ ---
 interface CacheData {
   user: any | null;
   usage: UserUsage | null;
@@ -40,7 +39,7 @@ let globalCache: CacheData = { user: null, usage: null, timestamp: 0, version: 0
 const CACHE_KEY = 'tez_asistani_user_cache';
 const CACHE_DURATION = 30000; 
 
-// --- GÜNCELLEME: Sadece tarayıcıda çalıştığından emin olmak için kontrol eklendi ---
+// Sadece tarayıcıda çalıştığından emin olmak için kontrol
 const saveToStorage = (data: CacheData) => {
   if (typeof window !== 'undefined') {
     try {
@@ -67,8 +66,6 @@ const loadFromStorage = (): CacheData | null => {
   }
   return null;
 };
-// --- GÜNCELLEME SONU ---
-
 
 export function useUserLimits() {
   const [user, setUser] = useState<any>(null);
@@ -82,7 +79,6 @@ export function useUserLimits() {
 
   const supabase = createClientComponentClient();
 
-  // --- ANA DEĞİŞİKLİK: Veri çekme ve cache'leme mantığı useEffect içine alındı ---
   useEffect(() => {
     // Bu kod bloğu sadece component tarayıcıda yüklendikten sonra çalışır.
     const initialize = async () => {
@@ -134,8 +130,7 @@ export function useUserLimits() {
     };
 
     initialize();
-  }, [supabase]); // Sadece ilk render'da ve supabase objesi değiştiğinde çalışır
-  // --- ANA DEĞİŞİKLİK SONU ---
+  }, [supabase]);
 
   const checkLimit = useCallback((feature: keyof Omit<UserUsage, 'subscription_status'>) => {
     if (!user) return { allowed: false, reason: 'Giriş yapmanız gerekiyor' };
@@ -182,15 +177,50 @@ export function useUserLimits() {
     }
   }, [user, usage, supabase]);
   
-  const refreshData = useCallback(() => {
+  const refreshData = useCallback(async () => {
+    // Cache'i temizle
     globalCache = { user: null, usage: null, timestamp: 0, version: 0 };
     if(typeof window !== 'undefined') {
       localStorage.removeItem(CACHE_KEY);
     }
     setLoading(true);
-    // Tekrar veri çekmek için bir yol (örn. state güncellemesi veya event)
-    // Bu örnekte basitlik adına direkt bir re-fetch implementasyonu eklenmemiştir.
-  }, []);
+    
+    // Verileri yeniden çek
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setUser(null);
+        setUsage({ thesis_analyses: 0, abstract_generations: 0, citation_formats: 0, subscription_status: 'free' });
+        setLoading(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      const newUsage = {
+        thesis_analyses: profile?.thesis_count || 0,
+        abstract_generations: profile?.abstract_count || 0,
+        citation_formats: profile?.citation_count || 0,
+        subscription_status: profile?.subscription_status || 'free'
+      };
+
+      const newCache = { user, usage: newUsage, timestamp: Date.now(), version: ++globalCache.version };
+      globalCache = newCache;
+      saveToStorage(newCache);
+      
+      setUser(user);
+      setUsage(newUsage);
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
 
   return {
     user,

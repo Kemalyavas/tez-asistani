@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import Iyzipay from 'iyzipay';
 import { URLSearchParams } from 'url';
 
-export const dynamic = 'force-dynamic'; // Bu satır Vercel'de dinamik çalışmasını sağlar
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies });
@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     const token = params.get('token');
 
     if (!token) {
-      console.error('[CALLBACK-ERROR] Iyzico returned no token.');
-      return NextResponse.redirect(new URL('/payment/fail?error=token_missing', request.nextUrl));
+      console.error('[HATA] Iyzico token göndermedi.');
+      return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl));
     }
 
     const iyzipay = new Iyzipay({
@@ -28,24 +28,37 @@ export async function POST(request: NextRequest) {
     const result = await new Promise<any>((resolve, reject) => {
       iyzipay.checkoutForm.retrieve({ token }, (err, result) => {
         if (err || result.status !== 'success') {
-          console.error('[CALLBACK-IYZICO-ERROR]', { err, result });
-          return reject(err || new Error((result && (result as any).errorMessage) || 'Unknown error'));
+          console.error('[IYZICO-HATA]', { err, result });
+          return reject(err || new Error(result.status || 'Unknown error'));
         }
         resolve(result);
       });
     });
 
     if (result.paymentStatus === 'SUCCESS') {
-      console.log('[CALLBACK-SUCCESS] Payment verified, redirecting to success page.');
-      // Kullanıcıyı başarı sayfasına GET isteği ile yönlendir.
+      const conversationId = result.conversationId;
+      const userId = conversationId.split('_')[1];
+      const planId = result.basketItems?.[0]?.id.split('_')[0]; // 'pro_monthly' -> 'pro'
+
+      if (userId && planId) {
+        // KULLANICI HAKLARINI BURADA GÜNCELLİYORUZ
+        await supabase
+          .from('profiles')
+          .update({
+            subscription_status: planId, // 'pro' veya 'expert'
+            subscription_plan: planId,
+          })
+          .eq('id', userId);
+      }
+      
+      // Kullanıcıyı başarı sayfasına yönlendir
       return NextResponse.redirect(new URL('/payment/success', request.nextUrl));
     } else {
-      console.error('[CALLBACK-PAYMENT-FAIL]', result);
-      const errorMessage = encodeURIComponent(result.errorMessage || 'payment_failed');
+      const errorMessage = encodeURIComponent(result.errorMessage || 'odeme_basarisiz');
       return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl));
     }
   } catch (error: any) {
-    console.error('[CALLBACK-FATAL-ERROR]', error);
-    return NextResponse.redirect(new URL(`/payment/fail?error=server_error`, request.nextUrl));
+    console.error('[KRİTİK-HATA]', error.message);
+    return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl));
   }
 }

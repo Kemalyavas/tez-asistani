@@ -15,7 +15,7 @@ export default function PaymentSuccessClient() {
         </h1>
         <p className="text-gray-600 mb-6">
           Tebrikler! Planınız başarıyla aktifleştirildi. 
-          Aboneliğiniz profilinize yansıtılmıştır.
+          Tüm premium özelliklere artık erişebilirsiniz.
         </p>
         <div className="space-y-3">
           <Link href="/" className="btn-primary w-full flex items-center justify-center group">
