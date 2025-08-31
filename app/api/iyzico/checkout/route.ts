@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       basketId: `basket_${user.id}_${plan}`,
       paymentChannel: 'WEB',
       paymentGroup: 'SUBSCRIPTION',
-      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/payment/success`,
+      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/iyzico/verify-payment`,
       enabledInstallments: ['1'],
       buyer: {
         id: user.id,
