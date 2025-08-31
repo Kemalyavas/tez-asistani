@@ -10,8 +10,6 @@ export async function POST(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies });
 
   try {
-    // Iyzico'dan gelen body'yi text olarak oku ve URLSearchParams ile parse et.
-    // Bu, formData() metodundan daha güvenilirdir.
     const bodyText = await request.text();
     const params = new URLSearchParams(bodyText);
     const token = params.get('token');
@@ -34,7 +32,6 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // ÖNEMLİ: result objesinin ve gerekli alanların varlığını kontrol et
     if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS' && result.conversationId) {
       const conversationId = result.conversationId;
       const userId = conversationId.split('_')[1];
@@ -54,13 +51,10 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.redirect(new URL('/payment/success', request.url));
-
     } else {
-      console.error('Iyzico ödemesi başarısız veya eksik veri:', result?.errorMessage || 'Bilinmeyen Hata');
       const errorMessage = result?.errorMessage ? encodeURIComponent(result.errorMessage) : 'payment_failed';
       return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.url));
     }
-
   } catch (error: any) {
     console.error('Iyzico Callback Genel Hata:', error);
     return NextResponse.redirect(new URL(`/payment/fail?error=server_error`, request.url));
