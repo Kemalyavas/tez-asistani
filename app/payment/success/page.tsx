@@ -1,10 +1,6 @@
 import { Suspense } from 'react';
 import PaymentSuccessClient from './client';
 
-function PaymentSuccessContent() {
-  return <PaymentSuccessClient />;
-}
-
 export default function PaymentSuccessPage() {
   return (
     <Suspense fallback={
@@ -15,7 +11,7 @@ export default function PaymentSuccessPage() {
         </div>
       </div>
     }>
-      <PaymentSuccessContent />
+      <PaymentSuccessClient />
     </Suspense>
   );
 }
