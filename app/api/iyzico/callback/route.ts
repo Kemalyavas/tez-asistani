@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const token = params.get('token');
 
     if (!token) {
-      console.error('[HATA] Iyzico token göndermedi.');
+      console.error('[CALLBACK-HATA] Iyzico token göndermedi.');
       return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl));
     }
 
@@ -26,39 +26,31 @@ export async function POST(request: NextRequest) {
     });
 
     const result = await new Promise<any>((resolve, reject) => {
-      iyzipay.checkoutForm.retrieve({ token }, (err, result) => {
-        if (err || result.status !== 'success') {
-          console.error('[IYZICO-HATA]', { err, result });
-          return reject(err || new Error(result.status || 'Unknown error'));
-        }
-        resolve(result);
+      iyzipay.checkoutForm.retrieve({ token }, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
       });
     });
 
-    if (result.paymentStatus === 'SUCCESS') {
-      const conversationId = result.conversationId;
-      const userId = conversationId.split('_')[1];
-      const planId = result.basketItems?.[0]?.id.split('_')[0]; // 'pro_monthly' -> 'pro'
+    if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+      const { conversationId, basketItems } = result;
+      const userId = conversationId?.split('_')[1];
+      const planId = basketItems?.[0]?.id?.split('_')[0];
 
       if (userId && planId) {
-        // KULLANICI HAKLARINI BURADA GÜNCELLİYORUZ
         await supabase
           .from('profiles')
-          .update({
-            subscription_status: planId, // 'pro' veya 'expert'
-            subscription_plan: planId,
-          })
+          .update({ subscription_status: planId, subscription_plan: planId })
           .eq('id', userId);
       }
       
-      // Kullanıcıyı başarı sayfasına yönlendir
       return NextResponse.redirect(new URL('/payment/success', request.nextUrl));
     } else {
-      const errorMessage = encodeURIComponent(result.errorMessage || 'odeme_basarisiz');
+      const errorMessage = encodeURIComponent(result?.errorMessage || 'odeme_basarisiz');
       return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl));
     }
   } catch (error: any) {
-    console.error('[KRİTİK-HATA]', error.message);
+    console.error('[CALLBACK-KRİTİK-HATA]', error.message);
     return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl));
   }
 }
