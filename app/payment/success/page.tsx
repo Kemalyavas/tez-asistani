@@ -1,9 +1,8 @@
 // app/payment/success/page.tsx
 
 import { Suspense } from 'react';
-import PaymentSuccessClient from './client'; // Iyzico için oluşturulan client bileşeni
+import PaymentSuccessClient from './client'; // client bileşenini import et
 
-// Bu fonksiyon, sayfanın ana iskeletini oluşturur.
 export default function PaymentSuccessPage() {
   return (
     // Suspense, client bileşeni yüklenirken bir "yükleniyor" ekranı göstermeyi sağlar.
