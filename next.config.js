@@ -25,13 +25,8 @@ const nextConfig = {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // --- HATA İÇİN GEREKLİ GÜNCELLEME BURASI ---
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push('iyzipay');
-    }
-    return config;
-  },
+  // Not: 'iyzipay' için webpack externals yapılandırması kaldırıldı.
+  // Bu paket genellikle harici olarak belirtilmesine gerek kalmadan Next.js ile doğru şekilde çalışır.
 };
 
 module.exports = nextConfig;
