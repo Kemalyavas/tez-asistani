@@ -1,21 +1,21 @@
-// app/payment/success/page.tsx
-
 import { Suspense } from 'react';
-import PaymentSuccessClient from './client'; // client bileşenini import et
+import PaymentSuccessClient from './client';
+
+function PaymentSuccessContent() {
+  return <PaymentSuccessClient />;
+}
 
 export default function PaymentSuccessPage() {
   return (
-    // Suspense, client bileşeni yüklenirken bir "yükleniyor" ekranı göstermeyi sağlar.
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yükleniyor...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Yükleniyor...</p>
         </div>
       </div>
     }>
-      {/* Ödeme doğrulama mantığını içeren asıl bileşen */}
-      <PaymentSuccessClient />
+      <PaymentSuccessContent />
     </Suspense>
   );
 }

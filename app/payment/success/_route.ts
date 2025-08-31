@@ -1,30 +1,51 @@
-// app/payment/success/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
+import { redirect } from 'next/navigation';
 
-// Iyzico'dan gelen POST isteğini bu dosya karşılayacak
-export async function POST(request: NextRequest) {
+// İyzico'dan gelen GET isteğini handle et
+export async function GET(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const token = formData.get('token') as string;
-
+    const searchParams = request.nextUrl.searchParams;
+    const token = searchParams.get('token');
+    
     if (!token) {
-      // Token yoksa hata sayfasına yönlendir
-      const errorUrl = new URL('/pricing?error=token_missing', request.url);
-      return NextResponse.redirect(errorUrl);
+      return redirect('/payment/error?message=Token bulunamadı');
     }
 
-    // Token'ı alıp, client tarafında doğrulanması için success sayfasına
-    // query parametresi olarak ekleyip yönlendiriyoruz.
-    const successUrl = new URL('/payment/success', request.url);
-    successUrl.searchParams.set('token', token);
+    // Token'ı verify et
+    const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/iyzico/verify-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
 
-    return NextResponse.redirect(successUrl.toString());
-
+    const result = await verifyResponse.json();
+    
+    if (result.success) {
+      // Başarılı - client sayfasına yönlendir
+      return redirect('/payment/success/client?status=completed&paymentId=' + result.paymentId);
+    } else {
+      return redirect('/payment/error?message=' + encodeURIComponent(result.errorMessage || 'Ödeme başarısız'));
+    }
+    
   } catch (error) {
-    console.error('Success POST error:', error);
-    // Herhangi bir hata durumunda kullanıcıyı fiyatlandırma sayfasına geri yönlendir
-    const errorUrl = new URL('/pricing?error=post_failed', request.url);
-    return NextResponse.redirect(errorUrl);
+    console.error('Payment success route error:', error);
+    return redirect('/payment/error?message=Bir hata oluştu');
   }
+}
+
+// POST isteği için (kullanılmayacak ama hata vermemesi için)
+export async function POST(request: NextRequest) {
+  // İyzico GET kullanıyor, redirect et
+  const formData = await request.formData();
+  const token = formData.get('token');
+  
+  if (token) {
+    const successUrl = new URL('/payment/success', request.url);
+    successUrl.searchParams.set('token', token.toString());
+    return redirect(successUrl.toString());
+  }
+  
+  return NextResponse.json({ error: 'Token bulunamadı' }, { status: 400 });
 }
