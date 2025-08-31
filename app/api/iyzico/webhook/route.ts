@@ -1,109 +1,79 @@
 // app/api/iyzico/webhook/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
+// Sunucu tarafı Supabase istemcisini oluştur
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // DİKKAT: Service Role Key kullanılmalı
 );
+
+// Iyzico'dan gelen bildirimleri doğrulamak için kullanılan fonksiyon
+const verifySignature = (body: any, signature: string, secretKey: string): boolean => {
+  const dataToHash = body.iyziEventType + body.iyziReferenceCode + secretKey;
+  const hash = crypto.createHash('sha1').update(dataToHash).digest('base64');
+  return hash === signature;
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const rawBody = await request.text();
-    const body = JSON.parse(rawBody);
-    
-    console.log('🔔 Webhook received:', {
-      eventType: body.iyziEventType,
-      paymentStatus: body.paymentStatus,
-      timestamp: new Date().toISOString()
-    });
+    const body = await request.json();
+    const signature = request.headers.get('x-iyzi-signature');
+    const secretKey = process.env.IYZICO_SECRET_KEY!;
 
-    // ⚠️ GEÇİCİ: İmza kontrolünü devre dışı bırak (production'da açılmalı)
-    const SKIP_SIGNATURE = true;
-    
-    if (!SKIP_SIGNATURE) {
-      const signature = request.headers.get('x-iyzi-signature');
-      const secretKey = process.env.IYZICO_SECRET_KEY;
-      
-      if (!signature || !secretKey) {
-        console.error('❌ Missing signature or secret key');
-        return NextResponse.json({ 
-          error: 'Yapılandırma hatası: İmza veya anahtar eksik' 
-        }, { status: 401 });
-      }
-      
-      // İmza doğrulama kodu buraya gelecek...
+    // 1. Gelen isteğin Iyzico'dan geldiğini doğrula (ÇOK ÖNEMLİ GÜVENLİK ADIMI)
+    if (!signature || !verifySignature(body, signature, secretKey)) {
+      console.warn('Iyzico Webhook: Geçersiz imza.');
+      return NextResponse.json({ error: 'Geçersiz imza' }, { status: 401 });
     }
 
-    // Test webhook'u
-    if (body.test === true) {
-      console.log('✅ Test webhook başarılı!');
-      return NextResponse.json({ 
-        status: 'success',
-        message: 'Test webhook received successfully',
-        timestamp: new Date().toISOString()
-      });
-    }
+    console.log('Iyzico Webhook:', body.iyziEventType, 'Ödeme Durumu:', body.paymentStatus);
 
-    // Gerçek ödeme webhook'u
+    // 2. Sadece başarılı ödeme bildirimlerini işle
     if (body.iyziEventType === 'SUCCESS_PAYMENT' && body.paymentStatus === 'SUCCESS') {
-      console.log('💰 Payment success webhook received');
-      
       const conversationId = body.conversationId;
-      const paymentDetails = body.paymentConversationData;
+      const paymentDetails = body.paymentConversationData; // Sepet bilgileri burada
       
       if (!conversationId || !paymentDetails) {
-        console.error('❌ Missing payment details');
-        return NextResponse.json({ error: 'Eksik bilgi' }, { status: 400 });
+         console.error('Iyzico Webhook: Gerekli bilgiler eksik.', body);
+         return NextResponse.json({ error: 'Eksik bilgi' }, { status: 400 });
       }
 
-      try {
-        const userId = conversationId.split('_')[1];
-        const planId = paymentDetails.basketItems?.[0]?.id;
-        
-        if (userId && planId) {
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({
-              subscription_status: 'active',
-              subscription_plan: planId,
-              subscription_start_date: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', userId);
+      const userId = conversationId.split('_')[1]; // conv_USERID_timestamp formatından userId'yi al
+      const planId = paymentDetails.basketItems[0]?.id; // Plan ID'sini sepetten al
+      
+      if (!userId || !planId) {
+        console.error('Iyzico Webhook: userId veya planId alınamadı.', { conversationId, paymentDetails });
+        return NextResponse.json({ error: 'Kullanıcı veya Plan ID alınamadı' }, { status: 400 });
+      }
 
-          if (updateError) {
-            console.error('❌ Database update error:', updateError);
-          } else {
-            console.log('✅ User subscription updated:', userId);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Processing error:', error);
+      // 3. Kullanıcının aboneliğini veritabanında güncelle
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          subscription_status: 'active', // veya planId'ye göre 'pro', 'expert'
+          subscription_plan: planId,
+          subscription_start_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('Webhook - Supabase abonelik güncelleme hatası:', updateError);
+        // Hata durumunda bile Iyzico'ya başarılı yanıt dönmek önemlidir,
+        // yoksa Iyzico tekrar tekrar bildirim gönderir. Hata log'lanmalıdır.
+      } else {
+        console.log(`Kullanıcı ${userId} için abonelik başarıyla güncellendi: ${planId}`);
       }
     }
 
-    // Her durumda 200 OK dön (İyzico bunu bekler)
-    return NextResponse.json({ 
-      status: 'ok',
-      received: true 
-    }, { status: 200 });
+    // 4. Iyzico'ya bildirimi aldığımızı belirtmek için 200 OK yanıtı dön
+    return NextResponse.json({ status: 'ok' }, { status: 200 });
 
   } catch (error: any) {
-    console.error('❌ Webhook error:', error);
-    return NextResponse.json({ 
-      error: 'Webhook processing failed',
-      details: error.message 
-    }, { status: 500 });
+    console.error('Iyzico Webhook işleme hatası:', error);
+    return NextResponse.json({ error: 'Webhook işlenemedi' }, { status: 500 });
   }
-}
-
-// GET metodunu da ekle (bazı webhook sistemleri GET ile health check yapar)
-export async function GET(request: NextRequest) {
-  return NextResponse.json({ 
-    status: 'healthy',
-    endpoint: '/api/iyzico/webhook',
-    method: 'GET',
-    timestamp: new Date().toISOString()
-  });
 }

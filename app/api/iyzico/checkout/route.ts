@@ -1,3 +1,5 @@
+// app/api/iyzico/checkout/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
@@ -39,6 +41,9 @@ export async function POST(request: NextRequest) {
     const name = nameParts[0];
     const surname = nameParts.slice(1).join(' ') || 'Soyad';
 
+    // --- HATANIN ÇÖZÜLDÜĞÜ YER ---
+    // registrationDate için bir güvenlik kontrolü ekliyoruz.
+    // Eğer user.created_at geçerli bir tarih değilse, o anki zamanı kullan.
     const registrationDate = new Date(user.created_at);
     const formattedRegistrationDate = (isNaN(registrationDate.getTime()) ? new Date() : registrationDate)
       .toISOString()
@@ -61,7 +66,7 @@ export async function POST(request: NextRequest) {
       basketId: `basket_${user.id}_${plan}`,
       paymentChannel: 'WEB',
       paymentGroup: 'SUBSCRIPTION',
-       callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payment/callback`,
+      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/payment/success`,
       enabledInstallments: ['1'],
       buyer: {
         id: user.id,
