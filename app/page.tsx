@@ -82,7 +82,7 @@ export default function Home() {
     {
       id: 'pro',
       name: 'Pro',
-      price: isHydrated ? (billingPeriod === 'monthly' ? 199 : 1990) : 199, // Yıllık indirimli fiyat
+      price: isHydrated ? (billingPeriod === 'monthly' ? 2 : 1990) : 2, // Yıllık indirimli fiyat
       
       description: 'Akademisyenler ve Öğrenciler için',
       features: [
