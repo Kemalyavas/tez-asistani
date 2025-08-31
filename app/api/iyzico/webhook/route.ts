@@ -27,20 +27,17 @@ export async function POST(request: NextRequest) {
     const body = JSON.parse(rawBody);
 
     const signature = request.headers.get('x-iyzi-signature');
-    const secretKey = process.env.IYZICO_SECRET_KEY!;
+    const secretKey = process.env.IYZICO_SECRET_KEY;
 
     if (!signature || !secretKey) {
-        console.warn('Iyzico Webhook: İmza veya gizli anahtar eksik.');
-        return NextResponse.json({ error: 'İmza veya gizli anahtar eksik' }, { status: 401 });
+        console.error('Iyzico Webhook: İmza veya gizli anahtar ortam değişkenlerinde (environment variables) eksik.');
+        return NextResponse.json({ error: 'Yapılandırma hatası: İmza veya anahtar eksik' }, { status: 401 });
     }
 
     // 1. Gelen isteğin Iyzico'dan geldiğini doğrula
     const expectedSignature = createSignature(secretKey, rawBody);
     if (signature !== expectedSignature) {
-      console.warn('Iyzico Webhook: Geçersiz imza.', {
-        gelenImza: signature,
-        beklenenImza: expectedSignature,
-      });
+      console.warn('Iyzico Webhook: Geçersiz imza.');
       return NextResponse.json({ error: 'Geçersiz imza' }, { status: 401 });
     }
 
