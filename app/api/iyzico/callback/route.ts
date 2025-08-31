@@ -1,22 +1,22 @@
 // app/api/iyzico/callback/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import Iyzipay from 'iyzipay';
 import { URLSearchParams } from 'url';
 
+export const dynamic = 'force-dynamic'; // Bu satır Vercel'de dinamik çalışmasını sağlar
+
 export async function POST(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies });
-
   try {
     const bodyText = await request.text();
     const params = new URLSearchParams(bodyText);
     const token = params.get('token');
 
     if (!token) {
-      console.error('Iyzico Callback: Token alınamadı.');
-      return NextResponse.redirect(new URL('/payment/fail?error=token_missing', request.url));
+      console.error('[CALLBACK-ERROR] Iyzico returned no token.');
+      return NextResponse.redirect(new URL('/payment/fail?error=token_missing', request.nextUrl));
     }
 
     const iyzipay = new Iyzipay({
@@ -26,37 +26,26 @@ export async function POST(request: NextRequest) {
     });
 
     const result = await new Promise<any>((resolve, reject) => {
-      iyzipay.checkoutForm.retrieve({ token }, (err: any, result: any) => {
-        if (err) return reject(err);
+      iyzipay.checkoutForm.retrieve({ token }, (err, result) => {
+        if (err || result.status !== 'success') {
+          console.error('[CALLBACK-IYZICO-ERROR]', { err, result });
+          return reject(err || new Error((result && (result as any).errorMessage) || 'Unknown error'));
+        }
         resolve(result);
       });
     });
 
-    if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS' && result.conversationId) {
-      const conversationId = result.conversationId;
-      const userId = conversationId.split('_')[1];
-      const planId = result.basketItems && result.basketItems[0] ? result.basketItems[0].id : null;
-
-      if (userId && planId) {
-        await supabase
-          .from('profiles')
-          .update({
-            subscription_status: 'active',
-            subscription_plan: planId,
-            subscription_start_date: new Date().toISOString(),
-          })
-          .eq('id', userId);
-      } else {
-         console.error('Callback: userId veya planId alınamadı.', { conversationId, basketItems: result.basketItems });
-      }
-
-      return NextResponse.redirect(new URL('/payment/success', request.url));
+    if (result.paymentStatus === 'SUCCESS') {
+      console.log('[CALLBACK-SUCCESS] Payment verified, redirecting to success page.');
+      // Kullanıcıyı başarı sayfasına GET isteği ile yönlendir.
+      return NextResponse.redirect(new URL('/payment/success', request.nextUrl));
     } else {
-      const errorMessage = result?.errorMessage ? encodeURIComponent(result.errorMessage) : 'payment_failed';
-      return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.url));
+      console.error('[CALLBACK-PAYMENT-FAIL]', result);
+      const errorMessage = encodeURIComponent(result.errorMessage || 'payment_failed');
+      return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl));
     }
   } catch (error: any) {
-    console.error('Iyzico Callback Genel Hata:', error);
-    return NextResponse.redirect(new URL(`/payment/fail?error=server_error`, request.url));
+    console.error('[CALLBACK-FATAL-ERROR]', error);
+    return NextResponse.redirect(new URL(`/payment/fail?error=server_error`, request.nextUrl));
   }
 }
