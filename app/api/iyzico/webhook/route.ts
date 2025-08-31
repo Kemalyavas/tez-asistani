@@ -11,21 +11,36 @@ const supabase = createClient(
 );
 
 // Iyzico'dan gelen bildirimleri doğrulamak için kullanılan fonksiyon
-const verifySignature = (body: any, signature: string, secretKey: string): boolean => {
-  const dataToHash = body.iyziEventType + body.iyziReferenceCode + secretKey;
-  const hash = crypto.createHash('sha1').update(dataToHash).digest('base64');
-  return hash === signature;
+// HATA DÜZELTME BAŞLANGICI: İmza doğrulama mantığı güncellendi.
+const createSignature = (secretKey: string, body: string): string => {
+  return crypto
+    .createHmac('sha1', secretKey)
+    .update(body)
+    .digest('base64');
 };
+// HATA DÜZELTME SONU
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // HATA DÜZELTME: request.json() yerine request.text() kullanılıyor.
+    const rawBody = await request.text();
+    const body = JSON.parse(rawBody);
+
     const signature = request.headers.get('x-iyzi-signature');
     const secretKey = process.env.IYZICO_SECRET_KEY!;
 
-    // 1. Gelen isteğin Iyzico'dan geldiğini doğrula (ÇOK ÖNEMLİ GÜVENLİK ADIMI)
-    if (!signature || !verifySignature(body, signature, secretKey)) {
-      console.warn('Iyzico Webhook: Geçersiz imza.');
+    if (!signature || !secretKey) {
+        console.warn('Iyzico Webhook: İmza veya gizli anahtar eksik.');
+        return NextResponse.json({ error: 'İmza veya gizli anahtar eksik' }, { status: 401 });
+    }
+
+    // 1. Gelen isteğin Iyzico'dan geldiğini doğrula
+    const expectedSignature = createSignature(secretKey, rawBody);
+    if (signature !== expectedSignature) {
+      console.warn('Iyzico Webhook: Geçersiz imza.', {
+        gelenImza: signature,
+        beklenenImza: expectedSignature,
+      });
       return NextResponse.json({ error: 'Geçersiz imza' }, { status: 401 });
     }
 
@@ -34,15 +49,15 @@ export async function POST(request: NextRequest) {
     // 2. Sadece başarılı ödeme bildirimlerini işle
     if (body.iyziEventType === 'SUCCESS_PAYMENT' && body.paymentStatus === 'SUCCESS') {
       const conversationId = body.conversationId;
-      const paymentDetails = body.paymentConversationData; // Sepet bilgileri burada
+      const paymentDetails = body.paymentConversationData;
       
       if (!conversationId || !paymentDetails) {
          console.error('Iyzico Webhook: Gerekli bilgiler eksik.', body);
          return NextResponse.json({ error: 'Eksik bilgi' }, { status: 400 });
       }
 
-      const userId = conversationId.split('_')[1]; // conv_USERID_timestamp formatından userId'yi al
-      const planId = paymentDetails.basketItems[0]?.id; // Plan ID'sini sepetten al
+      const userId = conversationId.split('_')[1];
+      const planId = paymentDetails.basketItems[0]?.id;
       
       if (!userId || !planId) {
         console.error('Iyzico Webhook: userId veya planId alınamadı.', { conversationId, paymentDetails });
@@ -62,8 +77,6 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error('Webhook - Supabase abonelik güncelleme hatası:', updateError);
-        // Hata durumunda bile Iyzico'ya başarılı yanıt dönmek önemlidir,
-        // yoksa Iyzico tekrar tekrar bildirim gönderir. Hata log'lanmalıdır.
       } else {
         console.log(`Kullanıcı ${userId} için abonelik başarıyla güncellendi: ${planId}`);
       }
