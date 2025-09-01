@@ -33,7 +33,7 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '399',
+    price: '1',
     period: 'aylık',
     description: 'Akademisyenler ve öğrenciler için',
     features: [
@@ -53,7 +53,7 @@ const PLANS = [
   {
     id: 'expert',
     name: 'Expert',
-    price: '950',
+    price: '499',
     period: 'aylık',
     description: 'Kapsamlı kullanım için',
     features: [

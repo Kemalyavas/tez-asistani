@@ -29,13 +29,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return new Promise<NextResponse>((resolve, reject) => {
       iyzipay.checkoutForm.retrieve({ token }, async (err: any, result: any) => {
+        console.log('Iyzico retrieve result:', result)
+        console.log('Error:', err)
         if (err) {
           console.error('İyzico retrieve error:', err)
           resolve(NextResponse.json(
             { error: 'Ödeme doğrulanamadı' },
             { status: 500 }
           ))
-        } else if (result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+        } else if (result.status === 'success') {
           // Ödeme başarılı - kullanıcı aboneliğini güncelle
           try {
             const conversationId = result.conversationId

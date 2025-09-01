@@ -7,8 +7,8 @@ import Iyzipay from 'iyzipay';
 
 // Fiyatları tek bir yerden yönetmek için
 const PLANS = {
-  pro: { monthly: 2, yearly: 2 },
-  expert: { monthly: 499, yearly: 4990 }
+  pro: { monthly: 1, yearly: 1 },
+  expert: { monthly: 499, yearly: 4787 }
 };
 
 const PLAN_NAMES = {
