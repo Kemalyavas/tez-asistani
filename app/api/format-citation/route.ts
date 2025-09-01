@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    const subscription = profile?.subscription_status || 'free';
+    const subscription = (profile?.subscription_status === 'premium' ? 'pro' : profile?.subscription_status) || 'free';
     const currentUsage = profile?.citation_count || 0;
     const limit = USAGE_LIMITS[subscription as keyof typeof USAGE_LIMITS].citation_formats;
 
