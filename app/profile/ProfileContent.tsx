@@ -35,6 +35,7 @@ interface UserProfile {
   department?: string;
   thesis_count?: number;
   subscription_status?: string;
+  subscription_plan?: string;
 }
 
 export default function ProfileContent() {
@@ -97,7 +98,8 @@ export default function ProfileContent() {
           university: profileData?.university || '',
           department: profileData?.department || '',
           thesis_count: profileData?.thesis_count || 0,
-          subscription_status: profileData?.subscription_status || 'free'
+          subscription_status: profileData?.subscription_status || 'free',
+          subscription_plan: profileData?.subscription_plan || ''
         };
 
         setProfile(userProfile);
@@ -241,7 +243,9 @@ export default function ProfileContent() {
                 <p className="text-gray-600">{profile.email}</p>
                 <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   <Shield className="h-3 w-3 mr-1" />
-                  {profile.subscription_status === 'premium' ? 'Premium' : 'Ücretsiz'} Üye
+                  {profile.subscription_status === 'premium' 
+                    ? `${profile.subscription_plan?.replace('_', ' ').toUpperCase()} - Premium` 
+                    : 'Ücretsiz'} Üye
                 </div>
               </div>
             </div>
@@ -425,6 +429,65 @@ export default function ProfileContent() {
                 </div>
               </div>
             </div>
+
+            {/* Üyelik Yönetimi - Sadece Premium Üyeler İçin */}
+            {profile.subscription_status === 'premium' && (
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Üyelik Yönetimi</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <h4 className="font-medium text-gray-900">Mevcut Plan</h4>
+                      <p className="text-sm text-gray-600">
+                        {profile.subscription_plan?.replace('_', ' ').toUpperCase()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Durum</p>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Aktif
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <button
+                      onClick={async () => {
+                        if (confirm('Üyeliğinizi iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+                          try {
+                            const { error } = await supabase
+                              .from('profiles')
+                              .update({
+                                subscription_status: 'free',
+                                subscription_plan: null,
+                                updated_at: new Date().toISOString()
+                              })
+                              .eq('id', user.id);
+
+                            if (error) throw error;
+
+                            setProfile({
+                              ...profile,
+                              subscription_status: 'free',
+                              subscription_plan: ''
+                            });
+
+                            toast.success('Üyeliğiniz başarıyla iptal edildi.');
+                          } catch (error: any) {
+                            console.error('Subscription cancel error:', error);
+                            toast.error('Üyelik iptal edilemedi: ' + error.message);
+                          }
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Üyeliği İptal Et
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>

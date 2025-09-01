@@ -27,6 +27,17 @@ export async function POST(request: NextRequest) {
     }
     const user = session.user;
 
+    // Kullanıcının mevcut üyelik durumunu kontrol et
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_status')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.subscription_status === 'premium') {
+      return NextResponse.json({ error: 'Zaten premium üyeliğiniz var. Tekrar üyelik alamazsınız.' }, { status: 400 });
+    }
+
     const { plan, billing_cycle } = await request.json();
 
     if (!plan || !PLANS[plan as keyof typeof PLANS] || !['monthly', 'yearly'].includes(billing_cycle)) {

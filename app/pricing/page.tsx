@@ -77,6 +77,7 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
   const router = useRouter()
   const supabase = createClientComponentClient()
 
@@ -84,6 +85,15 @@ export default function PricingPage() {
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user || null)
+      
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('subscription_status')
+          .eq('id', session.user.id)
+          .single()
+        setUserProfile(profile)
+      }
     }
     getUser()
   }, [])
@@ -92,6 +102,11 @@ export default function PricingPage() {
     if (!user) {
       toast.error('Lütfen önce giriş yapın')
       router.push('/auth')
+      return
+    }
+
+    if (userProfile?.subscription_status === 'premium') {
+      toast.error('Zaten premium üyeliğiniz var. Tekrar üyelik alamazsınız.')
       return
     }
 
