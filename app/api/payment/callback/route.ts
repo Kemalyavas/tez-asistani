@@ -1,4 +1,4 @@
-// app/payment/success/route.ts
+// app/api/payment/callback/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -9,17 +9,17 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token');
 
     if (!token) {
-      console.error('Payment success: Token not found in query params');
+      console.error('Payment callback: Token not found in query params');
       return NextResponse.redirect(new URL('/pricing', request.url));
     }
 
-    // Token'ı query param olarak ekleyerek success page'e redirect
+    // Kullanıcıyı success page'e yönlendir (token ile)
     const successUrl = new URL('/payment/success', request.url);
     successUrl.searchParams.set('token', token);
 
     return NextResponse.redirect(successUrl);
   } catch (error) {
-    console.error('Payment success GET error:', error);
+    console.error('Payment callback GET error:', error);
     return NextResponse.redirect(new URL('/pricing', request.url));
   }
 }
@@ -38,22 +38,33 @@ export async function POST(request: NextRequest) {
       const formData = await request.formData();
       token = formData.get('token') as string;
     } else {
-      console.error('Payment success: Unsupported content type:', contentType);
+      console.error('Payment callback: Unsupported content type:', contentType);
       return NextResponse.redirect(new URL('/pricing', request.url));
     }
 
     if (!token) {
-      console.error('Payment success: Token not found');
+      console.error('Payment callback: Token not found');
       return NextResponse.redirect(new URL('/pricing', request.url));
     }
 
-    // Token'ı query param olarak ekleyerek success page'e redirect
+    // Kullanıcıyı success page'e yönlendir (token ile)
     const successUrl = new URL('/payment/success', request.url);
     successUrl.searchParams.set('token', token);
 
     return NextResponse.redirect(successUrl);
   } catch (error) {
-    console.error('Payment success route error:', error);
+    console.error('Payment callback route error:', error);
     return NextResponse.redirect(new URL('/pricing', request.url));
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }
