@@ -93,11 +93,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 text-blue-600 mr-2" />
               <span className="text-sm text-blue-800">
-                Plan: <strong>{
-                  usage.subscription_status === 'free' ? 'Ücretsiz' : 
-                  usage.subscription_status === 'pro' ? 'Pro' : 
-                  usage.subscription_status === 'expert' ? 'Expert' : 'Ücretsiz'
-                }</strong>
+                Plan: <strong>{usage.subscription_status === 'free' ? 'Ücretsiz' : usage.subscription_status === 'pro' ? 'Pro' : 'Expert'}</strong>
               </span>
             </div>
             <span className="text-sm text-blue-800">
@@ -105,21 +101,10 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
                 {usage.subscription_status === 'expert' ? 'Sınırsız' : 
                  usage.subscription_status === 'free' ? 
                  `${Math.max(0, 1 - usage.thesis_analyses)}/1` :
-                 usage.subscription_status === 'pro' ?
-                 `${Math.max(0, 50 - usage.thesis_analyses)}/50` :
-                 `${Math.max(0, 1 - usage.thesis_analyses)}/1`}
+                 `${Math.max(0, 50 - usage.thesis_analyses)}/50`}
               </strong>
             </span>
           </div>
-          {/* Yenile butonu ekliyoruz */}
-          {(usage.subscription_status === 'free' || usage.thesis_analyses >= (usage.subscription_status === 'pro' ? 50 : 1)) && (
-            <button 
-              onClick={refreshData} 
-              className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
-            >
-              Plan bilgilerini yenile
-            </button>
-          )}
         </div>
       )}
 

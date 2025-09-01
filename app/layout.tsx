@@ -64,6 +64,7 @@ export default function RootLayout({
         />
 
         {/* Diğer head etiketleri */}
+        <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
         <link rel="manifest" href="/manifest.json" />

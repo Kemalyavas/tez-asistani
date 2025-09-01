@@ -1,222 +1,119 @@
 // app/api/iyzico/checkout/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import Iyzipay from 'iyzipay';
 
-export const dynamic = 'force-dynamic';
-// Ensure this route runs in Node.js runtime (not Edge) because we use Node-only packages
-export const runtime = 'nodejs';
+// Fiyatları tek bir yerden yönetmek için
+const PLANS = {
+  pro: { monthly: 2, yearly: 2 },
+  expert: { monthly: 499, yearly: 4990 }
+};
 
-// Plan fiyatları
-const PLAN_PRICES = {
-  pro: {
-    monthly: 2, // Test için düşük fiyat
-    yearly: 1990
-  },
-  expert: {
-    monthly: 499,
-    yearly: 4990
-  }
+const PLAN_NAMES = {
+  pro: 'Pro Plan',
+  expert: 'Expert Plan'
 };
 
 export async function POST(request: NextRequest) {
+  const supabase = createRouteHandlerClient({ cookies });
+
   try {
-    // 1. Request body'yi al
-    const body = await request.json();
-    const { plan, billing_cycle = 'monthly' } = body;
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    // 2. Plan kontrolü
-    if (!plan || !['pro', 'expert'].includes(plan)) {
-      return NextResponse.json(
-        { error: 'Geçersiz plan seçimi' },
-        { status: 400 }
-      );
+    if (sessionError || !session?.user) {
+      return NextResponse.json({ error: 'Geçerli bir oturum bulunamadı. Lütfen tekrar giriş yapın.' }, { status: 401 });
+    }
+    const user = session.user;
+
+    const { plan, billing_cycle } = await request.json();
+
+    if (!plan || !PLANS[plan as keyof typeof PLANS] || !['monthly', 'yearly'].includes(billing_cycle)) {
+      return NextResponse.json({ error: 'Geçersiz plan veya ödeme periyodu' }, { status: 400 });
     }
 
-    // 3. Kullanıcı kontrolü
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const price = PLANS[plan as keyof typeof PLANS][billing_cycle as keyof typeof PLANS['pro']];
+    const planName = PLAN_NAMES[plan as keyof typeof PLAN_NAMES];
+    
+    const fullName = user.user_metadata?.username || user.email?.split('@')[0] || 'Kullanıcı';
+    const nameParts = fullName.split(' ');
+    const name = nameParts[0];
+    const surname = nameParts.slice(1).join(' ') || 'Soyad';
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Giriş yapmanız gerekiyor' },
-        { status: 401 }
-      );
-    }
+    // --- HATANIN ÇÖZÜLDÜĞÜ YER ---
+    // registrationDate için bir güvenlik kontrolü ekliyoruz.
+    // Eğer user.created_at geçerli bir tarih değilse, o anki zamanı kullan.
+    const registrationDate = new Date(user.created_at);
+    const formattedRegistrationDate = (isNaN(registrationDate.getTime()) ? new Date() : registrationDate)
+      .toISOString()
+      .slice(0, 19)
+      .replace('T', ' ');
+    // --- HATA DÜZELTİLDİ ---
 
-    // 4. Kullanıcı bilgilerini al
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    // 5. Fiyat hesaplama
-    const price = PLAN_PRICES[plan as keyof typeof PLAN_PRICES][billing_cycle as 'monthly' | 'yearly'];
-    const planName = plan === 'pro' ? 'Pro Plan' : 'Expert Plan';
-    const periodText = billing_cycle === 'yearly' ? 'Yıllık' : 'Aylık';
-
-    // 6. Iyzico instance'ı oluştur
     const iyzipay = new Iyzipay({
       apiKey: process.env.IYZICO_API_KEY!,
       secretKey: process.env.IYZICO_SECRET_KEY!,
-      uri: process.env.IYZICO_BASE_URL || 'https://sandbox-api.iyzipay.com',
+      uri: process.env.IYZICO_BASE_URL!
     });
 
-    // 7. Checkout form request'i hazırla
-    const checkoutRequest = {
-      locale: Iyzipay.LOCALE.TR,
-      conversationId: `tezai_${user.id}_${Date.now()}`,
+    const request_data: any = {
+      locale: 'tr',
+      conversationId: `conv_${user.id}_${Date.now()}`,
       price: price.toString(),
       paidPrice: price.toString(),
-      currency: Iyzipay.CURRENCY.TRY,
-      basketId: `B${Date.now()}`,
-      paymentGroup: Iyzipay.PAYMENT_GROUP.SUBSCRIPTION,
-      callbackUrl: `${request.nextUrl.origin}/api/iyzico/callback`,
-      enabledInstallments: [1], // Tek çekim
+      currency: 'TRY',
+      basketId: `basket_${user.id}_${plan}`,
+      paymentChannel: 'WEB',
+      paymentGroup: 'SUBSCRIPTION',
+      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/payment/success`,
+      enabledInstallments: ['1'],
       buyer: {
         id: user.id,
-        name: profile?.full_name || profile?.username || 'İsimsiz',
-        surname: 'Kullanıcı',
-        gsmNumber: profile?.phone || '+905555555555',
-        email: user.email!,
-        identityNumber: '11111111111', // Test için
-        lastLoginDate: new Date().toISOString().split('T')[0],
-        registrationDate: new Date(user.created_at).toISOString().split('T')[0],
-        registrationAddress: 'Türkiye',
-        ip: request.headers.get('x-forwarded-for') || '85.34.78.112',
+        name: name,
+        surname: surname,
+        gsmNumber: '+905555555555',
+        email: user.email,
+        identityNumber: '11111111111',
+        lastLoginDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        registrationDate: formattedRegistrationDate, // Güvenli tarih formatını kullan
+        registrationAddress: 'Test Adres',
+        ip: request.headers.get('x-forwarded-for') || '127.0.0.1',
         city: 'Istanbul',
         country: 'Turkey',
-        zipCode: '34732'
+        zipCode: '34000'
       },
       shippingAddress: {
-        contactName: profile?.full_name || profile?.username || 'İsimsiz Kullanıcı',
-        city: 'Istanbul',
-        country: 'Turkey',
-        address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
-        zipCode: '34732'
+        contactName: fullName, city: 'Istanbul', country: 'Turkey', address: 'Test Adres', zipCode: '34000'
       },
       billingAddress: {
-        contactName: profile?.full_name || profile?.username || 'İsimsiz Kullanıcı',
-        city: 'Istanbul',
-        country: 'Turkey',
-        address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
-        zipCode: '34732'
+        contactName: fullName, city: 'Istanbul', country: 'Turkey', address: 'Test Adres', zipCode: '34000'
       },
       basketItems: [
         {
           id: `${plan}_${billing_cycle}`,
-          name: `${planName} - ${periodText}`,
-          category1: 'Abonelik',
-          category2: plan.toUpperCase(),
-          itemType: Iyzipay.BASKET_ITEM_TYPE.VIRTUAL,
+          name: `${planName} (${billing_cycle === 'yearly' ? 'Yıllık' : 'Aylık'})`,
+          category1: 'Software',
+          category2: 'Subscription',
+          itemType: 'VIRTUAL',
           price: price.toString()
         }
       ]
     };
-
-    console.log('[CHECKOUT] İstek hazırlandı:', {
-      user: user.email,
-      plan,
-      billing_cycle,
-      price,
-      conversationId: checkoutRequest.conversationId
-    });
-
-    // 8. Iyzico'ya istek gönder
-    const checkoutFormResult = await new Promise<any>((resolve, reject) => {
-      iyzipay.checkoutFormInitialize.create(checkoutRequest as any, (err: any, result: any) => {
-        if (err) {
-          console.error('[CHECKOUT-ERROR]', err);
-          return reject(err);
+    
+    return new Promise<NextResponse>((resolve) => {
+      iyzipay.checkoutFormInitialize.create(request_data, (err: any, result: any) => {
+        if (err || result.status === 'failure') {
+          console.error('Iyzico Hatası:', err || result.errorMessage);
+          resolve(NextResponse.json({ error: `Ödeme sağlayıcı ile iletişim kurulamadı: ${err?.message || result.errorMessage}` }, { status: 500 }));
+        } else {
+          resolve(NextResponse.json({ success: true, url: result.paymentPageUrl, token: result.token }));
         }
-        resolve(result);
       });
     });
 
-    console.log('[CHECKOUT-RESPONSE]', {
-      status: checkoutFormResult.status,
-      errorCode: checkoutFormResult.errorCode,
-      errorMessage: checkoutFormResult.errorMessage,
-      token: checkoutFormResult.token ? 'exists' : 'missing',
-      checkoutFormContent: checkoutFormResult.checkoutFormContent ? 'exists' : 'missing'
-    });
-
-    // 9. Sonuç kontrolü
-    if (checkoutFormResult.status !== 'success') {
-      console.error('[CHECKOUT-FAIL]', checkoutFormResult);
-      return NextResponse.json(
-        { 
-          error: checkoutFormResult.errorMessage || 'Ödeme formu oluşturulamadı',
-          errorCode: checkoutFormResult.errorCode,
-          details: checkoutFormResult.errorGroup
-        },
-        { status: 400 }
-      );
-    }
-
-    // 10. Token ve pageUrl kontrolü
-    if (!checkoutFormResult.token || !checkoutFormResult.paymentPageUrl) {
-      console.error('[CHECKOUT-INVALID]', 'Token veya URL eksik');
-      return NextResponse.json(
-        { error: 'Ödeme sayfası oluşturulamadı' },
-        { status: 500 }
-      );
-    }
-
-    // 11. Transaction'ı veritabanına kaydet (opsiyonel)
-    try {
-      await supabase
-        .from('payment_transactions')
-        .insert({
-          user_id: user.id,
-          iyzico_token: checkoutFormResult.token,
-          conversation_id: checkoutRequest.conversationId,
-          plan_id: plan,
-          billing_cycle,
-          amount: price,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        });
-    } catch (dbError) {
-      console.warn('[DB-WARNING] Transaction kaydedilemedi:', dbError);
-      // Kritik değil, devam et
-    }
-
-    // 12. Başarılı response
-    return NextResponse.json({
-      success: true,
-      token: checkoutFormResult.token,
-      url: checkoutFormResult.paymentPageUrl,
-      checkoutFormContent: checkoutFormResult.checkoutFormContent
-    });
-
-  } catch (error: any) {
-    console.error('[CHECKOUT-CRITICAL-ERROR]', error);
-    
-    // Detaylı hata mesajları
-    if (error.message?.includes('API key')) {
-      return NextResponse.json(
-        { error: 'Ödeme sistemi yapılandırma hatası. Lütfen destek ile iletişime geçin.' },
-        { status: 500 }
-      );
-    }
-    
-    if (error.message?.includes('Network')) {
-      return NextResponse.json(
-        { error: 'Ödeme sistemi bağlantı hatası. Lütfen tekrar deneyin.' },
-        { status: 503 }
-      );
-    }
-    
-    return NextResponse.json(
-      { 
-        error: 'Ödeme işlemi başlatılamadı',
-        message: error.message || 'Bilinmeyen hata',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('Checkout API Genel Hatası:', error);
+    return NextResponse.json({ error: 'Sunucu hatası oluştu.' }, { status: 500 });
   }
 }

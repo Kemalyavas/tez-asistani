@@ -1,5 +1,3 @@
-const path = require('path');
-const fs = require('fs');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Production optimizasyonları
@@ -27,31 +25,13 @@ const nextConfig = {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // Iyzipay resources klasörünü production build'e kopyala
+  // --- HATA İÇİN GEREKLİ GÜNCELLEME BURASI ---
   webpack: (config, { isServer }) => {
     if (isServer) {
-      const path = require('path');
-      const fs = require('fs');
-      
-      // İyzipay için gerekli resources klasörünü kopyala
-      const CopyWebpackPlugin = require('copy-webpack-plugin');
-      const resourcesSource = path.resolve(__dirname, 'iyzipay-resources');
-      const resourcesTarget = path.resolve(__dirname, '.next/server/app/api/iyzico/checkout/resources');
-      
-      config.plugins.push(
-        new CopyWebpackPlugin({
-          patterns: [
-            {
-              from: resourcesSource,
-              to: resourcesTarget,
-            },
-          ],
-        })
-      );
+      config.externals.push('iyzipay');
     }
     return config;
   },
-  // Bu paket genellikle harici olarak belirtilmesine gerek kalmadan Next.js ile doğru şekilde çalışır.
 };
 
 module.exports = nextConfig;

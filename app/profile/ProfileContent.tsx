@@ -241,63 +241,7 @@ export default function ProfileContent() {
                 <p className="text-gray-600">{profile.email}</p>
                 <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   <Shield className="h-3 w-3 mr-1" />
-                  {profile.subscription_status === 'pro' ? 'Pro' : 
-                   profile.subscription_status === 'expert' ? 'Expert' : 'Ücretsiz'} Üye
-                </div>
-              </div>
-              
-              {/* Plan Limitleri */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Plan Hakları</h4>
-                <div className="space-y-2 text-xs">
-                  {profile.subscription_status === 'pro' && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Tez Analizi:</span>
-                        <span className="font-semibold">50/ay</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Özet Oluşturma:</span>
-                        <span className="font-semibold">20/ay</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Kaynak Format:</span>
-                        <span className="font-semibold">100/ay</span>
-                      </div>
-                    </>
-                  )}
-                  {profile.subscription_status === 'expert' && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Tez Analizi:</span>
-                        <span className="font-semibold text-green-600">Sınırsız</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Özet Oluşturma:</span>
-                        <span className="font-semibold text-green-600">Sınırsız</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Kaynak Format:</span>
-                        <span className="font-semibold text-green-600">Sınırsız</span>
-                      </div>
-                    </>
-                  )}
-                  {profile.subscription_status === 'free' && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Tez Analizi:</span>
-                        <span className="font-semibold">1</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Özet Oluşturma:</span>
-                        <span className="font-semibold">1</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Kaynak Format:</span>
-                        <span className="font-semibold">5</span>
-                      </div>
-                    </>
-                  )}
+                  {profile.subscription_status === 'premium' ? 'Premium' : 'Ücretsiz'} Üye
                 </div>
               </div>
             </div>
