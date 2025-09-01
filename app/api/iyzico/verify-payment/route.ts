@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import Iyzipay from 'iyzipay'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+/**
+ * Bu fonksiyon hem GET hem de POST isteklerini işler.
+ * Iyzico'dan gelen POST isteğini yakalar ve kullanıcıyı bir sonuç sayfasına yönlendirir.
+ * Kullanıcı sayfayı yenilerse (GET) veya URL'yi kopyalarsa da çalışır.
+ */
+async function handlePaymentVerification(request: NextRequest) {
   try {
-    // Dynamic import İyzico SDK
-    const Iyzipay = (await import('iyzipay')).default
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     
     const iyzipay = new Iyzipay({
       apiKey: process.env.IYZICO_API_KEY!,
@@ -18,13 +23,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     })
 
     const { searchParams } = new URL(request.url)
-    const token = searchParams.get('token')
+    // Iyzico hem POST body'sinde hem de bazen URL'de token gönderebilir.
+    // Önce body'yi, sonra URL'yi kontrol etmek en güvenlisidir.
+    const formData = await request.clone().formData().catch(() => null);
+    const token = formData?.get('token') as string || searchParams.get('token');
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Token bulunamadı' },
-        { status: 400 }
-      )
+      const failureUrl = new URL('/payment/status', siteUrl);
+      failureUrl.searchParams.set('status', 'failure');
+      failureUrl.searchParams.set('error', 'Ödeme token bilgisi bulunamadı.');
+      return NextResponse.redirect(failureUrl);
     }
 
     return new Promise<NextResponse>((resolve, reject) => {
@@ -32,68 +40,70 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         console.log('Iyzico retrieve result:', result)
         console.log('Error:', err)
         if (err) {
-          console.error('İyzico retrieve error:', err)
-          resolve(NextResponse.json(
-            { error: 'Ödeme doğrulanamadı' },
-            { status: 500 }
-          ))
+          console.error('Iyzico retrieve error:', err);
+          const failureUrl = new URL('/payment/status', siteUrl);
+          failureUrl.searchParams.set('status', 'failure');
+          failureUrl.searchParams.set('error', 'Ödeme sağlayıcısı ile doğrulama başarısız oldu.');
+          resolve(NextResponse.redirect(failureUrl));
         } else if (result.status === 'success') {
-          // Ödeme başarılı - kullanıcı aboneliğini güncelle
+          // Ödeme başarılı. Webhook zaten asıl güncellemeyi yapıyor.
+          // Burası kullanıcıyı bilgilendirme ve yönlendirme amaçlı.
           try {
             const basketId = result.basketId
             const userId = basketId.split('_')[1]
             const itemId = result.itemTransactions[0].itemId
             const plan = itemId.split('_')[0]
             
-            console.log('userId:', userId)
-            console.log('plan:', plan)
-            console.log('itemId:', itemId)
-            
-            // Kullanıcının aboneliğini güncelle
+            // Webhook'a ek olarak burada da bir güncelleme yapmak yedeklilik sağlar.
             const { error: updateError } = await supabase
               .from('profiles')
               .upsert({
                 id: userId,
                 subscription_status: 'premium',
-                subscription_plan: `${plan}_monthly`,
+                subscription_plan: itemId,
                 subscription_start_date: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
-
-            console.log('updateError:', updateError)
 
             if (updateError) {
               console.error('Subscription update error:', updateError)
             }
 
-            resolve(NextResponse.json({
-              success: true,
-              plan_name: 'Pro Plan',
-              amount: result.paidPrice,
-              currency: result.currency,
-              payment_id: result.paymentId
-            }))
+            const successUrl = new URL('/payment/status', siteUrl);
+            successUrl.searchParams.set('status', 'success');
+            successUrl.searchParams.set('plan', 'Pro Plan'); // Bu bilgiyi basketId'den daha dinamik alabilirsiniz.
+            successUrl.searchParams.set('amount', result.paidPrice);
+            resolve(NextResponse.redirect(successUrl));
+
           } catch (dbError) {
             console.error('Database error:', dbError)
-            resolve(NextResponse.json(
-              { error: 'Veritabanı hatası' },
-              { status: 500 }
-            ))
+            const failureUrl = new URL('/payment/status', siteUrl);
+            failureUrl.searchParams.set('status', 'failure');
+            failureUrl.searchParams.set('error', 'Ödeme sonrası veritabanı güncelleme hatası.');
+            resolve(NextResponse.redirect(failureUrl));
           }
         } else {
-          resolve(NextResponse.json(
-            { error: 'Ödeme başarısız' },
-            { status: 400 }
-          ))
+          const failureUrl = new URL('/payment/status', siteUrl);
+          failureUrl.searchParams.set('status', 'failure');
+          failureUrl.searchParams.set('error', result.errorMessage || 'Ödeme başarısız oldu.');
+          resolve(NextResponse.redirect(failureUrl));
         }
       })
     })
 
   } catch (error) {
     console.error('Verify payment error:', error)
-    return NextResponse.json(
-      { error: 'Sunucu hatası' },
-      { status: 500 }
-    )
+    const failureUrl = new URL('/payment/status', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
+    failureUrl.searchParams.set('status', 'failure');
+    failureUrl.searchParams.set('error', 'Ödeme doğrulama sırasında beklenmedik bir sunucu hatası oluştu.');
+    return NextResponse.redirect(failureUrl);
   }
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  return handlePaymentVerification(request);
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  return handlePaymentVerification(request);
 }
