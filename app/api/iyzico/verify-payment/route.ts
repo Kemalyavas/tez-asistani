@@ -44,6 +44,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             const userId = basketId.split('_')[1]
             const plan = basketId.split('_')[2]
             
+            console.log('userId:', userId)
+            console.log('plan:', plan)
+            
             // Kullanıcının aboneliğini güncelle
             const { error: updateError } = await supabase
               .from('profiles')
@@ -54,6 +57,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                 updated_at: new Date().toISOString()
               })
               .eq('id', userId)
+
+            console.log('updateError:', updateError)
 
             if (updateError) {
               console.error('Subscription update error:', updateError)
