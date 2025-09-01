@@ -61,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
             resolve(NextResponse.json({
               success: true,
-              plan_name: result.basketItems[0].name,
+              plan_name: 'Pro Plan',
               amount: result.paidPrice,
               currency: result.currency,
               payment_id: result.paymentId
