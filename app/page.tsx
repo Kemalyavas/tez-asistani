@@ -123,49 +123,83 @@ export default function Home() {
     },
   ];
 
-  const handleSelectPlan = async (planId: string) => {
-    if (planId === 'free') {
-      scrollToApp();
-      toast.success('Ücretsiz denemeniz başladı! 1 analiz hakkınız var.');
-      return;
+  // app/page.tsx içinde handleSelectPlan fonksiyonu güncelleme
+
+const handleSelectPlan = async (planId: string) => {
+  // Ücretsiz plan kontrolü
+  if (planId === 'free') {
+    scrollToApp();
+    toast.success('Ücretsiz denemeniz başladı! 1 analiz hakkınız var.');
+    return;
+  }
+
+  // Kullanıcı kontrolü
+  if (!user) {
+    toast.error('Lütfen önce giriş yapın');
+    router.push('/auth');
+    return;
+  }
+
+  setLoadingPlan(planId);
+
+  try {
+    const response = await fetch('/api/iyzico/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        plan: planId,
+        billing_cycle: billingPeriod
+      }),
+    });
+
+    // Response'u önce text olarak al
+    const responseText = await response.text();
+    
+    // Boş response kontrolü
+    if (!responseText) {
+      throw new Error('Sunucudan boş yanıt alındı');
     }
 
-    if (!user) {
-      toast.error('Lütfen önce giriş yapın');
-      router.push('/auth');
-      return;
-    }
-
-    setLoadingPlan(planId);
-
+    // JSON parse et
+    let data;
     try {
-      const response = await fetch('/api/iyzico/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // --- DEĞİŞİKLİK: user_id ARTIK GÖNDERİLMİYOR ---
-        body: JSON.stringify({
-          plan: planId,
-          billing_cycle: billingPeriod
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Ödeme işlemi başlatılamadı');
-      }
-      
-      window.location.href = data.url;
-
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      toast.error(error.message || 'Ödeme işlemi başlatılamadı');
-    } finally {
-      setLoadingPlan(null);
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
+      console.error('Response Text:', responseText);
+      throw new Error('Sunucu yanıtı işlenemedi');
     }
-  };
+
+    // Hata kontrolü
+    if (!response.ok) {
+      throw new Error(data.error || 'Ödeme işlemi başlatılamadı');
+    }
+
+    // URL kontrolü
+    if (!data.url) {
+      throw new Error('Ödeme sayfası URL\'si alınamadı');
+    }
+    
+    // Ödeme sayfasına yönlendir
+    window.location.href = data.url;
+
+  } catch (error: any) {
+    console.error('Checkout error:', error);
+    
+    // Kullanıcı dostu hata mesajları
+    if (error.message.includes('Sunucudan boş yanıt')) {
+      toast.error('Ödeme sistemi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.');
+    } else if (error.message.includes('işlenemedi')) {
+      toast.error('Teknik bir sorun oluştu. Lütfen sayfayı yenileyip tekrar deneyin.');
+    } else {
+      toast.error(error.message || 'Ödeme işlemi başlatılamadı');
+    }
+  } finally {
+    setLoadingPlan(null);
+  }
+};
 
   return (
     <main className="min-h-screen">
