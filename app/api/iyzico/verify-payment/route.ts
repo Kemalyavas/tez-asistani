@@ -40,15 +40,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         } else if (result.status === 'success') {
           // Ödeme başarılı - kullanıcı aboneliğini güncelle
           try {
-            const conversationId = result.conversationId
-            const userId = conversationId.split('_')[1]
+            const basketId = result.basketId
+            const userId = basketId.split('_')[1]
+            const plan = basketId.split('_')[2]
             
             // Kullanıcının aboneliğini güncelle
             const { error: updateError } = await supabase
               .from('profiles')
               .update({
                 subscription_status: 'premium',
-                subscription_plan: result.basketItems[0].id,
+                subscription_plan: `${plan}_monthly`,
                 subscription_start_date: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
