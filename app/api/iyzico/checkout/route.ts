@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 import Iyzipay from 'iyzipay';
 
 export const dynamic = 'force-dynamic';
+// Ensure this route runs in Node.js runtime (not Edge) because we use Node-only packages
+export const runtime = 'nodejs';
 
 // Plan fiyatları
 const PLAN_PRICES = {

@@ -1,3 +1,5 @@
+const path = require('path');
+const fs = require('fs');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Production optimizasyonları
@@ -26,6 +28,7 @@ const nextConfig = {
   },
 
   // Not: 'iyzipay' için webpack externals yapılandırması kaldırıldı.
+  // Bu paket genellikle harici olarak belirtilmesine gerek kalmadan Next.js ile doğru şekilde çalışır.
   // Bu paket genellikle harici olarak belirtilmesine gerek kalmadan Next.js ile doğru şekilde çalışır.
 };
 
