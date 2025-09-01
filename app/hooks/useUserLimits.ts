@@ -117,7 +117,7 @@ export function useUserLimits() {
           thesis_analyses: profile?.thesis_count || 0,
           abstract_generations: profile?.abstract_count || 0,
           citation_formats: profile?.citation_count || 0,
-          subscription_status: profile?.subscription_status || 'free'
+          subscription_status: (profile?.subscription_status === 'premium' ? 'pro' : profile?.subscription_status) || 'free'
         };
 
         const newCache = { user, usage: newUsage, timestamp: Date.now(), version: ++globalCache.version };

@@ -42,21 +42,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           try {
             const basketId = result.basketId
             const userId = basketId.split('_')[1]
-            const plan = basketId.split('_')[2]
+            const itemId = result.itemTransactions[0].itemId
+            const plan = itemId.split('_')[0]
             
             console.log('userId:', userId)
             console.log('plan:', plan)
+            console.log('itemId:', itemId)
             
             // Kullanıcının aboneliğini güncelle
             const { error: updateError } = await supabase
               .from('profiles')
-              .update({
+              .upsert({
+                id: userId,
                 subscription_status: 'premium',
                 subscription_plan: `${plan}_monthly`,
                 subscription_start_date: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
-              .eq('id', userId)
 
             console.log('updateError:', updateError)
 

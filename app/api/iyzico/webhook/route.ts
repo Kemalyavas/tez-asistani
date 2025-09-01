@@ -52,13 +52,13 @@ export async function POST(request: NextRequest) {
       // 3. Kullanıcının aboneliğini veritabanında güncelle
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: userId,
           subscription_status: 'premium', // veya planId'ye göre 'pro', 'expert'
           subscription_plan: planId,
           subscription_start_date: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+        });
 
       if (updateError) {
         console.error('Webhook - Supabase abonelik güncelleme hatası:', updateError);
