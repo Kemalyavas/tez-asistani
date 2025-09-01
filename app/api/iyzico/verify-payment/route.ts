@@ -7,26 +7,47 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const iyzipay = new Iyzipay({
+  apiKey: process.env.IYZICO_API_KEY!,
+  secretKey: process.env.IYZICO_SECRET_KEY!,
+  uri: process.env.IYZICO_BASE_URL!
+});
+
 /**
  * Bu fonksiyon hem GET hem de POST isteklerini işler.
  * Iyzico'dan gelen POST isteğini yakalar ve kullanıcıyı bir sonuç sayfasına yönlendirir.
  * Kullanıcı sayfayı yenilerse (GET) veya URL'yi kopyalarsa da çalışır.
  */
-async function handlePaymentVerification(request: NextRequest) {
+async function handlePaymentVerification(request: NextRequest): Promise<NextResponse> {
+
   try {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     
-    const iyzipay = new Iyzipay({
-      apiKey: process.env.IYZICO_API_KEY!,
-      secretKey: process.env.IYZICO_SECRET_KEY!,
-      uri: process.env.IYZICO_BASE_URL!
-    })
+    let token: string | null = null;
 
-    const { searchParams } = new URL(request.url)
-    // Iyzico hem POST body'sinde hem de bazen URL'de token gönderebilir.
-    // Önce body'yi, sonra URL'yi kontrol etmek en güvenlisidir.
-    const formData = await request.clone().formData().catch(() => null);
-    const token = formData?.get('token') as string || searchParams.get('token');
+    if (request.method === 'POST') {
+      // Iyzico genellikle application/x-www-form-urlencoded formatında POST eder.
+      // Next.js'in NextRequest.formData() metodu bunu işler.
+      // Eğer başarısız olursa, non-standard Content-Type veya hatalı body olabilir.
+      try {
+        const contentType = request.headers.get('content-type');
+        if (contentType && (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data'))) {
+          const formData = await request.formData();
+          token = formData.get('token') as string;
+        } else {
+          // Diğer içerik türleri için fallback, örn. düz metin veya beklenmedik türler
+          const textBody = await request.text();
+          const params = new URLSearchParams(textBody);
+          token = params.get('token');
+        }
+      } catch (e) {
+        console.error('POST body ayrıştırma hatası:', e);
+        // Ayrıştırma başarısız olursa, token null kalır, bu da hata yönlendirmesine yol açar.
+      }
+    } else if (request.method === 'GET') {
+      const { searchParams } = new URL(request.url);
+      token = searchParams.get('token');
+    }
 
     if (!token) {
       const failureUrl = new URL('/payment/status', siteUrl);
@@ -36,7 +57,7 @@ async function handlePaymentVerification(request: NextRequest) {
     }
 
     return new Promise<NextResponse>((resolve, reject) => {
-      iyzipay.checkoutForm.retrieve({ token }, async (err: any, result: any) => {
+      iyzipay.checkoutForm.retrieve({ token: token as string }, async (err: any, result: any) => {
         console.log('Iyzico retrieve result:', result)
         console.log('Error:', err)
         if (err) {
@@ -58,7 +79,7 @@ async function handlePaymentVerification(request: NextRequest) {
             const { error: updateError } = await supabase
               .from('profiles')
               .upsert({
-                id: userId,
+                id: userId, // Supabase'de user.id'yi kullan
                 subscription_status: 'premium',
                 subscription_plan: itemId,
                 subscription_start_date: new Date().toISOString(),
@@ -66,12 +87,13 @@ async function handlePaymentVerification(request: NextRequest) {
               })
 
             if (updateError) {
-              console.error('Subscription update error:', updateError)
+              console.error('Abonelik güncelleme hatası (verify-payment):', updateError)
             }
 
             const successUrl = new URL('/payment/status', siteUrl);
             successUrl.searchParams.set('status', 'success');
-            successUrl.searchParams.set('plan', 'Pro Plan'); // Bu bilgiyi basketId'den daha dinamik alabilirsiniz.
+            const planName = itemId.includes('_') ? itemId.split('_')[0].charAt(0).toUpperCase() + itemId.split('_')[0].slice(1) + ' Plan' : 'Pro Plan';
+            successUrl.searchParams.set('plan', planName);
             successUrl.searchParams.set('amount', result.paidPrice);
             resolve(NextResponse.redirect(successUrl));
 
@@ -85,18 +107,15 @@ async function handlePaymentVerification(request: NextRequest) {
         } else {
           const failureUrl = new URL('/payment/status', siteUrl);
           failureUrl.searchParams.set('status', 'failure');
-          failureUrl.searchParams.set('error', result.errorMessage || 'Ödeme başarısız oldu.');
+          failureUrl.searchParams.set('error', result?.errorMessage || 'Ödeme durumu belirsiz.');
           resolve(NextResponse.redirect(failureUrl));
         }
       })
     })
 
   } catch (error) {
-    console.error('Verify payment error:', error)
-    const failureUrl = new URL('/payment/status', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
-    failureUrl.searchParams.set('status', 'failure');
-    failureUrl.searchParams.set('error', 'Ödeme doğrulama sırasında beklenmedik bir sunucu hatası oluştu.');
-    return NextResponse.redirect(failureUrl);
+    console.error('Ödeme doğrulama genel hatası:', error);
+    return NextResponse.redirect(new URL('/payment/status?status=failure&error=Beklenmedik bir hata oluştu.', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'));
   }
 }
 

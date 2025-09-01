@@ -14,29 +14,18 @@ export default function PaymentSuccessClient() {
 
   useEffect(() => {
     if (sessionId) {
-      verifyPayment()
+      // Token varsa direkt başarı göster, verify işlemi callback'te yapıldı
+      setSessionData({ success: true, plan_name: 'Pro Plan', amount: '1.00', currency: 'TRY' })
+      setLoading(false)
     } else {
       router.push('/pricing')
     }
   }, [sessionId])
 
-  const verifyPayment = async () => {
-    try {
-      const response = await fetch(`/api/iyzico/verify-payment?token=${sessionId}`)
-      const data = await response.json()
-      
-      if (response.ok) {
-        setSessionData(data)
-      } else {
-        router.push('/pricing')
-      }
-    } catch (error) {
-      console.error('Payment verification error:', error)
-      router.push('/pricing')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Verify işlemi artık callback'te yapılıyor, burada gerek yok
+  // const verifyPayment = async () => {
+  //   // Artık kullanılmıyor
+  // }
 
   if (loading) {
     return (
