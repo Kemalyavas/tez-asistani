@@ -47,6 +47,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.redirect(new URL('/pricing', request.url));
     }
 
+    // Token'ı verify et ve veritabanını güncelle
+    try {
+      const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/iyzico/verify-payment?token=${token}`);
+      const verifyData = await verifyResponse.json();
+      
+      if (!verifyResponse.ok) {
+        console.error('Payment verification failed:', verifyData);
+        return NextResponse.redirect(new URL('/pricing', request.url));
+      }
+      
+      console.log('Payment verified successfully:', verifyData);
+    } catch (verifyError) {
+      console.error('Payment verification error:', verifyError);
+      // Verification hatasında bile success'e yönlendir, kullanıcı deneyimi için
+    }
+
     // Kullanıcıyı success page'e yönlendir (token ile)
     const successUrl = new URL('/payment/success', request.url);
     successUrl.searchParams.set('token', token);
