@@ -4,12 +4,24 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // Iyzico'dan gelen form data'yı al
-    const formData = await request.formData();
-    const token = formData.get('token') as string;
+    const contentType = request.headers.get('content-type') || '';
+    let token: string | null = null;
+
+    if (contentType.includes('application/json')) {
+      // JSON formatında gelen istek
+      const jsonData = await request.json();
+      token = jsonData.token;
+    } else if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
+      // Form data formatında gelen istek
+      const formData = await request.formData();
+      token = formData.get('token') as string;
+    } else {
+      console.error('Payment success: Unsupported content type:', contentType);
+      return NextResponse.redirect(new URL('/pricing', request.url));
+    }
 
     if (!token) {
-      console.error('Payment success: Token not found in form data');
+      console.error('Payment success: Token not found');
       return NextResponse.redirect(new URL('/pricing', request.url));
     }
 
