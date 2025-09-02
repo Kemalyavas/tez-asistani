@@ -28,20 +28,41 @@ export async function POST(request: NextRequest) {
     }
 
     if (body.iyziEventType === 'SUCCESS_PAYMENT' && body.paymentStatus === 'SUCCESS') {
-      const { conversationId, paymentConversationData } = body;
-      const userId = conversationId?.split('_')[1];
-      const basketItemId = paymentConversationData?.basketItems?.[0]?.id;
+      console.log('[WEBHOOK] Başarılı ödeme webhook bildirimi alındı:', body);
       
-      if (userId && basketItemId) {
-        const planType = basketItemId.split('_')[0]; // 'pro'
-        await supabase
-          .from('profiles')
-          .update({
-            subscription_status: planType,
-            subscription_plan: basketItemId,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId);
+      const conversationId = body.conversationId;
+      const paymentDetails = body.paymentConversationData;
+      
+      if (!conversationId || !paymentDetails) {
+         console.error('[WEBHOOK] Gerekli bilgiler eksik.', body);
+         return NextResponse.json({ error: 'Eksik bilgi' }, { status: 400 });
+      }
+
+      const userId = conversationId.split('_')[1]; // conv_USERID_timestamp formatından userId'yi al
+      const basketItemId = paymentDetails.basketItems?.[0]?.id; // Plan ID'sini sepetten al
+      
+      if (!userId || !basketItemId) {
+        console.error('[WEBHOOK] userId veya basketItemId alınamadı:', { conversationId, paymentDetails });
+        return NextResponse.json({ error: 'Kullanıcı veya Plan ID alınamadı' }, { status: 400 });
+      }
+      
+      console.log('[WEBHOOK] Kullanıcı güncelleniyor:', { userId, basketItemId });
+      
+      // Kullanıcının aboneliğini veritabanında güncelle
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          subscription_status: 'premium', // Sabit 'premium' değeri kullan
+          subscription_plan: basketItemId,
+          subscription_start_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('[WEBHOOK] Veritabanı güncelleme hatası:', updateError);
+      } else {
+        console.log(`[WEBHOOK] Kullanıcı ${userId} için premium abonelik başarıyla aktifleştirildi`);
       }
     }
     

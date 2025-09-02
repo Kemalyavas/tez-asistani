@@ -70,18 +70,27 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
           // Ödeme başarılı. Webhook zaten asıl güncellemeyi yapıyor.
           // Burası kullanıcıyı bilgilendirme ve yönlendirme amaçlı.
           try {
+            console.log('[VERIFY-PAYMENT] Ödeme doğrulama başarılı, kullanıcı güncelleniyor');
             const basketId = result.basketId
             const userId = basketId.split('_')[1]
             const itemId = result.itemTransactions[0].itemId
             const plan = itemId.split('_')[0]
+            
+            console.log('[VERIFY-PAYMENT] Kullanıcı bilgileri:', { 
+              userId, 
+              plan, 
+              basketId, 
+              itemId,
+              paymentId: result.paymentId
+            })
             
             // Webhook'a ek olarak burada da bir güncelleme yapmak yedeklilik sağlar.
             const { error: updateError } = await supabase
               .from('profiles')
               .upsert({
                 id: userId, // Supabase'de user.id'yi kullan
-                subscription_status: 'premium',
-                subscription_plan: itemId,
+                subscription_status: 'premium', // Sabit premium değeri kullan
+                subscription_plan: plan,
                 subscription_start_date: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })

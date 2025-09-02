@@ -113,11 +113,22 @@ export function useUserLimits() {
           .eq('id', user.id)
           .single();
 
+        // Log ekleyerek profil durumunu kontrol edelim
+        console.log('[useUserLimits] Profil:', profile);
+        
+        // Premium durumunu doğru şekilde analiz et
+        let subscriptionStatus = 'free';
+        if (profile?.subscription_status === 'premium' || profile?.subscription_status === 'pro') {
+          subscriptionStatus = 'pro'; // UI için her zaman 'pro' kullan
+        } else if (profile?.subscription_status === 'expert') {
+          subscriptionStatus = 'expert';
+        }
+        
         const newUsage = {
           thesis_analyses: profile?.thesis_count || 0,
           abstract_generations: profile?.abstract_count || 0,
           citation_formats: profile?.citation_count || 0,
-          subscription_status: (profile?.subscription_status === 'premium' ? 'pro' : profile?.subscription_status) || 'free'
+          subscription_status: subscriptionStatus as 'free' | 'pro' | 'expert'
         };
 
         const newCache = { user, usage: newUsage, timestamp: Date.now(), version: ++globalCache.version };

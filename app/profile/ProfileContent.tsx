@@ -241,11 +241,15 @@ export default function ProfileContent() {
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">{profile.full_name || profile.username}</h2>
                 <p className="text-gray-600">{profile.email}</p>
-                <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                    profile.subscription_status === 'premium' || profile.subscription_status === 'pro'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
                   <Shield className="h-3 w-3 mr-1" />
-                  {profile.subscription_status === 'premium' 
-                    ? `${profile.subscription_plan?.replace('_', ' ').toUpperCase()} - Premium` 
-                    : 'Ücretsiz'} Üye
+                  {(profile.subscription_status === 'premium' || profile.subscription_status === 'pro')
+                    ? `Premium Üye${profile.subscription_plan ? ` - ${profile.subscription_plan?.toUpperCase()}` : ''}`
+                    : 'Ücretsiz Üye'}
                 </div>
               </div>
             </div>

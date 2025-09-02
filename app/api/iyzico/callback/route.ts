@@ -85,6 +85,56 @@ async function verifyAndRedirect(token: string, request: NextRequest, result?: a
     }
     
     if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+      // Başarılı ödemede kullanıcı bilgilerini güncelle
+      try {
+        console.log('[ÖDEME-BAŞARILI] Kullanıcı veritabanı güncelleniyor...');
+        
+        // Basketid ve conversationId'den kullanıcı ID'sini çıkar
+        const basketId = result.basketId || '';
+        const userId = basketId.split('_')[1];
+        
+        // İşlem detaylarından plan bilgisini al
+        const itemId = result.itemTransactions?.[0]?.itemId || '';
+        const planType = itemId.split('_')[0]; // "pro" veya "expert"
+        
+        console.log('[ÖDEME-DETAY]', {
+          userId,
+          planType,
+          basketId,
+          itemId,
+          paymentId: result.paymentId
+        });
+        
+        // Supabase client import edilmediği için doğrudan import ediyoruz
+        const { createClient } = await import('@supabase/supabase-js');
+        
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY! // Admin yetkisiyle güncellemek için Service Role Key kullan
+        );
+        
+        // Kullanıcı profilini güncelle
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({
+            subscription_status: 'premium', // Sabit değer olarak premium kullan
+            subscription_plan: planType,
+            subscription_start_date: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId)
+          .select();
+          
+        if (error) {
+          console.error('[VERİTABANI-HATA]', error);
+        } else {
+          console.log('[KULLANICI-GÜNCELLENDİ]', data);
+        }
+      } catch (dbError) {
+        console.error('[VERİTABANI-GÜNCELLENİRKEN-HATA]', dbError);
+        // Hata olsa bile kullanıcıyı başarılı sayfasına yönlendir
+      }
+      
       // 303 kodu kullanarak POST isteğini GET isteğine dönüştür
       return NextResponse.redirect(new URL('/payment/success', request.nextUrl), { status: 303 });
     } else {
