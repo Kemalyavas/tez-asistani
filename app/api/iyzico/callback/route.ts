@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const token = params.get('token');
 
     if (!token) {
-      console.error('[HATA] Iyzico token göndermedi.');
+      console.error('[CALLBACK-HATA] Iyzico token göndermedi.');
       return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl));
     }
 
@@ -27,26 +27,27 @@ export async function POST(request: NextRequest) {
 
     const result = await new Promise<any>((resolve, reject) => {
       iyzipay.checkoutForm.retrieve({ token }, (err, res) => {
-        if (err || res.status !== 'success') {
-          console.error('[IYZICO-HATA]', { err, res });
-          const iyziError = (res as any)?.errorMessage || 'Unknown Iyzico error';
-          return reject(err || new Error(iyziError));
+        // Hata varsa veya cevap hiç gelmediyse, işlemi reddet
+        if (err || !res) {
+          console.error('[IYZICO-HATA] Iyzico retrieve çağrısı başarısız oldu.', { err, res });
+          return reject(err || new Error('Iyzico\'dan geçersiz yanıt alındı.'));
         }
         resolve(res);
       });
     });
 
-    if (result.paymentStatus === 'SUCCESS') {
-      const conversationId = result.conversationId;
+    // result objesinin varlığını ve status alanını kontrol et
+    if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+      const { conversationId, basketItems } = result;
       const userId = conversationId?.split('_')[1];
-      const planId = result.basketItems?.[0]?.id?.split('_')[0];
+      const planId = basketItems?.[0]?.id?.split('_')[0];
 
       if (userId && planId) {
-        // KULLANICI HAKLARINI BURADA GÜNCELLİYORUZ
+        // Kullanıcı haklarını güncelle
         await supabase
           .from('profiles')
           .update({
-            subscription_status: planId, // 'pro' veya 'expert'
+            subscription_status: planId,
             subscription_plan: planId,
           })
           .eq('id', userId);
@@ -54,11 +55,13 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.redirect(new URL('/payment/success', request.nextUrl));
     } else {
+      // Ödeme başarısızsa veya beklenen formatta değilse
       const errorMessage = encodeURIComponent(result?.errorMessage || 'odeme_basarisiz');
       return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl));
     }
   } catch (error: any) {
-    console.error('[KRİTİK-HATA]', error.message);
+    console.error('[KRİTİK-HATA] Callback rotasında beklenmeyen bir hata oluştu:', error.message);
+    // Herhangi bir çökme durumunda kullanıcıyı hata sayfasına yönlendir
     return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl));
   }
 }
