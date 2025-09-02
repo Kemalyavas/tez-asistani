@@ -78,6 +78,8 @@ export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [discountCode, setDiscountCode] = useState<string>('')
+  const [showDiscountInput, setShowDiscountInput] = useState<boolean>(false)
   const router = useRouter()
   const supabase = createClientComponentClient()
 
@@ -111,6 +113,12 @@ export default function PricingPage() {
     }
 
     if (planId === 'free') return
+    
+    // Pro plan seçildiğinde indirim kodu giriş alanını göster
+    if (planId === 'pro' && !showDiscountInput) {
+      setShowDiscountInput(true)
+      return
+    }
 
     setLoading(planId)
 
@@ -123,7 +131,8 @@ export default function PricingPage() {
         body: JSON.stringify({
           plan: planId,
           user_id: user.id,
-          billing_cycle: billingCycle
+          billing_cycle: billingCycle,
+          discountCode: planId === 'pro' ? discountCode : '' // Sadece Pro plan için indirim kodu gönder
         }),
       })
 
@@ -141,6 +150,7 @@ export default function PricingPage() {
       toast.error(error.message || 'Ödeme işlemi başlatılamadı')
     } finally {
       setLoading(null)
+      setShowDiscountInput(false)
     }
   }
 
@@ -228,6 +238,32 @@ export default function PricingPage() {
                   ))}
                 </div>
 
+                {/* Discount Code Input - Only show for Pro plan when activated */}
+                {plan.id === 'pro' && showDiscountInput && (
+                  <div className="mb-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="İndirim kodu girin"
+                        value={discountCode}
+                        onChange={(e) => setDiscountCode(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      {discountCode === 'bedo10' && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                          %10 indirim
+                        </div>
+                      )}
+                    </div>
+                    {discountCode === 'bedo10' && (
+                      <div className="mt-2 text-sm text-green-600 font-medium">
+                        %10 indirim uygulandı: {parseInt(plan.price) * 0.9}₺ 
+                        {billingCycle === 'yearly' && ` (Yıllık: ${Math.floor(parseInt(plan.price) * 12 * 0.8 * 0.9)}₺)`}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* CTA Button */}
                 <button
                   onClick={() => handlePlanSelect(plan.id)}
@@ -246,7 +282,7 @@ export default function PricingPage() {
                       İşleniyor...
                     </span>
                   ) : (
-                    plan.buttonText
+                    plan.id === 'pro' && showDiscountInput ? 'Devam Et' : plan.buttonText
                   )}
                 </button>
               </div>

@@ -7,8 +7,8 @@ import Iyzipay from 'iyzipay';
 
 // Fiyatları tek bir yerden yönetmek için
 const PLANS = {
-  pro: { monthly: 199, yearly: 1912 },  // Yıllık %20 indirimli: 199 * 12 * 0.8 = 1912
-  expert: { monthly: 499, yearly: 4790 } // Yıllık %20 indirimli: 499 * 12 * 0.8 = 4790
+  pro: { monthly: 199, yearly: 1912 },
+  expert: { monthly: 499, yearly: 4790 }
 };
 
 const PLAN_NAMES = {
@@ -38,14 +38,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Zaten premium üyeliğiniz var. Tekrar üyelik alamazsınız.' }, { status: 400 });
     }
 
-    const { plan, billing_cycle } = await request.json();
+    const { plan, billing_cycle, discountCode } = await request.json();
 
     if (!plan || !PLANS[plan as keyof typeof PLANS] || !['monthly', 'yearly'].includes(billing_cycle)) {
       return NextResponse.json({ error: 'Geçersiz plan veya ödeme periyodu' }, { status: 400 });
     }
 
-    const price = PLANS[plan as keyof typeof PLANS][billing_cycle as keyof typeof PLANS['pro']];
+    let price = PLANS[plan as keyof typeof PLANS][billing_cycle as keyof typeof PLANS['pro']];
     const planName = PLAN_NAMES[plan as keyof typeof PLAN_NAMES];
+    
+    // İndirim kodu kontrolü - Sadece Pro plan için "bedo10" indirim kodunu kontrol et
+    let discountApplied = false;
+    if (plan === 'pro' && discountCode === 'bedo10') {
+      // %10 indirim uygula
+      price = Math.floor(price * 0.9);
+      discountApplied = true;
+    }
     
     const fullName = user.user_metadata?.username || user.email?.split('@')[0] || 'Kullanıcı';
     const nameParts = fullName.split(' ');
@@ -102,8 +110,8 @@ export async function POST(request: NextRequest) {
       },
       basketItems: [
         {
-          id: `${plan}_${billing_cycle}`,
-          name: `${planName} (${billing_cycle === 'yearly' ? 'Yıllık' : 'Aylık'})`,
+          id: `${plan}_${billing_cycle}${discountApplied ? '_discounted' : ''}`,
+          name: `${planName} (${billing_cycle === 'yearly' ? 'Yıllık' : 'Aylık'})${discountApplied ? ' %10 İndirimli' : ''}`,
           category1: 'Software',
           category2: 'Subscription',
           itemType: 'VIRTUAL',
