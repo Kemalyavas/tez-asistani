@@ -7,8 +7,8 @@ import Iyzipay from 'iyzipay';
 
 // Fiyatları tek bir yerden yönetmek için
 const PLANS = {
-  pro: { monthly: 1, yearly: 1 },
-  expert: { monthly: 499, yearly: 4787 }
+  pro: { monthly: 199, yearly: 1912 },  // Yıllık %20 indirimli: 199 * 12 * 0.8 = 1912
+  expert: { monthly: 499, yearly: 4790 } // Yıllık %20 indirimli: 499 * 12 * 0.8 = 4790
 };
 
 const PLAN_NAMES = {

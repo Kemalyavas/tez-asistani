@@ -33,7 +33,7 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '1',
+    price: '199',
     period: 'aylık',
     description: 'Akademisyenler ve öğrenciler için',
     features: [
