@@ -53,7 +53,7 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
       const failureUrl = new URL('/payment/status', siteUrl);
       failureUrl.searchParams.set('status', 'failure');
       failureUrl.searchParams.set('error', 'Ödeme token bilgisi bulunamadı.');
-      return NextResponse.redirect(failureUrl);
+      return NextResponse.redirect(failureUrl, { status: 303 });
     }
 
     return new Promise<NextResponse>((resolve, reject) => {
@@ -65,7 +65,7 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
           const failureUrl = new URL('/payment/status', siteUrl);
           failureUrl.searchParams.set('status', 'failure');
           failureUrl.searchParams.set('error', 'Ödeme sağlayıcısı ile doğrulama başarısız oldu.');
-          resolve(NextResponse.redirect(failureUrl));
+          resolve(NextResponse.redirect(failureUrl, { status: 303 }));
         } else if (result.status === 'success') {
           // Ödeme başarılı. Webhook zaten asıl güncellemeyi yapıyor.
           // Burası kullanıcıyı bilgilendirme ve yönlendirme amaçlı.
@@ -95,27 +95,27 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
             const planName = itemId.includes('_') ? itemId.split('_')[0].charAt(0).toUpperCase() + itemId.split('_')[0].slice(1) + ' Plan' : 'Pro Plan';
             successUrl.searchParams.set('plan', planName);
             successUrl.searchParams.set('amount', result.paidPrice);
-            resolve(NextResponse.redirect(successUrl));
+            resolve(NextResponse.redirect(successUrl, { status: 303 }));
 
           } catch (dbError) {
             console.error('Database error:', dbError)
             const failureUrl = new URL('/payment/status', siteUrl);
             failureUrl.searchParams.set('status', 'failure');
             failureUrl.searchParams.set('error', 'Ödeme sonrası veritabanı güncelleme hatası.');
-            resolve(NextResponse.redirect(failureUrl));
+            resolve(NextResponse.redirect(failureUrl, { status: 303 }));
           }
         } else {
           const failureUrl = new URL('/payment/status', siteUrl);
           failureUrl.searchParams.set('status', 'failure');
           failureUrl.searchParams.set('error', result?.errorMessage || 'Ödeme durumu belirsiz.');
-          resolve(NextResponse.redirect(failureUrl));
+          resolve(NextResponse.redirect(failureUrl, { status: 303 }));
         }
       })
     })
 
   } catch (error) {
     console.error('Ödeme doğrulama genel hatası:', error);
-    return NextResponse.redirect(new URL('/payment/status?status=failure&error=Beklenmedik bir hata oluştu.', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'));
+    return NextResponse.redirect(new URL('/payment/status?status=failure&error=Beklenmedik bir hata oluştu.', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'), { status: 303 });
   }
 }
 

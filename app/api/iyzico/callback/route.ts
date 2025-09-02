@@ -12,14 +12,14 @@ export async function GET(request: NextRequest) {
     
     if (!token) {
       console.error('[HATA] Token bulunamadı (GET)');
-      return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl));
+      return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl), { status: 303 });
     }
 
     // Aynı işlemi GET isteği için de gerçekleştir
     return verifyAndRedirect(token, request);
   } catch (error: any) {
     console.error('[KRİTİK-HATA] GET:', error.message);
-    return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl));
+    return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl), { status: 303 });
   }
 }
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     return verifyAndRedirect(token, request, result);
   } catch (error: any) {
     console.error('[KRİTİK-HATA]', error.message);
-    return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl));
+    return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl), { status: 303 });
   }
 }
 
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 async function verifyAndRedirect(token: string, request: NextRequest, result?: any) {
   if (!token) {
     console.error('[HATA] Token bulunamadı');
-    return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl));
+    return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl), { status: 303 });
   }
   
   try {
@@ -85,13 +85,15 @@ async function verifyAndRedirect(token: string, request: NextRequest, result?: a
     }
     
     if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
-      return NextResponse.redirect(new URL('/payment/success', request.nextUrl));
+      // 303 kodu kullanarak POST isteğini GET isteğine dönüştür
+      return NextResponse.redirect(new URL('/payment/success', request.nextUrl), { status: 303 });
     } else {
       const errorMessage = encodeURIComponent(result?.errorMessage || 'odeme_basarisiz');
-      return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl));
+      // 303 kodu kullanarak POST isteğini GET isteğine dönüştür
+      return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl), { status: 303 });
     }
   } catch (error: any) {
     console.error('[DOĞRULAMA-HATASI]', error.message);
-    return NextResponse.redirect(new URL(`/payment/fail?error=dogrulama_hatasi`, request.nextUrl));
+    return NextResponse.redirect(new URL(`/payment/fail?error=dogrulama_hatasi`, request.nextUrl), { status: 303 });
   }
 }
