@@ -1,4 +1,3 @@
-// app/api/iyzico/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
       const basketItemId = paymentConversationData?.basketItems?.[0]?.id;
       
       if (userId && basketItemId) {
-        const planType = basketItemId.split('_')[0];
+        const planType = basketItemId.split('_')[0]; // 'pro'
         await supabase
           .from('profiles')
           .update({
