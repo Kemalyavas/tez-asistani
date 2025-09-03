@@ -17,8 +17,6 @@ export default function Home() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [discountCode, setDiscountCode] = useState<string>('');
-  const [showDiscountInput, setShowDiscountInput] = useState<boolean>(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
   
@@ -137,12 +135,6 @@ export default function Home() {
       router.push('/auth');
       return;
     }
-    
-    // Pro plan seçildiğinde ve indirim kodu görüntülenmemişse, indirim kodu alanını göster
-    if (planId === 'pro' && !showDiscountInput) {
-      setShowDiscountInput(true);
-      return;
-    }
 
     setLoadingPlan(planId);
 
@@ -155,8 +147,7 @@ export default function Home() {
         // --- DEĞİŞİKLİK: user_id ARTIK GÖNDERİLMİYOR ---
         body: JSON.stringify({
           plan: planId,
-          billing_cycle: billingPeriod,
-          discountCode: planId === 'pro' ? discountCode : '' // Sadece Pro plan için indirim kodu gönder
+          billing_cycle: billingPeriod
         }),
       });
 
@@ -172,7 +163,6 @@ export default function Home() {
       console.error('Checkout error:', error);
       toast.error(error.message || 'Ödeme işlemi başlatılamadı');
     } finally {
-      setShowDiscountInput(false);
       setLoadingPlan(null);
     }
   };
@@ -521,31 +511,6 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                
-                {/* İndirim Kodu Giriş Alanı - Sadece Pro için ve görünür olduğunda */}
-                {plan.id === 'pro' && showDiscountInput && (
-                  <div className="mb-4">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="İndirim kodu girin"
-                        value={discountCode}
-                        onChange={(e) => setDiscountCode(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      {discountCode === 'bedo10' && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
-                          %10 indirim
-                        </div>
-                      )}
-                    </div>
-                    {discountCode === 'bedo10' && (
-                      <div className="mt-2 text-sm text-green-600 font-medium">
-                        %10 indirim uygulandı: {plan.price * 0.9}₺
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 <button
                   onClick={() => handleSelectPlan(plan.id)} // plan.name yerine plan.id kullandık
@@ -555,9 +520,7 @@ export default function Home() {
                     plan.id === 'free' ? 'bg-gray-100 text-gray-800 hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
-                  {loadingPlan === plan.id ? 
-                    'Yönlendiriliyor...' : 
-                    (plan.id === 'pro' && showDiscountInput) ? 'Devam Et' : plan.cta}
+                  {loadingPlan === plan.id ? 'Yönlendiriliyor...' : plan.cta}
                 </button>
               </div>
             ))}
