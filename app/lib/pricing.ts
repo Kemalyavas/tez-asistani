@@ -1,35 +1,39 @@
 // app/lib/pricing.ts
 // Merkezi fiyat yapılandırma dosyası
 
-// Planların temel bilgileri
+// Currency constants (USD)
+export const CURRENCY_CODE = 'USD';
+export const CURRENCY_SYMBOL = '$';
+
+// Core plan info (USD pricing)
 export const PRICE_CONFIG = {
   pro: {
-    monthly: 299,
-    yearly: 2870, // 299 * 12 * 0.8 = ~2870 (%20 indirimli)
+    monthly: 9, // $9 monthly
+    yearly: 86, // 9 * 12 * 0.8 = 86.4 ≈ 86 (20% discount)
     name: 'Pro Plan',
     features: [
-      '30 tez analizi',
-      '50 özet oluşturma', 
-      '100 kaynak formatlama',
-      'Gelişmiş AI modelleri',
-      'Hızlı e-posta desteği',
-      'Detaylı kullanım raporları',
-      'Çoklu format desteği (APA, MLA, Chicago, IEEE)'
+      '30 thesis analyses',
+      '50 abstract generations', 
+      '100 citation formattings',
+      'Advanced AI models',
+      'Fast email support',
+      'Detailed usage reports',
+      'Multiple format support (APA, MLA, Chicago, IEEE)'
     ]
   },
   expert: {
-    monthly: 699,
-    yearly: 6710, // 699 * 12 * 0.8 = ~6710 (%20 indirimli)
+    monthly: 25, // $25 monthly
+    yearly: 240, // 25 * 12 * 0.8 = 240 (20% discount)
     name: 'Expert Plan',
     features: [
-      'Sınırsız tez analizi',
-      'Sınırsız özet oluşturma',
-      'Sınırsız kaynak formatlama',
-      'En gelişmiş AI modelleri',
-      'Türkçe ve İngilizce özet desteği',
-      '7/24 öncelikli destek',
-      'Özel kullanıcı yönetimi',
-      'Detaylı analitik raporlar'
+      'Unlimited thesis analyses',
+      'Unlimited abstract generations',
+      'Unlimited citation formattings',
+      'Premium AI models',
+      'English & Turkish abstract support',
+      '24/7 priority support',
+      'Custom user management',
+      'Detailed analytics reports'
     ]
   }
 };
@@ -60,7 +64,7 @@ export const getFormattedPrice = (planId: string, billingCycle: 'monthly' | 'yea
 };
 
 export const getPriceWithCurrency = (price: number): string => {
-  return `${price} ₺`;
+  return `${CURRENCY_SYMBOL}${price}`;
 };
 
 export const getYearlySavings = (planId: string): number => {

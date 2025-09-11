@@ -5,7 +5,7 @@ import { rateLimit, getClientIP } from '../../lib/rateLimit'; // Rate limit fonk
 import anthropic from "../../lib/anthropic";
 import { extractPdfText } from '../../lib/fileUtils';
 
-// Kullanım limitlerini merkezi yapılandırmadan al
+// Get usage limits from central configuration
 import { USAGE_LIMITS } from '../../lib/pricing';
 
 export async function POST(request: NextRequest) {

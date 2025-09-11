@@ -1,14 +1,14 @@
 {
-  "name": "TezAI - Tez Yazım Asistanı",
+  "name": "TezAI - Thesis Writing Assistant",
   "short_name": "TezAI",
-  "description": "AI destekli akademik yazım aracı. Tez, makale ve akademik çalışmalarınız için otomatik referans formatı ve özet oluşturma.",
+  "description": "AI-powered academic writing tool. Automatic reference formatting and abstract generation for your theses, papers, and academic work.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "categories": ["education", "productivity", "academic"],
-  "lang": "tr",
+  "lang": "en",
   "scope": "/",
   "icons": [
     {
@@ -62,9 +62,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Kaynak Formatla",
+      "name": "Format Citation",
       "short_name": "Format",
-      "description": "Hızlı kaynak formatı oluştur",
+      "description": "Quickly format citations",
       "url": "/format?shortcut=true",
       "icons": [
         {
@@ -74,9 +74,9 @@
       ]
     },
     {
-      "name": "Özet Oluştur",
-      "short_name": "Özet",
-      "description": "AI ile özet oluştur",
+      "name": "Generate Abstract",
+      "short_name": "Abstract",
+      "description": "Generate abstract with AI",
       "url": "/ozet?shortcut=true",
       "icons": [
         {

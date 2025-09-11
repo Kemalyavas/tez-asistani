@@ -97,16 +97,16 @@ export const structuredData = {
         "name": "Ücretsiz Plan",
         "price": "0",
         "priceCurrency": "USD",
-        "description": "1 tez analizi, 1 özet, 5 kaynak formatı",
+        "description": "1 thesis analysis, 1 abstract, 5 citation formats",
         "category": "Free Tier"
       },
       {
         "@type": "Offer",
         "name": "Pro Plan",
-        "price": "299",
-        "priceCurrency": "TRY",
+        "price": "9",
+        "priceCurrency": "USD",
         "billingDuration": "P1M",
-        "description": "30 tez analizi, 50 özet, 100 kaynak formatı, gelişmiş AI",
+        "description": "30 thesis analyses, 50 abstracts, 100 citation formats, advanced AI",
         "category": "Premium"
       },
       {
@@ -115,7 +115,7 @@ export const structuredData = {
         "price": "25",
         "priceCurrency": "USD",
         "billingDuration": "P1M",
-        "description": "Sınırsız kullanım, 7/24 destek, analitik raporlar",
+        "description": "Unlimited usage, 24/7 support, analytical reports",
         "category": "Enterprise"
       }
     ],
@@ -190,23 +190,23 @@ export const structuredData = {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Tez Asistanı nasıl çalışır?",
+        "name": "How does Thesis Assistant work?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Tez Asistanı, yapay zeka teknolojisi kullanarak akademik metinlerinizi analiz eder ve APA, MLA, Chicago gibi standart formatlarda otomatik referans oluşturur. Ayrıca PDF veya Word dosyalarınızdan özet çıkarabilir."
+          "text": "Thesis Assistant uses artificial intelligence technology to analyze your academic texts and automatically generate references in standard formats such as APA, MLA, and Chicago. It can also extract abstracts from your PDF or Word files."
         }
       },
       {
         "@type": "Question",
-        "name": "Hangi referans formatlarını destekliyor?",
+        "name": "Which citation formats are supported?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "APA 7th Edition, MLA 9th Edition, Chicago 17th Edition ve IEEE formatlarını destekliyoruz. Türkiye'deki üniversitelerin gereksinimleri doğrultusunda özelleştirilmiş formatlar da mevcuttur."
+          "text": "We support APA 7th Edition, MLA 9th Edition, Chicago 17th Edition, and IEEE formats. Customized formats are also available to meet the requirements of universities worldwide."
         }
       },
       {
         "@type": "Question",
-        "name": "Verilerim güvenli mi?",
+        "name": "Is my data secure?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Evet, tüm verileriniz 256-bit SSL şifreleme ile korunur. KVKK ve GDPR uyumlu veri işleme politikalarımız mevcuttur. Dosyalarınız işlem sonrası güvenli bir şekilde silinir."
@@ -235,8 +235,8 @@ export const structuredData = {
   howTo: {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    "name": "APA Formatında Kaynak Nasıl Formatlanır",
-    "description": "Tez Asistanı ile APA formatında otomatik kaynak formatı oluşturma rehberi",
+    "name": "How to Format Citations in APA Style",
+    "description": "Guide to automatic citation formatting in APA style with Thesis Assistant",
     "image": "https://tez-asistani.vercel.app/apa-guide.jpg",
     "totalTime": "PT2M",
     "estimatedCost": {

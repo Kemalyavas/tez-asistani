@@ -11,24 +11,24 @@ import { PRICE_CONFIG, getFormattedPrice, getYearlySavings } from '../lib/pricin
 const PLANS = [
   {
     id: 'free',
-    name: 'Ücretsiz',
+    name: 'Free',
     price: '0',
-    period: 'süresiz',
-    description: 'Denemek için ideal',
+    period: 'forever',
+    description: 'Ideal for trying out',
     features: [
-      '1 tez analizi',
-      '1 özet oluşturma',
-      '5 kaynak formatlama',
-      'Temel AI desteği',
-      'Topluluk forumları'
+      '1 thesis analysis',
+      '1 abstract generation',
+      '5 citation formattings',
+      'Basic AI support',
+      'Community forums'
     ],
     limitations: [
-      'Sınırlı kullanım',
-      'Öncelikli destek',
-      'Gelişmiş AI modelleri',
-      'Premium özellikler'
+      'Limited usage',
+      'Priority support',
+      'Advanced AI models',
+      'Premium features'
     ],
-    buttonText: 'Ücretsiz Başla',
+    buttonText: 'Start Free',
     popular: false,
     disabled: false
   },
@@ -36,11 +36,11 @@ const PLANS = [
     id: 'pro',
     name: 'Pro',
     price: getFormattedPrice('pro', 'monthly'),
-    period: 'aylık',
-    description: 'Akademisyenler ve öğrenciler için',
+    period: 'monthly',
+    description: 'For academics and students',
     features: PRICE_CONFIG.pro.features,
     limitations: [],
-    buttonText: 'Pro\'yu Seç',
+    buttonText: 'Choose Pro',
     popular: true,
     disabled: false
   },
@@ -48,11 +48,11 @@ const PLANS = [
     id: 'expert',
     name: 'Expert',
     price: getFormattedPrice('expert', 'monthly'),
-    period: 'aylık',
-    description: 'Kapsamlı kullanım için',
+    period: 'monthly',
+    description: 'For comprehensive usage',
     features: PRICE_CONFIG.expert.features,
     limitations: [],
-    buttonText: 'Expert\'i Seç',
+    buttonText: 'Choose Expert',
     popular: false,
     disabled: false
   }
@@ -138,14 +138,14 @@ export default function PricingPage() {
             Size Uygun <span className="text-blue-600">Planı</span> Seçin
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Tez yazım sürecinizi hızlandıracak profesyonel araçlara erişin. 
-            İstediğiniz zaman iptal edebilirsiniz.
+            Access professional tools to accelerate your thesis writing process.
+            Cancel anytime.
           </p>
 
           {/* Billing Toggle */}
           <div className="flex items-center justify-center space-x-4 mb-8">
             <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-blue-600' : 'text-gray-500'}`}>
-              Aylık
+              Monthly
             </span>
             <button
               onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
@@ -154,8 +154,8 @@ export default function PricingPage() {
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
             <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-blue-600' : 'text-gray-500'}`}>
-              Yıllık
-              <span className="ml-1 text-xs text-green-600 font-semibold">%20 İndirim</span>
+              Yearly
+              <span className="ml-1 text-xs text-green-600 font-semibold">20% Off</span>
             </span>
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function PricingPage() {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
-                    En Popüler
+                    Most Popular
                   </span>
                 </div>
               )}
@@ -185,14 +185,14 @@ export default function PricingPage() {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                   <p className="text-gray-600 mb-4">{plan.description}</p>
                   <div className="flex items-baseline justify-center">
-                    <span className="text-5xl font-bold text-gray-900">{plan.price}₺</span>
+                    <span className="text-5xl font-bold text-gray-900">${plan.price}</span>
                     {plan.price !== '0' && (
-                      <span className="text-gray-500 ml-2">/{plan.period}</span>
+                      <span className="text-gray-500 ml-2">/month</span>
                     )}
                   </div>
                   {billingCycle === 'yearly' && plan.price !== '0' && (
                     <p className="text-sm text-green-600 mt-2">
-                      Yıllık ödeme: {plan.id !== 'free' ? PRICE_CONFIG[plan.id as 'pro' | 'expert'].yearly : 0}₺ ({plan.id !== 'free' ? getYearlySavings(plan.id) : 0}₺ tasarruf)
+                      Yearly payment: ${plan.id !== 'free' ? PRICE_CONFIG[plan.id as 'pro' | 'expert'].yearly : 0} (Save ${plan.id !== 'free' ? getYearlySavings(plan.id) : 0})
                     </p>
                   )}
                 </div>

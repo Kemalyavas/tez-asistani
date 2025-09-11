@@ -38,7 +38,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Geçersiz plan veya ödeme periyodu' }, { status: 400 });
     }
 
-    const price = PRICE_CONFIG[plan as keyof typeof PRICE_CONFIG][billing_cycle as 'monthly' | 'yearly'];
+  // USD base price from config
+  const usdPrice = PRICE_CONFIG[plan as keyof typeof PRICE_CONFIG][billing_cycle as 'monthly' | 'yearly'];
+  // Convert to TRY for Iyzico (fallback 41 if env not set)
+  const rate = Number(process.env.EXCHANGE_RATE_USD_TRY || '41');
+  const tryAmount = (usdPrice * rate).toFixed(2);
     const planName = PRICE_CONFIG[plan as keyof typeof PRICE_CONFIG].name;
     
     const fullName = user.user_metadata?.username || user.email?.split('@')[0] || 'Kullanıcı';
@@ -65,9 +69,9 @@ export async function POST(request: NextRequest) {
     const request_data: any = {
       locale: 'tr',
       conversationId: `conv_${user.id}_${Date.now()}`,
-      price: price.toString(),
-      paidPrice: price.toString(),
-      currency: 'TRY',
+    price: tryAmount,
+    paidPrice: tryAmount,
+  currency: 'TRY',
       basketId: `basket_${user.id}_${plan}`,
       paymentChannel: 'WEB',
       paymentGroup: 'SUBSCRIPTION',
@@ -97,11 +101,11 @@ export async function POST(request: NextRequest) {
       basketItems: [
         {
           id: `${plan}_${billing_cycle}`,
-          name: `${planName} (${billing_cycle === 'yearly' ? 'Yıllık' : 'Aylık'})`,
+          name: `${planName} (${billing_cycle === 'yearly' ? 'Yearly' : 'Monthly'} - $${usdPrice} ≈ ${tryAmount} TRY @${rate})`,
           category1: 'Software',
           category2: 'Subscription',
           itemType: 'VIRTUAL',
-          price: price.toString()
+          price: tryAmount
         }
       ]
     };

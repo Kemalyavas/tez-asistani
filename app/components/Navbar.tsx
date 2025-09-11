@@ -66,31 +66,31 @@ export default function Navbar() {
               onClick={() => scrollToSection('features')}
               className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
             >
-              Özellikler
+              Features
             </button>
             <button 
               onClick={() => scrollToSection('how-it-works')}
               className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
             >
-              Nasıl Çalışır
+              How It Works
             </button>
             <button 
               onClick={() => scrollToSection('pricing')}
               className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
             >
-              Fiyatlandırma
+              Pricing
             </button>
             <button 
               onClick={() => scrollToSection('app')}
               className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
             >
-              Uygulama
+              Application
             </button>
             <Link 
               href="/privacy-policy" 
               className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
             >
-              Gizlilik
+              Privacy
             </Link>
             
             {/* Auth Buttons */}
@@ -108,7 +108,7 @@ export default function Navbar() {
                   className="flex items-center space-x-1 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-300"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Çıkış</span>
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
@@ -117,7 +117,7 @@ export default function Navbar() {
                 className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300"
               >
                 <LogIn className="h-4 w-4" />
-                <span>Giriş Yap</span>
+                <span>Login</span>
               </Link>
             )}
           </div>
@@ -139,32 +139,32 @@ export default function Navbar() {
                 onClick={() => scrollToSection('features')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                Özellikler
+                Features
               </button>
               <button 
                 onClick={() => scrollToSection('how-it-works')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                Nasıl Çalışır
+                How It Works
               </button>
               <button 
                 onClick={() => scrollToSection('pricing')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                Fiyatlandırma
+                Pricing
               </button>
               <button 
                 onClick={() => scrollToSection('app')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                Uygulama
+                Application
               </button>
               <Link 
                 href="/privacy-policy" 
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Gizlilik
+                Privacy
               </Link>
               
               {/* Mobile Auth Section */}
@@ -183,7 +183,7 @@ export default function Navbar() {
                       onClick={handleLogout}
                       className="w-full text-left text-red-600 hover:bg-red-50 font-medium transition-colors duration-300 py-2"
                     >
-                      Çıkış Yap
+                      Logout
                     </button>
                   </>
                 ) : (
@@ -192,7 +192,7 @@ export default function Navbar() {
                     onClick={() => setIsMenuOpen(false)}
                     className="block text-blue-600 hover:bg-blue-50 font-medium transition-colors duration-300 py-2"
                   >
-                    Giriş Yap / Kayıt Ol
+                    Login / Register
                   </Link>
                 )}
               </div>

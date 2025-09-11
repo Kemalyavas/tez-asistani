@@ -13,9 +13,9 @@ export default function PrivacyPolicy() {
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Ana Sayfaya Dön
+            Back to Home
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Veri Gizliliği Politikası</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Privacy Policy</h1>
         </div>
       </div>
 
@@ -27,35 +27,35 @@ export default function PrivacyPolicy() {
           <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-8 mb-8">
             <div className="flex items-center mb-4">
               <Shield className="h-8 w-8 text-green-600 mr-3" />
-              <h2 className="text-2xl font-bold text-green-800">Güvenlik Taahhüdümüz</h2>
+              <h2 className="text-2xl font-bold text-green-800">Our Security Commitment</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="flex items-start space-x-3">
                 <Lock className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-gray-800">SSL Şifreleme</h3>
-                  <p className="text-gray-600 text-sm">Tüm verileriniz 256-bit SSL ile şifrelenir</p>
+                  <h3 className="font-semibold text-gray-800">SSL Encryption</h3>
+                  <p className="text-gray-600 text-sm">All your data is encrypted with 256‑bit SSL</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <Trash2 className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-gray-800">Otomatik Silme</h3>
-                  <p className="text-gray-600 text-sm">Dosyalar analiz sonrası otomatik silinir</p>
+                  <h3 className="font-semibold text-gray-800">Automatic Deletion</h3>
+                  <p className="text-gray-600 text-sm">Files are automatically deleted after analysis</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <Eye className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-gray-800">Sıfır Paylaşım</h3>
-                  <p className="text-gray-600 text-sm">Hiçbir veri üçüncü tarafla paylaşılmaz</p>
+                  <h3 className="font-semibold text-gray-800">Zero Sharing</h3>
+                  <p className="text-gray-600 text-sm">No data is shared with third parties</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <UserCheck className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-gray-800">KVKK Uyumlu</h3>
-                  <p className="text-gray-600 text-sm">Türk veri koruma mevzuatına uygun</p>
+                  <h3 className="font-semibold text-gray-800">KVKK Compliant</h3>
+                  <p className="text-gray-600 text-sm">Compliant with Turkish data protection law</p>
                 </div>
               </div>
             </div>
@@ -68,83 +68,83 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <Server className="h-5 w-5 mr-2 text-blue-600" />
-                1. Hangi Verileri Topluyoruz?
+                1. What Data Do We Collect?
               </h2>
               <div className="prose max-w-none text-gray-700">
-                <h3 className="text-lg font-semibold mb-2">Tez Dosyaları</h3>
+                <h3 className="text-lg font-semibold mb-2">Thesis Files</h3>
                 <ul className="list-disc pl-6 mb-4 space-y-1">
-                  <li>PDF ve DOCX formatındaki tez dosyalarınız</li>
-                  <li>Dosya adı ve boyut bilgileri</li>
-                  <li>Yükleme tarihi ve saati</li>
+                  <li>Your thesis files in PDF and DOCX format</li>
+                  <li>File name and size information</li>
+                  <li>Upload date and time</li>
                 </ul>
 
-                <h3 className="text-lg font-semibold mb-2">Kullanıcı Bilgileri</h3>
+                <h3 className="text-lg font-semibold mb-2">User Information</h3>
                 <ul className="list-disc pl-6 mb-4 space-y-1">
-                  <li>E-posta adresi (kayıt için)</li>
-                  <li>IP adresi (güvenlik amacıyla)</li>
-                  <li>Tarayıcı bilgileri (teknik destek için)</li>
+                  <li>Email address (for registration)</li>
+                  <li>IP address (for security)</li>
+                  <li>Browser information (for technical support)</li>
                 </ul>
 
-                <h3 className="text-lg font-semibold mb-2">Analiz Verileri</h3>
+                <h3 className="text-lg font-semibold mb-2">Analysis Data</h3>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li>Analiz sonuçları ve raporlar</li>
-                  <li>Kullanım istatistikleri</li>
-                  <li>Hata logları (sorun giderme için)</li>
+                  <li>Analysis results and reports</li>
+                  <li>Usage statistics</li>
+                  <li>Error logs (for troubleshooting)</li>
                 </ul>
               </div>
             </section>
 
             {/* 2. Veri Kullanımı */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">2. Verilerinizi Nasıl Kullanıyoruz?</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">2. How Do We Use Your Data?</h2>
               <div className="prose max-w-none text-gray-700">
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-                  <p className="font-semibold text-blue-800">Tek Amaç: Tez Analizi</p>
-                  <p className="text-blue-700 text-sm mt-1">Tez dosyalarınız sadece ve sadece analiz hizmeti vermek için kullanılır.</p>
+                  <p className="font-semibold text-blue-800">Single Purpose: Thesis Analysis</p>
+                  <p className="text-blue-700 text-sm mt-1">Your thesis files are used solely to provide the analysis service.</p>
                 </div>
                 
-                <h3 className="text-lg font-semibold mb-2">Tez Dosyaları:</h3>
+                <h3 className="text-lg font-semibold mb-2">Thesis Files:</h3>
                 <ul className="list-disc pl-6 mb-4 space-y-1">
-                  <li>✅ YÖK formatına uygunluk kontrolü</li>
-                  <li>✅ Atıf ve kaynak formatlama</li>
-                  <li>✅ AI destekli analiz ve öneriler</li>
-                  <li>❌ AI model eğitimi (KESİNLİKLE KULLANILMAZ)</li>
-                  <li>❌ Başka kullanıcılarla paylaşım</li>
-                  <li>❌ Ticari amaçlı kullanım</li>
+                  <li>✅ Compliance check with required format standards</li>
+                  <li>✅ Citation and reference formatting</li>
+                  <li>✅ AI‑assisted analysis and suggestions</li>
+                  <li>❌ AI model training (ABSOLUTELY NOT USED)</li>
+                  <li>❌ Sharing with other users</li>
+                  <li>❌ Commercial exploitation</li>
                 </ul>
 
-                <h3 className="text-lg font-semibold mb-2">Kullanıcı Bilgileri:</h3>
+                <h3 className="text-lg font-semibold mb-2">User Information:</h3>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li>Hesap yönetimi ve kimlik doğrulama</li>
-                  <li>Teknik destek sağlama</li>
-                  <li>Hizmet geliştirme (anonim istatistikler)</li>
-                  <li>Güvenlik önlemleri</li>
+                  <li>Account management and authentication</li>
+                  <li>Providing technical support</li>
+                  <li>Service improvement (anonymous statistics)</li>
+                  <li>Security measures</li>
                 </ul>
               </div>
             </section>
 
             {/* 3. Veri Güvenliği */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">3. Veri Güvenliği Önlemlerimiz</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">3. Our Data Security Measures</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="font-semibold mb-3 text-gray-800">Teknik Güvenlik</h3>
+                  <h3 className="font-semibold mb-3 text-gray-800">Technical Security</h3>
                   <ul className="text-sm text-gray-600 space-y-2">
-                    <li>• 256-bit SSL/TLS şifreleme</li>
-                    <li>• Güvenli sunucu altyapısı</li>
-                    <li>• Düzenli güvenlik testleri</li>
-                    <li>• Firewall koruması</li>
-                    <li>• Otomatik yedekleme sistemi</li>
+                    <li>• 256-bit SSL/TLS encryption</li>
+                    <li>• Secure server infrastructure</li>
+                    <li>• Regular security testing</li>
+                    <li>• Firewall protection</li>
+                    <li>• Automated backup system</li>
                   </ul>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="font-semibold mb-3 text-gray-800">Erişim Kontrolü</h3>
+                  <h3 className="font-semibold mb-3 text-gray-800">Access Control</h3>
                   <ul className="text-sm text-gray-600 space-y-2">
-                    <li>• Sınırlı personel erişimi</li>
-                    <li>• İki faktörlü kimlik doğrulama</li>
-                    <li>• Erişim logları tutulması</li>
-                    <li>• Düzenli yetki gözden geçirme</li>
-                    <li>• Gizlilik sözleşmeleri</li>
+                    <li>• Limited staff access</li>
+                    <li>• Two‑factor authentication</li>
+                    <li>• Access log retention</li>
+                    <li>• Regular permission reviews</li>
+                    <li>• Confidentiality agreements</li>
                   </ul>
                 </div>
               </div>
@@ -152,25 +152,25 @@ export default function PrivacyPolicy() {
 
             {/* 4. Veri Saklama */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">4. Veri Saklama Süreleri</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">4. Data Retention Periods</h2>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                <h3 className="font-semibold text-yellow-800 mb-3">⏱️ Otomatik Silme Politikası</h3>
+                <h3 className="font-semibold text-yellow-800 mb-3">⏱️ Automatic Deletion Policy</h3>
                 <div className="space-y-3 text-gray-700">
                   <div className="flex justify-between items-center border-b border-yellow-200 pb-2">
-                    <span className="font-medium">Tez Dosyaları</span>
-                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">24 saat</span>
+                    <span className="font-medium">Thesis Files</span>
+                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">24 hours</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-yellow-200 pb-2">
-                    <span className="font-medium">Analiz Sonuçları</span>
-                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">30 gün</span>
+                    <span className="font-medium">Analysis Results</span>
+                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">30 days</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-yellow-200 pb-2">
-                    <span className="font-medium">Geçici Dosyalar</span>
-                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">1 saat</span>
+                    <span className="font-medium">Temporary Files</span>
+                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">1 hour</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">Hesap Bilgileri</span>
-                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">Hesap silene kadar</span>
+                    <span className="font-medium">Account Information</span>
+                    <span className="bg-yellow-200 px-2 py-1 rounded text-sm font-semibold">Until account deletion</span>
                   </div>
                 </div>
               </div>
@@ -178,46 +178,46 @@ export default function PrivacyPolicy() {
 
             {/* 5. Kullanıcı Hakları */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">5. Haklarınız (KVKK Kapsamında)</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">5. Your Rights (Under KVKK)</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">📋 Bilgi Alma Hakkı</h3>
-                  <p className="text-sm text-gray-600">Hangi verilerinizin işlendiğini öğrenebilirsiniz</p>
+                  <h3 className="font-semibold mb-2">📋 Right to Access</h3>
+                  <p className="text-sm text-gray-600">You can learn which of your data is processed</p>
                 </div>
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">✏️ Düzeltme Hakkı</h3>
-                  <p className="text-sm text-gray-600">Yanlış bilgilerin düzeltilmesini isteyebilirsiniz</p>
+                  <h3 className="font-semibold mb-2">✏️ Right to Rectification</h3>
+                  <p className="text-sm text-gray-600">You can request correction of incorrect information</p>
                 </div>
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">🗑️ Silme Hakkı</h3>
-                  <p className="text-sm text-gray-600">Verilerinizin silinmesini talep edebilirsiniz</p>
+                  <h3 className="font-semibold mb-2">🗑️ Right to Erasure</h3>
+                  <p className="text-sm text-gray-600">You can request deletion of your data</p>
                 </div>
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">🚫 İtiraz Etme Hakkı</h3>
-                  <p className="text-sm text-gray-600">Veri işlemeye itiraz edebilirsiniz</p>
+                  <h3 className="font-semibold mb-2">🚫 Right to Object</h3>
+                  <p className="text-sm text-gray-600">You can object to data processing</p>
                 </div>
               </div>
             </section>
 
             {/* 6. Üçüncü Taraf Hizmetler */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">6. Üçüncü Taraf Hizmetler</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">6. Third-Party Services</h2>
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-semibold mb-2">OpenAI (ChatGPT API)</h3>
-                  <p className="text-sm text-gray-600 mb-2">AI analizi için kullanılır. OpenAI'ın veri politikası:</p>
+                  <p className="text-sm text-gray-600 mb-2">Used for AI analysis. OpenAI's data policy:</p>
                   <ul className="text-sm text-gray-600 list-disc pl-4 space-y-1">
-                    <li>API üzerinden gönderilen veriler model eğitiminde kullanılmaz</li>
-                    <li>GDPR ve veri koruma standartlarına uyumlu</li>
+                    <li>Data sent via API is not used for model training</li>
+                    <li>Compliant with GDPR and data protection standards</li>
                   </ul>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">Supabase (Veritabanı)</h3>
-                  <p className="text-sm text-gray-600 mb-2">Kullanıcı hesapları ve analiz sonuçları için:</p>
+                  <h3 className="font-semibold mb-2">Supabase (Database)</h3>
+                  <p className="text-sm text-gray-600 mb-2">For user accounts and analysis results:</p>
                   <ul className="text-sm text-gray-600 list-disc pl-4 space-y-1">
-                    <li>SOC 2 Type II sertifikalı</li>
-                    <li>GDPR uyumlu veri işleme</li>
-                    <li>Amazon AWS'de güvenli hosting</li>
+                    <li>SOC 2 Type II certified</li>
+                    <li>GDPR-compliant data processing</li>
+                    <li>Secure hosting on Amazon AWS</li>
                   </ul>
                 </div>
               </div>
@@ -225,19 +225,19 @@ export default function PrivacyPolicy() {
 
             {/* 7. İletişim */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">7. İletişim</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">7. Contact</h2>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <p className="text-gray-700 mb-4">
-                  Veri gizliliği ile ilgili sorularınız, talepleriniz veya şikayetleriniz için:
+                  For questions, requests or complaints about data privacy:
                 </p>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>E-posta:</strong>info@tezasistani.com</p>
-                  <p><strong>Adres:</strong> Kocaeli/Izmit</p>
-                  <p><strong>KVKK Sorumlusu:</strong> Ali Kemal Yavaş</p>
+                  <p><strong>Email:</strong> info@tezasistani.com</p>
+                  <p><strong>Address:</strong> Kocaeli/Izmit</p>
+                  <p><strong>Data Protection Officer:</strong> Ali Kemal Yavaş</p>
                 </div>
                 <div className="mt-4 p-3 bg-blue-100 rounded">
                   <p className="text-sm text-blue-800">
-                    <strong>Yanıt Süresi:</strong> Talepleriniz en geç 2 hafta içinde yanıtlanır.
+                    <strong>Response Time:</strong> Your requests are answered within 2 weeks at the latest.
                   </p>
                 </div>
               </div>
@@ -253,7 +253,7 @@ export default function PrivacyPolicy() {
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Ana Sayfaya Dön
+              Back to Home
             </Link>
           </div>
         </div>

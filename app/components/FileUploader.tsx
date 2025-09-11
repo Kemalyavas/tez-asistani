@@ -34,17 +34,17 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
   const handleAnalyze = async () => {
     if (!file) return;
 
-    // Giriş kontrolü
+    // Login check
     if (!user) {
-      toast.error('Lütfen önce giriş yapın');
+      toast.error('Please login first');
       router.push('/auth');
       return;
     }
 
-    // Limit kontrolü - useUserLimits hook'unu kullan
+    // Limit check - use the useUserLimits hook
     const limitCheck = checkLimit('thesis_analyses');
     if (!limitCheck.allowed) {
-      toast.error(limitCheck.reason || 'Limit aşıldı');
+      toast.error(limitCheck.reason || 'Usage limit exceeded');
       return;
     }
 
@@ -73,7 +73,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       toast.success('Tez başarıyla analiz edildi!');
       
     } catch (error) {
-      toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
+      toast.error('An error occurred. Please try again.');
       console.error(error);
     } finally {
       setLoading(false);
@@ -86,35 +86,35 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
 
   return (
     <div className="space-y-6">
-      {/* Limit Göstergesi */}
+      {/* Usage Limit Indicator */}
       {user && usage && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 text-blue-600 mr-2" />
               <span className="text-sm text-blue-800">
-                Plan: <strong>{usage.subscription_status === 'free' ? 'Ücretsiz' : usage.subscription_status === 'pro' ? 'Pro' : 'Expert'}</strong>
+                Plan: <strong>{usage.subscription_status === 'free' ? 'Free' : usage.subscription_status === 'pro' ? 'Pro' : 'Expert'}</strong>
               </span>
             </div>
             <span className="text-sm text-blue-800">
-              Kalan Hak: <strong>
-                {usage.subscription_status === 'expert' ? 'Sınırsız' : 
+              Remaining: <strong>
+                {usage.subscription_status === 'expert' ? 'Unlimited' : 
                  usage.subscription_status === 'free' ? 
                  `${Math.max(0, 1 - usage.thesis_analyses)}/1` :
-                 `${Math.max(0, 50 - usage.thesis_analyses)}/50`}
+                 `${Math.max(0, 30 - usage.thesis_analyses)}/30`}
               </strong>
             </span>
           </div>
         </div>
       )}
 
-      {/* Giriş uyarısı */}
+      {/* Login alert */}
       {!user && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center">
             <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
             <span className="text-sm text-yellow-800">
-              Tez analizi için <button onClick={() => router.push('/auth')} className="font-bold underline">giriş yapmanız</button> gerekiyor.
+              You need to <button onClick={() => router.push('/auth')} className="font-bold underline">login</button> to analyze your thesis.
             </span>
           </div>
         </div>
@@ -129,13 +129,13 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         <input {...getInputProps()} />
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
         {isDragActive ? (
-          <p className="text-blue-600">Dosyayı buraya bırakın...</p>
+          <p className="text-blue-600">Drop your file here...</p>
         ) : (
           <div>
             <p className="text-gray-700 mb-2">
-              Tez dosyanızı sürükleyip bırakın veya seçmek için tıklayın
+              Drag and drop your thesis file or click to select
             </p>
-            <p className="text-sm text-gray-500">PDF veya DOCX (Maks. 10MB)</p>
+            <p className="text-sm text-gray-500">PDF or DOCX (Max. 10MB)</p>
           </div>
         )}
       </div>
@@ -168,10 +168,10 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         {loading ? (
           <>
             <Loader2 className="animate-spin h-5 w-5 mr-2" />
-            Analiz ediliyor...
+            Analyzing...
           </>
         ) : (
-          'Tezi Analiz Et'
+          'Analyze Thesis'
         )}
       </button>
     </div>

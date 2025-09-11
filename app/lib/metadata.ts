@@ -1,18 +1,18 @@
 import type { Metadata } from 'next'
 
-// Site ana metadata
+// Main site metadata
 export const siteMetadata = {
-  title: 'TezAI - Tez Yazım Asistanı | AI Destekli Akademik Yazım Aracı',
-  description: 'Tez, makale ve akademik çalışmalarınız için AI destekli kaynak formatı, özet oluşturma ve yazım asistanı. APA, MLA, Chicago stillerinde otomatik referans formatı. Türkiye\'nin en gelişmiş akademik yazım platformu.',
+  title: 'TezAI - Thesis Writing Assistant | AI-Powered Academic Writing Tool',
+  description: 'AI-powered citation formatting, abstract generation, and writing assistance for your theses, papers, and academic work. Automatic reference formatting in APA, MLA, Chicago styles. The most advanced academic writing platform.',
   keywords: [
-    // Ana hedef kelimeler
-    'tez asistanı', 'akademik yazım', 'tez yazım programı', 'referans formatı',
-    'kaynak formatı', 'akademik makale asistanı', 'tez özeti', 'literature review',
+    // Main target keywords
+    'thesis assistant', 'academic writing', 'thesis writing tool', 'reference formatter',
+    'citation formatting', 'academic paper assistant', 'thesis abstract', 'literature review',
     
-    // Uzun kuyruk kelimeler
-    'apa format türkiye', 'mla format türkçe', 'chicago stil referans',
-    'tez kaynakça düzenleme', 'akademik yazım kuralları', 'makale referansı',
-    'bibliyografya oluşturma', 'atıf formatı', 'akademik araştırma',
+    // Long-tail keywords
+    'apa format tool', 'mla format generator', 'chicago style references',
+    'thesis bibliography organizer', 'academic writing rules', 'paper citations',
+    'bibliography generator', 'citation format', 'academic research',
     
     // Türkiye odaklı
     'türkiye tez yazım', 'türk üniversiteleri tez', 'yök tez formatı',
@@ -87,12 +87,12 @@ export const homeMetadata: Metadata = {
 
 // Pricing sayfası metadata
 export const pricingMetadata: Metadata = {
-  title: 'Fiyatlar - Tez Asistanı | Akademik Yazım Araçları Fiyatlandırma',
-  description: 'Tez Asistanı fiyat planları: Ücretsiz plan ile başlayın, Pro ve Expert planları ile sınırsız akademik yazım imkanları. Aylık 99₺\'den başlayan fiyatlarla tez yazım sürecinizi hızlandırın.',
-  keywords: 'tez asistanı fiyat, akademik yazım araçları fiyat, tez yazım programı ücreti, akademik platform abonelik, üniversite öğrenci indirim',
+  title: 'Pricing - TezAI | Academic Writing Tools',
+  description: 'TezAI pricing plans: Start free, upgrade to Pro ($9/month) or Expert ($25/month) for advanced academic writing capabilities with AI.',
+  keywords: 'thesis assistant pricing, academic writing tool pricing, citation generator price, AI thesis tool subscription, student discount academic writing',
   openGraph: {
-    title: 'Fiyatlar - Tez Asistanı | Akademik Yazım Araçları',
-    description: 'Uygun fiyatlı akademik yazım araçları. Ücretsiz plan ile başlayın, Pro planla sınırları kaldırın. Aylık 99₺\'den başlayan fiyatlarla.',
+    title: 'Pricing - TezAI | Academic Writing Tools',
+    description: 'Affordable academic writing tools. Start free, unlock more with Pro ($9) or Expert ($25) plans.',
     url: `${siteMetadata.url}/pricing`,
   },
   alternates: {

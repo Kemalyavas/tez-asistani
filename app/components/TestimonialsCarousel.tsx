@@ -6,44 +6,44 @@ import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 const testimonials = [
   {
     id: 1,
-    text: "Tez yazımında en çok zorlandığım format kurallarını otomatik düzeltmesi müthiş. Gecelerce uğraştığım şeyleri dakikalar içinde hallediyor.",
-    name: "Ahmet Y.",
+    text: "Automatically fixing the formatting rules I struggled with the most in my thesis is amazing. It solves in minutes what used to take me nights.",
+    name: "Adam Y.",
     color: "bg-blue-600"
   },
   {
     id: 2,
-    text: "Kaynak gösterimi kısmı gerçekten hayat kurtarıcı. Manuel olarak yapmaya çalıştığımda sürekli hata yapıyordum, şimdi hepsini doğru yapıyor.",
-    name: "Zeynep K.",
+    text: "The citation formatting part is truly a lifesaver. When I tried to do it manually I kept making mistakes—now it gets everything right.",
+    name: "Zoe K.",
     color: "bg-purple-600"
   },
   {
     id: 3,
-    text: "Danışmanım sürekli format düzeltmeleri istiyordu. Bu uygulamayı kullanmaya başladığımdan beri hiç format sorunu yaşamadım.",
-    name: "Mehmet A.",
+    text: "My advisor kept asking for format fixes. Since I started using the app I haven't had a single formatting issue.",
+    name: "Michael A.",
     color: "bg-green-600"
   },
   {
     id: 4,
-    text: "Özellikle figür ve tablo düzenlemesi çok zor geliyordu. Şimdi her şey otomatik olarak YÖK standartlarına uygun hale geliyor.",
-    name: "Fatma S.",
+    text: "Figure and table layout used to be so hard. Now everything automatically matches the required standards.",
+    name: "Fiona S.",
     color: "bg-red-600"
   },
   {
     id: 5,
-    text: "Başka programları denemiştim ama bu kadar kolay ve hızlı çalışanını görmedim. Tez sürecim çok hızlandı.",
-    name: "Ali R.",
+    text: "I tried other tools but none were this fast and easy. My thesis process really sped up.",
+    name: "Alex R.",
     color: "bg-indigo-600"
   },
   {
     id: 6,
-    text: "Özet ve abstract kısımlarının formatlanması çok karmaşıktı. Artık tek tıkla her şey düzgün hale geliyor.",
-    name: "Elif T.",
+    text: "Formatting the summary and abstract sections was so complex. Now it all becomes clean with one click.",
+    name: "Ella T.",
     color: "bg-pink-600"
   },
   {
     id: 7,
-    text: "Para vermeye değdi gerçekten. Tez yazmak bu kadar kolay olabileceğini düşünmemiştim. Herkese tavsiye ediyorum.",
-    name: "Emre D.",
+    text: "Definitely worth the price. I never thought writing a thesis could feel this easy. I recommend it to everyone.",
+    name: "Ethan D.",
     color: "bg-yellow-600"
   }
 ];
@@ -177,8 +177,8 @@ export default function TestimonialsCarousel() {
       <button
         onClick={prevSlide}
         disabled={isTransitioning}
-        className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
-        aria-label="Önceki yorumlar"
+  className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
+  aria-label="Previous testimonials"
       >
         <ChevronLeft className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
       </button>
@@ -186,8 +186,8 @@ export default function TestimonialsCarousel() {
       <button
         onClick={nextSlide}
         disabled={isTransitioning}
-        className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
-        aria-label="Sonraki yorumlar"
+  className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
+  aria-label="Next testimonials"
       >
         <ChevronRight className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
       </button>
@@ -198,7 +198,7 @@ export default function TestimonialsCarousel() {
           onClick={prevSlide}
           disabled={isTransitioning}
           className="bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Önceki yorum"
+          aria-label="Previous testimonial"
         >
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </button>
@@ -211,7 +211,7 @@ export default function TestimonialsCarousel() {
           onClick={nextSlide}
           disabled={isTransitioning}
           className="bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Sonraki yorum"
+          aria-label="Next testimonial"
         >
           <ChevronRight className="h-5 w-5 text-gray-600" />
         </button>
@@ -229,7 +229,7 @@ export default function TestimonialsCarousel() {
                 ? 'bg-blue-600 scale-125 shadow-md' 
                 : 'bg-gray-300 hover:bg-gray-400'
             }`}
-            aria-label={`${index + 1}. slide'a git`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>

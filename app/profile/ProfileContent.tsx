@@ -75,7 +75,7 @@ export default function ProfileContent() {
 
         setUser(user);
 
-        // Kullanıcı profil bilgilerini al
+  // Fetch user profile information
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -110,7 +110,7 @@ export default function ProfileContent() {
 
       } catch (error) {
         console.error('Error fetching profile:', error);
-        toast.error('Profil bilgileri alınamadı');
+  toast.error('Could not retrieve profile information');
       } finally {
         setLoading(false);
       }
@@ -144,10 +144,10 @@ export default function ProfileContent() {
       });
 
       setEditing(false);
-      toast.success('Profil başarıyla güncellendi!');
+  toast.success('Profile updated successfully!');
     } catch (error: any) {
       console.error('Profile update error:', error);
-      toast.error('Profil güncellenirken hata oluştu: ' + error.message);
+  toast.error('Error updating profile: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -155,12 +155,12 @@ export default function ProfileContent() {
 
   const handleChangePassword = async () => {
     if (passwordForm.new_password !== passwordForm.confirm_password) {
-      toast.error('Yeni şifreler eşleşmiyor');
+  toast.error('New passwords do not match');
       return;
     }
 
     if (passwordForm.new_password.length < 6) {
-      toast.error('Yeni şifre en az 6 karakter olmalı');
+  toast.error('New password must be at least 6 characters');
       return;
     }
 
@@ -180,10 +180,10 @@ export default function ProfileContent() {
         confirm_password: ''
       });
 
-      toast.success('Şifre başarıyla değiştirildi!');
+  toast.success('Password changed successfully!');
     } catch (error: any) {
       console.error('Password change error:', error);
-      toast.error('Şifre değiştirilirken hata oluştu: ' + error.message);
+  toast.error('Error changing password: ' + error.message);
     } finally {
       setChangingPassword(false);
     }
@@ -201,9 +201,9 @@ export default function ProfileContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Profil bulunamadı</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile not found</h1>
           <Link href="/" className="text-blue-600 hover:text-blue-800">
-            Ana sayfaya dön
+            Return to Home
           </Link>
         </div>
       </div>
@@ -221,9 +221,9 @@ export default function ProfileContent() {
               className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span>Ana Sayfaya Dön</span>
+              <span>Return to Home</span>
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Profil</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
             <div className="w-32"></div> {/* Spacer */}
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function ProfileContent() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Sol Sidebar - Profil Özeti */}
+          {/* Left Sidebar - Profile Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <div className="text-center">
@@ -248,41 +248,41 @@ export default function ProfileContent() {
                   }`}>
                   <Shield className="h-3 w-3 mr-1" />
                   {(profile.subscription_status === 'premium' || profile.subscription_status === 'pro')
-                    ? `Premium Üye${profile.subscription_plan ? ` - ${profile.subscription_plan?.toUpperCase()}` : ''}`
-                    : 'Ücretsiz Üye'}
+                    ? `Premium Member${profile.subscription_plan ? ` - ${profile.subscription_plan?.toUpperCase()}` : ''}`
+                    : 'Free Member'}
                 </div>
               </div>
             </div>
 
-            {/* İstatistikler */}
+            {/* Statistics */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">İstatistikler</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Statistics</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm text-gray-600">Analiz Edilen Tez</span>
+                    <span className="text-sm text-gray-600">Theses Analyzed</span>
                   </div>
                   <span className="font-semibold text-gray-900">{profile.thesis_count}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-gray-600">Üyelik Tarihi</span>
+                    <span className="text-sm text-gray-600">Registration Date</span>
                   </div>
                   <span className="font-semibold text-gray-900">
-                    {new Date(profile.created_at).toLocaleDateString('tr-TR')}
+                    {new Date(profile.created_at).toLocaleDateString('en-US')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm text-gray-600">Son Güncelleme</span>
+                    <span className="text-sm text-gray-600">Last Update</span>
                   </div>
                   <span className="font-semibold text-gray-900">
                     {profile.updated_at 
-                      ? new Date(profile.updated_at).toLocaleDateString('tr-TR')
-                      : 'Hiç'
+                      ? new Date(profile.updated_at).toLocaleDateString('en-US')
+                      : 'Never'
                     }
                   </span>
                 </div>
@@ -290,20 +290,20 @@ export default function ProfileContent() {
             </div>
           </div>
 
-          {/* Sağ İçerik - Profil Detayları */}
+          {/* Right Content - Profile Details */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Profil Bilgileri */}
+            {/* Profile Information */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Profil Bilgileri</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
                 {!editing ? (
                   <button
                     onClick={() => setEditing(true)}
                     className="flex items-center space-x-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   >
                     <Edit3 className="h-4 w-4" />
-                    <span>Düzenle</span>
+                    <span>Edit</span>
                   </button>
                 ) : (
                   <div className="flex space-x-2">
@@ -313,7 +313,7 @@ export default function ProfileContent() {
                       className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                     >
                       <Save className="h-4 w-4" />
-                      <span>{saving ? 'Kaydediliyor...' : 'Kaydet'}</span>
+                      <span>{saving ? 'Saving...' : 'Save'}</span>
                     </button>
                     <button
                       onClick={() => {
@@ -326,7 +326,7 @@ export default function ProfileContent() {
                       className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <X className="h-4 w-4" />
-                      <span>İptal</span>
+                      <span>Cancel</span>
                     </button>
                   </div>
                 )}
@@ -335,7 +335,7 @@ export default function ProfileContent() {
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Kullanıcı Adı
+                    Username
                   </label>
                   {editing ? (
                     <input
@@ -351,7 +351,7 @@ export default function ProfileContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ad Soyad
+                    Full Name
                   </label>
                   {editing ? (
                     <input
@@ -361,26 +361,26 @@ export default function ProfileContent() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   ) : (
-                    <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.full_name || 'Belirtilmemiş'}</p>
+                    <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.full_name || 'Not provided'}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    E-posta
+                    Email
                   </label>
                   <p className="px-3 py-2 bg-gray-50 rounded-lg text-gray-600">{profile.email}</p>
                 </div>
               </div>
             </div>
 
-            {/* Şifre Değiştirme */}
+            {/* Change Password */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Şifre Değiştir</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Change Password</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Yeni Şifre
+                    New Password
                   </label>
                   <div className="relative">
                     <input
@@ -388,7 +388,7 @@ export default function ProfileContent() {
                       value={passwordForm.new_password}
                       onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Yeni şifrenizi girin"
+                      placeholder="Enter your new password"
                     />
                     <button
                       type="button"
@@ -402,7 +402,7 @@ export default function ProfileContent() {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Yeni Şifre Tekrar
+                    New Password (Repeat)
                   </label>
                   <div className="relative">
                     <input
@@ -410,7 +410,7 @@ export default function ProfileContent() {
                       value={passwordForm.confirm_password}
                       onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Yeni şifrenizi tekrar girin"
+                      placeholder="Re-enter your new password"
                     />
                     <button
                       type="button"
@@ -428,29 +428,29 @@ export default function ProfileContent() {
                     disabled={changingPassword || !passwordForm.new_password || !passwordForm.confirm_password}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {changingPassword ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
+                    {changingPassword ? 'Changing...' : 'Change Password'}
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Üyelik Yönetimi - Sadece Premium Üyeler İçin */}
+            {/* Subscription Management - Only for Premium Users */}
             {profile.subscription_status === 'premium' && (
               <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Üyelik Yönetimi</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Subscription Management</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <h4 className="font-medium text-gray-900">Mevcut Plan</h4>
+                      <h4 className="font-medium text-gray-900">Current Plan</h4>
                       <p className="text-sm text-gray-600">
                         {profile.subscription_plan?.replace('_', ' ').toUpperCase()}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Durum</p>
+                      <p className="text-sm text-gray-600">Status</p>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Aktif
+                        Active
                       </span>
                     </div>
                   </div>
@@ -458,7 +458,7 @@ export default function ProfileContent() {
                   <div className="border-t pt-4">
                     <button
                       onClick={async () => {
-                        if (confirm('Üyeliğinizi iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+                        if (confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')) {
                           try {
                             const { error } = await supabase
                               .from('profiles')
@@ -477,16 +477,16 @@ export default function ProfileContent() {
                               subscription_plan: ''
                             });
 
-                            toast.success('Üyeliğiniz başarıyla iptal edildi.');
+                            toast.success('Your subscription has been cancelled.');
                           } catch (error: any) {
                             console.error('Subscription cancel error:', error);
-                            toast.error('Üyelik iptal edilemedi: ' + error.message);
+                            toast.error('Subscription could not be cancelled: ' + error.message);
                           }
                         }
                       }}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
-                      Üyeliği İptal Et
+                      Cancel Subscription
                     </button>
                   </div>
                 </div>
