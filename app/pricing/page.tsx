@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import toast from 'react-hot-toast'
 
+import { PRICE_CONFIG, getFormattedPrice, getYearlySavings } from '../lib/pricing';
+
 const PLANS = [
   {
     id: 'free',
@@ -33,18 +35,10 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '199',
+    price: getFormattedPrice('pro', 'monthly'),
     period: 'aylık',
     description: 'Akademisyenler ve öğrenciler için',
-    features: [
-      '50 tez analizi',
-      '20 özet oluşturma',
-      '100 kaynak formatlama',
-      'Gelişmiş AI modelleri',
-      'Hızlı e-posta desteği',
-      'Detaylı kullanım raporları',
-      'Çoklu format desteği (APA, MLA, Chicago, IEEE)'
-    ],
+    features: PRICE_CONFIG.pro.features,
     limitations: [],
     buttonText: 'Pro\'yu Seç',
     popular: true,
@@ -53,19 +47,10 @@ const PLANS = [
   {
     id: 'expert',
     name: 'Expert',
-    price: '499',
+    price: getFormattedPrice('expert', 'monthly'),
     period: 'aylık',
     description: 'Kapsamlı kullanım için',
-    features: [
-      'Sınırsız tez analizi',
-      'Sınırsız özet oluşturma',
-      'Sınırsız kaynak formatlama',
-      'En gelişmiş AI modelleri',
-      'Türkçe ve İngilizce özet desteği',
-      '7/24 öncelikli destek',
-      'Özel kullanıcı yönetimi',
-      'Detaylı analitik raporlar'
-    ],
+    features: PRICE_CONFIG.expert.features,
     limitations: [],
     buttonText: 'Expert\'i Seç',
     popular: false,
@@ -207,7 +192,7 @@ export default function PricingPage() {
                   </div>
                   {billingCycle === 'yearly' && plan.price !== '0' && (
                     <p className="text-sm text-green-600 mt-2">
-                      Yıllık ödeme: {Math.floor(parseInt(plan.price) * 12 * 0.8)}₺ ({Math.floor(parseInt(plan.price) * 12 * 0.2)}₺ tasarruf)
+                      Yıllık ödeme: {plan.id !== 'free' ? PRICE_CONFIG[plan.id as 'pro' | 'expert'].yearly : 0}₺ ({plan.id !== 'free' ? getYearlySavings(plan.id) : 0}₺ tasarruf)
                     </p>
                   )}
                 </div>

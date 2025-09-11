@@ -5,16 +5,10 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import Iyzipay from 'iyzipay';
 
-// Fiyatları tek bir yerden yönetmek için
-const PLANS = {
-  pro: { monthly: 199, yearly: 1912 },  // Yıllık %20 indirimli: 199 * 12 * 0.8 = 1912
-  expert: { monthly: 499, yearly: 4790 } // Yıllık %20 indirimli: 499 * 12 * 0.8 = 4790
-};
+// Fiyatları merkezi yapılandırmadan al
+import { PRICE_CONFIG } from '../../../lib/pricing';
 
-const PLAN_NAMES = {
-  pro: 'Pro Plan',
-  expert: 'Expert Plan'
-};
+// Plan adları artık PRICE_CONFIG içinde
 
 export async function POST(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies });
@@ -40,12 +34,12 @@ export async function POST(request: NextRequest) {
 
     const { plan, billing_cycle } = await request.json();
 
-    if (!plan || !PLANS[plan as keyof typeof PLANS] || !['monthly', 'yearly'].includes(billing_cycle)) {
+    if (!plan || !PRICE_CONFIG[plan as keyof typeof PRICE_CONFIG] || !['monthly', 'yearly'].includes(billing_cycle)) {
       return NextResponse.json({ error: 'Geçersiz plan veya ödeme periyodu' }, { status: 400 });
     }
 
-    const price = PLANS[plan as keyof typeof PLANS][billing_cycle as keyof typeof PLANS['pro']];
-    const planName = PLAN_NAMES[plan as keyof typeof PLAN_NAMES];
+    const price = PRICE_CONFIG[plan as keyof typeof PRICE_CONFIG][billing_cycle as 'monthly' | 'yearly'];
+    const planName = PRICE_CONFIG[plan as keyof typeof PRICE_CONFIG].name;
     
     const fullName = user.user_metadata?.username || user.email?.split('@')[0] || 'Kullanıcı';
     const nameParts = fullName.split(' ');

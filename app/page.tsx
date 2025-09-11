@@ -8,6 +8,7 @@ import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
 import TestimonialsCarousel from './components/TestimonialsCarousel';
 import { Zap, CheckCircle, BookOpen, FileSearch, Check, X, Star } from 'lucide-react';
+import { PRICE_CONFIG } from './lib/pricing';
 import toast from 'react-hot-toast';
 
 export default function Home() {
@@ -82,22 +83,13 @@ export default function Home() {
     {
       id: 'pro',
       name: 'Pro',
-      price: isHydrated ? (billingPeriod === 'monthly' ? 199 : 1912) : 199, // Yıllık indirimli fiyat
-      
+      price: isHydrated ? (billingPeriod === 'monthly' ? PRICE_CONFIG.pro.monthly : PRICE_CONFIG.pro.yearly) : PRICE_CONFIG.pro.monthly, // Fiyat merkezi yapılandırmadan
+
       description: 'Akademisyenler ve Öğrenciler için',
-      features: [
-        '50 tez analizi',
-        '20 özet oluşturma',
-        '100 kaynak formatlama',
-        'Gelişmiş AI modelleri',
-        'Hızlı e-posta desteği',
-        'Detaylı kullanım raporları',
-        'Çoklu format desteği (APA, MLA, Chicago, IEEE)',
-      ],
+      features: PRICE_CONFIG.pro.features,
       notIncluded: [
         'Sınırsız kullanım',
         '7/24 özel destek',
-        'API erişimi',
       ],
       cta: 'Pro\'yu Seç',
       popular: true,
@@ -105,18 +97,9 @@ export default function Home() {
     {
       id: 'expert',
       name: 'Expert',
-      price: isHydrated ? (billingPeriod === 'monthly' ? 499 : 4790) : 499, // Yıllık indirimli fiyat
+      price: isHydrated ? (billingPeriod === 'monthly' ? PRICE_CONFIG.expert.monthly : PRICE_CONFIG.expert.yearly) : PRICE_CONFIG.expert.monthly, // Fiyat merkezi yapılandırmadan
       description: 'Sınırsız kullanım için',
-      features: [
-        'Sınırsız tez analizi',
-        'Sınırsız özet oluşturma',
-        'Sınırsız kaynak formatlama',
-        'En gelişmiş AI modelleri',
-        'Türkçe ve İngilizce özet desteği',
-        '7/24 öncelikli destek',
-        'Özel kullanıcı yönetimi',
-        'Detaylı analitik raporlar',
-      ],
+      features: PRICE_CONFIG.expert.features,
       notIncluded: [],
       cta: 'Expert\'i Seç',
       popular: false,
@@ -560,11 +543,11 @@ export default function Home() {
 
               <div className="bg-gray-50 rounded-lg p-6">
                 <h3 className="font-semibold mb-2">
-                  Pro plan'daki 50 analiz hakkı yeterli mi?
+                  Pro plan'daki 30 analiz hakkı yeterli mi?
                 </h3>
                 <p className="text-gray-600">
-                  Çoğu öğrenci için ayda 50 analiz fazlasıyla yeterli. 
-                  Ortalama bir tez yazım sürecinde 10-20 analiz kullanılıyor.
+                  Çoğu öğrenci için ayda 30 analiz fazlasıyla yeterli. 
+                  Ortalama bir tez yazım sürecinde 15-20 analiz kullanılabilir.
                 </p>
               </div>
 
@@ -573,7 +556,7 @@ export default function Home() {
                   Expert plan'ın farkı nedir?
                 </h3>
                 <p className="text-gray-600">
-                  Expert plan sınırsız kullanım, özel raporlar ve API erişimi sunar. 
+                  Expert plan sınırsız kullanım, özel raporlar ve daha gelişmiş yapay zeka deneyimi sunar. 
                   Akademisyenler ve yoğun kullanıcılar için idealdir.
                 </p>
               </div>

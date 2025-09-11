@@ -34,7 +34,7 @@ export default function MesafeliSatisSozlesmesi() {
               <p><strong>Hizmet Türleri:</strong></p>
               <ul className="list-disc pl-6 mt-2">
                 <li>Ücretsiz Plan: 1 tez analizi hakkı</li>
-                <li>Pro Plan: Aylık 50 tez analizi ₺199/ay</li>
+                <li>Pro Plan: Aylık 30 tez analizi ₺299/ay</li>
                 <li>Expert Plan: Sınırsız tez analizi - ₺750/ay</li>
               </ul>
               <p className="mt-3">

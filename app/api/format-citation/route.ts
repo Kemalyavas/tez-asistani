@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import openai from "../../lib/openai";
 
 const USAGE_LIMITS = {
   free: { citation_formats: 5 },
@@ -67,29 +63,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: "gpt-4o",
+      max_tokens: 200,
       messages: [
         {
           role: "system",
           content: `Sen akademik kaynak formatlama uzmanısın. 
-          Verilen kaynak bilgilerini ${format.toUpperCase()} formatına göre düzenle.
-          
-          Format kuralları:
-          - APA 7: Yazar, A. A. (Yıl). Başlık. Yayıncı.
-          - MLA 9: Yazar. "Başlık." Yayıncı, Yıl.
-          - Chicago: Yazar. Başlık. Yer: Yayıncı, Yıl.
-          - IEEE: [1] A. Yazar, "Başlık," Yayıncı, Yıl.
-          
-          Sadece formatlanmış metni döndür, açıklama ekleme.`
+      Verilen kaynak bilgilerini ${format.toUpperCase()} formatına göre düzenle.
+      
+      Format kuralları:
+      - APA 7: Yazar, A. A. (Yıl). Başlık. Yayıncı.
+      - MLA 9: Yazar. "Başlık." Yayıncı, Yıl.
+      - Chicago: Yazar. Başlık. Yer: Yayıncı, Yıl.
+      - IEEE: [1] A. Yazar, "Başlık," Yayıncı, Yıl.
+      
+      Sadece formatlanmış metni döndür, açıklama ekleme.`
         },
         {
           role: "user",
           content: `Bu ${type === 'book' ? 'kitabı' : type === 'article' ? 'makaleyi' : 'web sitesini'} ${format.toUpperCase()} formatında göster: ${source}`
         }
       ],
-      temperature: 0.1,
-      max_tokens: 200
+      temperature: 0.1
     });
 
     // Kullanımı artır
@@ -99,7 +95,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id);
 
     return NextResponse.json({
-      formatted: completion.choices[0].message.content
+      formatted: response.choices[0].message.content
     });
   } catch (error) {
     console.error('Format hatası:', error);

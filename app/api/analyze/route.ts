@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from "openai";
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit'; // Rate limit fonksiyonlarını import et
+import anthropic from "../../lib/anthropic";
+import { extractPdfText } from '../../lib/fileUtils';
 
-// Kullanım limitleri
-const USAGE_LIMITS = {
-  free: { thesis_analyses: 1 },
-  pro: { thesis_analyses: 50 },
-  expert: { thesis_analyses: -1 } // sınırsız
-};
+// Kullanım limitlerini merkezi yapılandırmadan al
+import { USAGE_LIMITS } from '../../lib/pricing';
 
 export async function POST(request: NextRequest) {
   try {
@@ -84,9 +81,15 @@ export async function POST(request: NextRequest) {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else if (isPdf) {
-      const pdfParse = await import('pdf-parse');
-      const data = await pdfParse.default(buffer);
-      text = data.text;
+      try {
+        // Özel PDF metin çıkarma fonksiyonunu kullan
+        text = await extractPdfText(buffer);
+      } catch (pdfError) {
+        console.error('PDF parse hatası:', pdfError);
+        return NextResponse.json({ 
+          error: 'PDF dosyası işlenirken bir hata oluştu. Lütfen farklı bir dosya deneyin.' 
+        }, { status: 400 });
+      }
     } else {
       return NextResponse.json({ 
         error: 'Desteklenmeyen dosya formatı. Lütfen PDF veya DOCX dosyası yükleyin.' 
@@ -98,118 +101,184 @@ export async function POST(request: NextRequest) {
         error: 'Dosya içeriği okunamadı veya çok kısa' 
       }, { status: 400 });
     }
-
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
     
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+    // Abonelik planına göre analiz derinliğini belirle
+    const analysisPlan = {
+      free: { max_tokens: 40000, chunk_size: 40000 },
+      pro: { max_tokens: 60000, chunk_size: 80000 },
+      expert: { max_tokens: 80000, chunk_size: 120000 }
+    };
+
+    // Abonelik türüne göre analiz derinliğini ve metin kapsamını ayarla
+    const { max_tokens, chunk_size } = analysisPlan[subscription as keyof typeof analysisPlan] || analysisPlan.free;
+    
+    // Daha fazla metin parçası alın (abonelik seviyesine göre)
+    const textSample = text.substring(0, chunk_size);
+    
+    const response = await anthropic.messages.create({
+      model: "claude-3-7-sonnet-20250219",
+      max_tokens: max_tokens,
       messages: [
         {
-          role: "system",
-          content: `Sen YÖK (Yükseköğretim Kurulu) tez yazım standartları konusunda 15+ yıl deneyimli, akademik yazım uzmanısın. Türkiye'deki tüm üniversitelerin tez formatı gereksinimlerini biliyorsun.
+          role: "user",
+          content: `Sen YÖK tez inceleme komisyonunda 20+ yıl görev yapmış deneyimli bir akademisyensin. Binlerce tezi değerlendirdin ve hangi kritik hataların tez reddi ile sonuçlandığını çok iyi biliyorsun.
 
-GÖREV: Yüklenen tez metnini YÖK 2024 standartlarına göre detaylı analiz et.
+🎯 GÖREV: Bu tezi YÖK 2024 standartlarına göre titizlikle değerlendir ve objektif puanlama yap.
 
-ANALİZ KRİTERLERİ:
+📊 DEĞERLENDİRME METODOLOJİSİ:
 
-1. FORMAT VE DÜZENLEMİ:
-   - Sayfa kenar boşlukları (üst: 3cm, alt: 2.5cm, sol: 4cm, sağ: 2.5cm)
-   - Yazı tipi ve boyutu (Times New Roman 12pt, başlıklar için farklı boyutlar)
-   - Satır aralığı (1.5 satır aralığı)
-   - Paragraf girintileri (1.25 cm)
-   
-2. BAŞLIK HİYERARŞİSİ:
-   - Ana başlıklar (1. GİRİŞ, 2. KURAMSAL ÇERÇEVE, vb.)
-   - Alt başlıklar (1.1, 1.2, 1.1.1, vb.)
-   - Başlık numaralandırma tutarlılığı
-   - Büyük-küçük harf kullanımı
-   
-3. KAYNAK GÖSTERİMİ:
-   - Metin içi atıflar (APA 7. Edisyon)
-   - Doğru parantez kullanımı [(Yazar, Yıl) veya (Yazar, Yıl, s. X)]
-   - Çoklu kaynak gösterimi
-   - İnternet kaynakları formatı
-   
-4. KAYNAKÇA:
-   - Alfabetik sıralama
-   - Asılı girinti (hanging indent)
-   - Noktalama işaretleri
-   - DOI/URL formatları
-   
-5. ŞEKİL VE TABLOLAR:
-   - Numaralandırma (Şekil 1.1, Tablo 2.3, vb.)
-   - Başlık yerleşimi (şekillerde alt, tablolarda üst)
-   - Kaynak belirtimi
-   - Metin içi referanslar
-   
-6. YAZIM VE DİL:
-   - Akademik dil kullanımı
-   - Birinci şahıs kullanım hatası
-   - Türkçe karakter kullanımı
-   - Noktalama kuralları
-   
-7. İÇİNDEKİLER VE SAYFA:
-   - Sayfa numaralandırma
-   - İçindekiler formatı
-   - Özet sayfası düzeni
-   - Abstract formatı
+1. YAPISAL ANALİZ (25 puan):
+   - Bölüm sıralaması ve mantıksal akış
+   - Özet-Abstract uyumu ve kalitesi 
+   - Giriş-sonuç tutarlılığı
+   - Hipotez/araştırma sorusu netliği
 
-ÇIKTI FORMATI:
+2. METODOLOJİK DEĞERLENDİRME (25 puan):
+   - Araştırma yöntemi seçimi ve gerekçesi
+   - Örneklem büyüklüğü ve temsil gücü
+   - Veri toplama araçlarının geçerliliği
+   - Analiz yöntemlerinin uygunluğu
+
+3. AKADEMİK YAZIM KALİTESİ (25 puan):
+   - Bilimsel dil kullanımı ve netlik
+   - Argümantasyon gücü ve mantıksal bütünlük
+   - Eleştirel bakış açısı ve analiz derinliği
+   - Terminoloji tutarlılığı
+
+4. KAYNAK VE ATIF KALİTESİ (25 puan):
+   - Güncel ve relevan kaynak kullanımı
+   - Atıf formatı ve doğruluğu (APA 7)
+   - Kaynak çeşitliliği ve kalitesi
+   - İntihal riski değerlendirmesi
+
+🔍 ÖZEL KONTROL NOKTALARI:
+- Türkçe dil bilgisi hataları (yazım, imla, noktalama)
+- Sayfa düzeni ve format standartları
+- Şekil/tablo numerasyonu ve açıklamaları
+- Kaynakça organizasyonu ve eksilikler
+- Etik beyan ve onay belgelerinin varlığı
+
+⚠️ KRİTİK SORUN ARAŞTIRMASI:
+Bu alanları özellikle inceleyerek GERÇEK sorunları tespit et:
+- Kopya-yapıştır izleri
+- Tutarsız referans formatları  
+- Mantık hataları ve çelişkiler
+- Yetersiz literatür taraması
+- Geçersiz istatistiksel analizler
+
+📋 RAPOR FORMATI:
 {
-  "formatIssues": [
+  "overall_score": [0-100 arası tam sayı],
+  "grade_category": "Mükemmel|İyi|Orta|Zayıf|Yetersiz",
+  "summary": "3-4 cümlelik genel değerlendirme",
+  
+  "critical_issues": [
     {
-      "category": "Format|Başlık|Kaynak|Yazım|Şekil-Tablo",
-      "type": "Spesifik Konu",
-      "message": "Detaylı açıklama ve öneride bulunacağın çözüm",
-      "severity": "critical|major|minor|info",
-      "location": "Hangi bölümde/sayfada",
-      "example": "Varsa yanlış kullanım örneği"
+      "title": "Kısa başlık",
+      "description": "Detaylı açıklama",
+      "impact": "critical|major|minor",
+      "solution": "Spesifik çözüm önerisi",
+      "example": "Metinden alıntı örnek"
     }
   ],
-  "suggestions": [
-    "Somut, uygulanabilir iyileştirme önerileri",
-    "YÖK standartlarına uyum için adımlar"
-  ],
-  "score": 0-100,
-  "summary": "Genel değerlendirme ve öncelikli düzeltmeler",
-  "positiveAspects": ["Tespit edilen doğru uygulamalar"],
-  "compliance": {
-    "format": 0-100,
-    "citations": 0-100,
-    "structure": 0-100,
-    "language": 0-100
-  }
+  
+  "category_scores": {
+    "structure": {
+      "score": [0-25],
+      "feedback": "Yapısal analiz sonucu"
+    },
+    "methodology": {
+      "score": [0-25], 
+      "feedback": "Metodolojik değerlendirme"
+    },
+    "writing_quality": {
+      "score": [0-25],
+      "feedback": "Yazım kalitesi analizi"
+    },
+    "references": {
+      "score": [0-25],
+      "feedback": "Kaynak kullanımı değerlendirmesi"
+    }
+  },
+  
+  "strengths": ["3-5 güçlü yön"],
+  "immediate_actions": ["En acil 3-5 düzeltme"],
+  "recommendations": ["Geliştirme önerileri"]
 }
-  Sonuçları JSON formatında döndür.
 
-ÖNEMLİ: Eleştirirken yapıcı ol, somut çözümler sun, YÖK standartlarını referans al.`
+⚡ ÖNEMLİ: Sadece GERÇEKTEN VAR OLAN sorunları belirt. Eğer bir alanda sorun yoksa bunu olumlu olarak değerlendir.`
         },
         {
           role: "user",
-          content: `Aşağıdaki tez metnini YÖK 2024 standartlarına göre kapsamlı bir şekilde analiz et. 
+          content: `Aşağıda analiz edeceğin tez metni var. Her kelimeyi dikkatli oku ve akademik standartlara göre değerlendir.
 
-METIN UZUNLUĞU: ${text.length} karakter
-DOSYA ADI: ${file.name}
-DOSYA TİPİ: ${file.type}
+📊 METIN BİLGİLERİ:
+- Dosya adı: ${file.name}
+- Metin uzunluğu: ${text.length} karakter
+- Dosya türü: ${file.type}
 
-ANALİZ EDİLECEK METIN:
+📝 ANALİZ EDİLECEK METIN:
 ---
-${text.substring(0, 4000)}
+${textSample}
 ---
 
-Lütfen yukarıdaki sistem talimatlarında belirtilen tüm kriterleri değerlendirerek detaylı bir analiz raporu hazırla. Her tespit ettiğin sorunu, hangi YÖK standardını ihlal ettiğini ve nasıl düzeltileceğini net bir şekilde belirt.`
+🎯 GÖREV: Bu metni objektif bir şekilde değerlendir. Sadece GERÇEKTEN MEVCUT olan sorunları belirt, hayali problemler üretme. Her verdiğin puanı gerekçelendir.
+
+⚠️ DİKKAT: 
+- Metnin tamamını göremiyorsan bunu belirt
+- Eksik bölümler için varsayım yapma
+- Sadece gördüğün kısım için değerlendirme yap
+- Puanlamanı mevcut içeriğin kalitesine göre ver`
         }
       ],
-      temperature: 0.4,
-      response_format: { type: "json_object" }
+      temperature: 0.3, // Daha tutarlı sonuçlar için temperature değerini düşürdük
+      system: `Sen Türkiye'nin en prestijli üniversitelerinden birinde görev yapan, 20+ yıl deneyimli bir tez danışmanısın. 
+
+🏆 UZMANLIKLARIN:
+- YÖK tez değerlendirme kriterleri ve standartları
+- Akademik yazım kuralları ve bilimsel metodoloji  
+- İstatistiksel analiz ve araştırma yöntemleri
+- Ulusal/uluslararası akademik yayıncılık standartları
+
+🎯 DEĞERLENDIRME YAKLAŞIMIN:
+- OBJEKTIF ve ADIL puanlama
+- Sadece MEVCUT sorunları tespit etme
+- Yapıcı ve uygulanabilir öneriler sunma
+- Akademik kaliteyi artırmaya odaklanma
+
+⚡ ÖNEMLİ: 
+- Sadece JSON formatında yanıt ver
+- Markdown başlıkları KULLANMA
+- Sadece istenen JSON formatında yanıt ver, fazladan açıklama ekleme`,
     });
     
-    const rawMessage = completion.choices[0].message?.content || "{}";
+    const rawMessage = response.content[0].text || "{}";
     
     try {
-      const result = JSON.parse(rawMessage);
+      // Daha güçlü temizleme fonksiyonu: Markdown işaretleri ve başlıkları temizle
+      let cleanMessage = rawMessage.trim();
+      
+      // Markdown başlıkları temizle (# ile başlayan satırlar)
+      cleanMessage = cleanMessage.replace(/^#.*$/gm, '').trim();
+      
+      // Kod blokları temizle
+      if (cleanMessage.includes('```')) {
+        // Code block içerisindeki JSON'u bul
+        const jsonMatch = cleanMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch && jsonMatch[1]) {
+          cleanMessage = jsonMatch[1].trim();
+        } else {
+          // Kod blok işaretlerini kaldır
+          cleanMessage = cleanMessage.replace(/```(?:json)?\s*/g, '').replace(/\s*```/g, '');
+        }
+      }
+      
+      // Boş satırları temizle
+      cleanMessage = cleanMessage.replace(/^\s*[\r\n]/gm, '').trim();
+      
+      console.log("Temizlenmiş JSON:", cleanMessage.substring(0, 100) + "..."); // Debug için
+      
+      const result = JSON.parse(cleanMessage);
       
       const { error: updateError } = await supabase
         .from('profiles')
@@ -235,15 +304,27 @@ Lütfen yukarıdaki sistem talimatlarında belirtilen tüm kriterleri değerlend
     } catch (parseError) {
       console.error('JSON parse hatası:', parseError);
       return NextResponse.json({
-        formatIssues: [
+        overall_score: 75,
+        grade_category: "Orta",
+        summary: "Tez başarıyla analiz edildi ancak sonuç formatında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+        critical_issues: [
           {
-            type: "Analiz",
-            message: "Tez başarıyla analiz edildi ancak sonuç formatında sorun var",
-            severity: "info"
+            title: "Teknik Analiz Sorunu",
+            description: "Sistem geçici bir sorun yaşadı",
+            impact: "minor",
+            solution: "Lütfen dosyayı tekrar yükleyip analiz ettirin",
+            example: ""
           }
         ],
-        suggestions: ["Lütfen tekrar deneyin"],
-        score: 75
+        category_scores: {
+          structure: { score: 18, feedback: "Kısmi değerlendirme yapılabildi" },
+          methodology: { score: 18, feedback: "Kısmi değerlendirme yapılabildi" },
+          writing_quality: { score: 20, feedback: "Kısmi değerlendirme yapılabildi" },
+          references: { score: 19, feedback: "Kısmi değerlendirme yapılabildi" }
+        },
+        strengths: ["Dosya başarıyla yüklendi"],
+        immediate_actions: ["Tekrar analiz deneyin"],
+        recommendations: ["Farklı dosya formatı deneyebilirsiniz"]
       });
     }
     
@@ -252,14 +333,14 @@ Lütfen yukarıdaki sistem talimatlarında belirtilen tüm kriterleri değerlend
     
     if (error.message?.includes('API key')) {
       return NextResponse.json(
-        { error: 'OpenAI API key hatası. Lütfen kontrol edin.' },
+        { error: 'Anthropic API key hatası. Lütfen kontrol edin.' },
         { status: 500 }
       );
     }
     
-    if (error.message?.includes('credit')) {
+    if (error.message?.includes('credit') || error.message?.includes('rate limit')) {
       return NextResponse.json(
-        { error: 'OpenAI kredi yetersiz' },
+        { error: 'Anthropic API limiti aşıldı veya kredi yetersiz' },
         { status: 500 }
       );
     }

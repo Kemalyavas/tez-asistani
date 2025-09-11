@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { isAdmin } from '../lib/adminUtils';
 
 interface UserUsage {
   thesis_analyses: number;
@@ -17,8 +18,8 @@ const USAGE_LIMITS = {
     citation_formats: 5
   },
   pro: {
-    thesis_analyses: 50,
-    abstract_generations: 20,
+    thesis_analyses: 30,
+    abstract_generations: 50,
     citation_formats: 100
   },
   expert: {
@@ -150,6 +151,12 @@ export function useUserLimits() {
 
   const checkLimit = useCallback((feature: keyof Omit<UserUsage, 'subscription_status'>) => {
     if (!user) return { allowed: false, reason: 'Giriş yapmanız gerekiyor' };
+    
+    // Admin kontrolü - Yöneticiye her zaman sınırsız erişim ver
+    if (isAdmin(user.id)) {
+      return { allowed: true, currentUsage: 0, limit: Infinity, isAdmin: true };
+    }
+    
     const limits = USAGE_LIMITS[usage.subscription_status];
     const currentUsage = usage[feature];
     const limit = limits[feature];
@@ -169,6 +176,14 @@ export function useUserLimits() {
 
   const incrementUsage = useCallback(async (feature: keyof Omit<UserUsage, 'subscription_status'>) => {
     if (!user) return false;
+    
+    // Admin için kullanım sayısını artırma
+    if (isAdmin(user.id)) {
+      // Admin kullanımı için sadece başarılı döndür, veritabanında değişiklik yapma
+      console.log('Admin kullanımı - limit artırılmadı');
+      return true;
+    }
+    
     try {
       const fieldMap = {
         thesis_analyses: 'thesis_count',

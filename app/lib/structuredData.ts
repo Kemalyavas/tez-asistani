@@ -103,10 +103,10 @@ export const structuredData = {
       {
         "@type": "Offer",
         "name": "Pro Plan",
-        "price": "10",
-        "priceCurrency": "USD",
+        "price": "299",
+        "priceCurrency": "TRY",
         "billingDuration": "P1M",
-        "description": "50 tez analizi, 20 özet, 100 kaynak formatı, gelişmiş AI",
+        "description": "30 tez analizi, 50 özet, 100 kaynak formatı, gelişmiş AI",
         "category": "Premium"
       },
       {

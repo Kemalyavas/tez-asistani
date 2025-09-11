@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from "openai";
-
-const openai = new OpenAI();
+import openai from "../../lib/openai";
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,29 +61,29 @@ export async function POST(request: NextRequest) {
       [English abstract]`;
     }
 
-    const completion = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: "gpt-4o",
+      max_tokens: 1500,
       messages: [
         {
           role: "system",
           content: `Sen akademik özet yazma konusunda uzman bir asistansın. 
-          - YÖK ve uluslararası akademik standartlara uygun özet hazırla
-          - Belirtilen kelime sayısı aralığına dikkat et
-          - Akademik dil kullan, gereksiz tekrarlardan kaçın
-          - Özeti yapılandırılmış şekilde organize et
-          - Bilimsel objektifliği koru`
+      - YÖK ve uluslararası akademik standartlara uygun özet hazırla
+      - Belirtilen kelime sayısı aralığına dikkat et
+      - Akademik dil kullan, gereksiz tekrarlardan kaçın
+      - Özeti yapılandırılmış şekilde organize et
+      - Bilimsel objektifliği koru`
         },
         {
           role: "user",
           content: `${prompt}\n\nTez İçeriği: ${text.substring(0, 8000)}`
         }
       ],
-      temperature: 0.2,
-      max_tokens: 1500
+      temperature: 0.2
     });
 
     return NextResponse.json({
-      abstract: completion.choices[0].message.content
+      abstract: response.choices[0].message.content
     });
   } catch (error) {
     console.error('Özet oluşturma hatası:', error);
