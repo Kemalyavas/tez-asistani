@@ -380,7 +380,7 @@ export default function Home() {
                     : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
                 }`}
               >
-                ✨ Özet Oluştur
+                ✨ Generate Abstract
               </button>
             </div>
 

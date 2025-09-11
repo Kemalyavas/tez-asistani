@@ -16,14 +16,14 @@ export default function CitationFormatter() {
 
   const handleFormat = async () => {
     if (!source) {
-      toast.error('Lütfen kaynak bilgisi girin');
+      toast.error('Please enter source information');
       return;
     }
 
     // Limit kontrolü
     const limitCheck = checkLimit('citation_formats');
     if (!limitCheck.allowed) {
-      toast.error(limitCheck.reason || 'Limit aşıldı');
+      toast.error(limitCheck.reason || 'Limit exceeded');
       return;
     }
 
@@ -38,12 +38,12 @@ export default function CitationFormatter() {
       const data = await response.json();
       setResult(data.formatted);
       
-      // Kullanımı artır
+      // Increment usage
       await incrementUsage('citation_formats');
       
-      toast.success('Kaynak formatlandı!');
+      toast.success('Citation formatted!');
     } catch (error) {
-      toast.error('Formatlama başarısız');
+      toast.error('Formatting failed');
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ export default function CitationFormatter() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(result);
     setCopied(true);
-    toast.success('Panoya kopyalandı!');
+  toast.success('Copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -61,7 +61,7 @@ export default function CitationFormatter() {
       {/* Source Type */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Kaynak Türü
+          Source Type
         </label>
         <div className="grid grid-cols-3 gap-3">
           {['book', 'article', 'website'].map((t) => (
@@ -74,7 +74,7 @@ export default function CitationFormatter() {
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
-              {t === 'book' ? 'Kitap' : t === 'article' ? 'Makale' : 'Web Sitesi'}
+              {t === 'book' ? 'Book' : t === 'article' ? 'Article' : 'Website'}
             </button>
           ))}
         </div>
@@ -83,7 +83,7 @@ export default function CitationFormatter() {
       {/* Format Style */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Format Stili
+          Format Style
         </label>
         <select
           value={format}
@@ -100,17 +100,17 @@ export default function CitationFormatter() {
       {/* Source Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Kaynak Bilgisi
+          Source Information
         </label>
         <textarea
           value={source}
           onChange={(e) => setSource(e.target.value)}
           placeholder={
             type === 'website'
-              ? 'URL veya web sitesi başlığını girin...'
+              ? 'Enter URL or website title...'
               : type === 'book'
-              ? 'Yazar adı, kitap adı, yayınevi, yıl...'
-              : 'Makale başlığı, dergi adı, cilt, sayı...'
+              ? 'Author name, book title, publisher, year...'
+              : 'Article title, journal name, volume, issue...'
           }
           className="input-modern"
           rows={3}
@@ -128,7 +128,7 @@ export default function CitationFormatter() {
             <div className="flex items-center space-x-2">
               <AlertCircle className="h-5 w-5 text-blue-600" />
               <span className="text-sm text-blue-800">
-                Kaynak Formatlama: {usage.citation_formats} / {limits.citation_formats === -1 ? '∞' : limits.citation_formats} kullanıldı
+                Citation Formatting: {usage.citation_formats} / {limits.citation_formats === -1 ? '∞' : limits.citation_formats} used
               </span>
             </div>
           ) : (
@@ -141,7 +141,7 @@ export default function CitationFormatter() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-700">
-                    Daha çok <strong>Kaynak Formatlama</strong> için Pro üyelik alın
+                    Get <strong>Pro</strong> for more <strong>Citation Formatting</strong>
                   </p>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function CitationFormatter() {
                 onClick={() => window.location.href = '/#pricing'}
                 className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                Pro Al
+                Get Pro
               </button>
             </div>
           )}
@@ -164,20 +164,20 @@ export default function CitationFormatter() {
         {loading ? (
           <div className="flex items-center justify-center space-x-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            <span>Formatlanıyor...</span>
+            <span>Formatting...</span>
           </div>
         ) : !user ? (
           <div className="flex items-center justify-center space-x-2">
             <Lock className="h-4 w-4" />
-            <span>Giriş Yapın</span>
+            <span>Sign In</span>
           </div>
         ) : !checkLimit('citation_formats').allowed ? (
           <div className="flex items-center justify-center space-x-2">
             <Lock className="h-4 w-4" />
-            <span>Limit Aşıldı</span>
+            <span>Limit Exceeded</span>
           </div>
         ) : (
-          'Formatla'
+          'Format'
         )}
       </button>
 
@@ -186,7 +186,7 @@ export default function CitationFormatter() {
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex justify-between items-start mb-2">
             <label className="text-sm font-medium text-gray-700">
-              Formatlanmış Kaynak
+              Formatted Citation
             </label>
             <button
               onClick={copyToClipboard}

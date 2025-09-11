@@ -15,14 +15,14 @@ export default function AbstractGenerator() {
 
   const generateAbstract = async () => {
     if (!text) {
-      toast.error('Lütfen tez içeriğini girin');
+      toast.error('Please enter thesis content');
       return;
     }
 
     // Limit kontrolü
     const limitCheck = checkLimit('abstract_generations');
     if (!limitCheck.allowed) {
-      toast.error(limitCheck.reason || 'Limit aşıldı');
+      toast.error(limitCheck.reason || 'Limit exceeded');
       return;
     }
 
@@ -37,12 +37,12 @@ export default function AbstractGenerator() {
       const data = await response.json();
       setAbstract(data.abstract);
       
-      // Kullanımı artır
+      // Increment usage
       await incrementUsage('abstract_generations');
       
-      toast.success('Özet oluşturuldu!');
+      toast.success('Abstract generated!');
     } catch (error) {
-      toast.error('Özet oluşturulamadı');
+      toast.error('Failed to generate abstract');
     } finally {
       setLoading(false);
     }
@@ -54,31 +54,31 @@ export default function AbstractGenerator() {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Dil
+            Language
           </label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             className="input-modern"
           >
-            <option value="tr">Türkçe (Özet)</option>
-            <option value="en">İngilizce (Abstract)</option>
-            <option value="both">Her İkisi</option>
+            <option value="tr">Turkish (Summary)</option>
+            <option value="en">English (Abstract)</option>
+            <option value="both">Both</option>
           </select>
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Özet Uzunluğu
+            Abstract Length
           </label>
           <select
             value={wordCount}
             onChange={(e) => setWordCount(e.target.value)}
             className="input-modern"
           >
-            <option value="100-150">Kısa Özet (100-150 kelime) - Temel bulgular</option>
-            <option value="200-300">Standart Özet (200-300 kelime) - Akademik standart</option>
-            <option value="400-500">Detaylı Özet (400-500 kelime) - Kapsamlı analiz</option>
+            <option value="100-150">Short Abstract (100-150 words) - Key findings</option>
+            <option value="200-300">Standard Abstract (200-300 words) - Academic standard</option>
+            <option value="400-500">Detailed Abstract (400-500 words) - Comprehensive analysis</option>
           </select>
         </div>
       </div>
@@ -86,17 +86,17 @@ export default function AbstractGenerator() {
       {/* Text Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tez İçeriği
+          Thesis Content
         </label>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Tezinizin ana içeriğini veya bölümlerini buraya yapıştırın..."
+          placeholder="Paste the main content or sections of your thesis here..."
           className="input-modern"
           rows={8}
         />
         <p className="text-sm text-gray-500 mt-1">
-          {text.split(' ').filter(w => w).length} kelime
+          {text.split(' ').filter(w => w).length} words
         </p>
       </div>
 
@@ -111,7 +111,7 @@ export default function AbstractGenerator() {
             <div className="flex items-center space-x-2">
               <AlertCircle className="h-5 w-5 text-green-600" />
               <span className="text-sm text-green-800">
-                Özet Oluşturma: {usage.abstract_generations} / {limits.abstract_generations === -1 ? '∞' : limits.abstract_generations} kullanıldı
+                Abstract Generation: {usage.abstract_generations} / {limits.abstract_generations === -1 ? '∞' : limits.abstract_generations} used
               </span>
             </div>
           ) : (
@@ -124,7 +124,7 @@ export default function AbstractGenerator() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-700">
-                    Daha çok <strong>Özet Oluşturma</strong> için Pro üyelik alın
+                    Get <strong>Pro</strong> for more <strong>Abstract Generations</strong>
                   </p>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function AbstractGenerator() {
                 onClick={() => window.location.href = '/#pricing'}
                 className="px-4 py-2 bg-gradient-to-r from-green-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                Pro Al
+                Get Pro
               </button>
             </div>
           )}
@@ -147,22 +147,22 @@ export default function AbstractGenerator() {
         {loading ? (
           <>
             <Loader2 className="animate-spin h-5 w-5 mr-2" />
-            Özet oluşturuluyor...
+            Generating abstract...
           </>
         ) : !user ? (
           <>
             <Lock className="h-5 w-5 mr-2" />
-            Giriş Yapın
+            Sign In
           </>
         ) : !checkLimit('abstract_generations').allowed ? (
           <>
             <Lock className="h-5 w-5 mr-2" />
-            Limit Aşıldı
+            Limit Exceeded
           </>
         ) : (
           <>
             <Languages className="h-5 w-5 mr-2" />
-            Özet Oluştur
+            Generate Abstract
           </>
         )}
       </button>
@@ -172,7 +172,7 @@ export default function AbstractGenerator() {
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-semibold mb-2">
-              {language === 'tr' ? 'Özet' : language === 'en' ? 'Abstract' : 'Özet & Abstract'}
+              {language === 'tr' ? 'Summary' : language === 'en' ? 'Abstract' : 'Summary & Abstract'}
             </h3>
             <p className="text-gray-800 whitespace-pre-wrap">{abstract}</p>
           </div>
