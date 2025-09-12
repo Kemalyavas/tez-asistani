@@ -10,20 +10,20 @@ export default function PaymentSuccessClient() {
           <Check className="w-10 h-10 text-green-600" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          🎉 Ödeme Başarılı!
+          🎉 Payment Successful!
         </h1>
         <p className="text-gray-600 mb-6">
-          Tebrikler! Planınız başarıyla aktifleştirildi. 
-          Tüm premium özelliklere artık erişebilirsiniz.
+          Congratulations! Your plan has been activated.
+          You now have access to all premium features.
         </p>
         <div className="space-y-3">
           <Link href="/" className="btn-primary w-full flex items-center justify-center group">
-            Uygulamaya Devam Et
+            Continue to App
             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
           <Link href="/profile" className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center">
             <Home className="mr-2 h-4 w-4" />
-            Profilime Git
+            Go to My Profile
           </Link>
         </div>
       </div>

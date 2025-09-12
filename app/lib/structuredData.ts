@@ -241,7 +241,7 @@ export const structuredData = {
     "totalTime": "PT2M",
     "estimatedCost": {
       "@type": "MonetaryAmount",
-      "currency": "TRY",
+      "currency": "USD",
       "value": "0"
     },
     "supply": [
