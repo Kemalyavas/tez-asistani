@@ -6,7 +6,6 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import AuthLinkCatcher from './components/AuthLinkCatcher';
 import { homeMetadata } from './lib/metadata';
 import { structuredData } from './lib/structuredData';
 import Script from 'next/script';
@@ -77,7 +76,6 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
       </head>
       <body className={inter.className}>
-  <AuthLinkCatcher />
   <Navbar />
         <main role="main">
           {children}

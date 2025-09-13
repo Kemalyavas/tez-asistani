@@ -202,7 +202,6 @@ export default function AuthComponent() {
           email: formData.email,
           password: formData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/confirm`,
             data: {
               username: formData.username,
               display_name: formData.username
