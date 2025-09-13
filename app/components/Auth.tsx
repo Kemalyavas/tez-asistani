@@ -197,11 +197,12 @@ export default function AuthComponent() {
       }
 
       if (isSignUp) {
-  // Sign up flow - looser rate limiting
+        // Sign up flow with email verification
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
+            emailRedirectTo: `${window.location.origin}/auth/confirm`,
             data: {
               username: formData.username,
               display_name: formData.username
@@ -222,13 +223,7 @@ export default function AuthComponent() {
           throw error;
         }
 
-  // If user exists but no session, it's a duplicate email
-        if (data.user && !data.session) {
-          toast.error('This email is already registered. Please sign in.');
-          setIsSignUp(false); // Switch to sign-in mode
-          return;
-        }
-        
+        // If email confirmation is required, Supabase will not create a session
         if (data.user && !data.user.email_confirmed_at) {
           toast.success('Sign up successful! Please verify your account via the link sent to your email.');
         } else {
