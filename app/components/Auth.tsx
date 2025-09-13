@@ -120,31 +120,31 @@ export default function AuthComponent() {
 
   const validateForm = () => {
     if (!formData.email) {
-      toast.error('E-posta adresi gerekli');
+      toast.error('Email is required');
       return false;
     }
 
-    // Şifre sıfırlama için sadece e-posta yeterli
+    // For password reset, only email is required
     if (isForgotPassword) {
       return true;
     }
 
     if (!formData.password) {
-      toast.error('Şifre gerekli');
+      toast.error('Password is required');
       return false;
     }
 
     if (isSignUp) {
       if (!formData.username) {
-        toast.error('Kullanıcı adı gerekli');
+        toast.error('Username is required');
         return false;
       }
       if (formData.password !== formData.confirmPassword) {
-        toast.error('Şifreler eşleşmiyor');
+        toast.error('Passwords do not match');
         return false;
       }
       if (formData.password.length < 6) {
-        toast.error('Şifre en az 6 karakter olmalı');
+        toast.error('Password must be at least 6 characters');
         return false;
       }
     }
@@ -164,11 +164,11 @@ export default function AuthComponent() {
     if (!rateLimitCheck.allowed) {
       if (rateLimitCheck.remainingTime) {
         toast.error(
-          `Çok fazla deneme! ${rateLimitCheck.remainingTime} dakika sonra tekrar deneyin.`,
+          `Too many attempts! Try again in ${rateLimitCheck.remainingTime} minutes.`,
           { duration: 5000 }
         );
       } else {
-        toast.error('Çok fazla deneme! Lütfen daha sonra tekrar deneyin.');
+  toast.error('Too many attempts! Please try again later.');
       }
       return;
     }
@@ -177,7 +177,7 @@ export default function AuthComponent() {
     
     try {
       if (isForgotPassword) {
-        // Şifre sıfırlama işlemi
+  // Password reset flow
         const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
           redirectTo: `${window.location.origin}/auth/reset-password`,
         });
@@ -185,19 +185,19 @@ export default function AuthComponent() {
         if (error) {
           console.error('Reset password error:', error);
           recordAttempt(formData.email, 'reset', false);
-          toast.error('E-posta gönderilirken bir hata oluştu');
+          toast.error('An error occurred while sending the email');
           throw error;
         }
 
         recordAttempt(formData.email, 'reset', true);
-        toast.success('Şifre sıfırlama linki e-posta adresinize gönderildi!');
+  toast.success('Password reset link has been sent to your email!');
         setIsForgotPassword(false);
         setFormData({ email: '', password: '', confirmPassword: '', username: '' });
         return;
       }
 
       if (isSignUp) {
-        // Kayıt işlemi - Rate limiting daha gevşek
+  // Sign up flow - looser rate limiting
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -210,32 +210,32 @@ export default function AuthComponent() {
         });
 
         if (error) {
-          // Supabase'in kendi hata mesajlarını kontrol et
+          // Inspect Supabase error messages
           if (error.message.includes('already') || 
               error.message.includes('exists') || 
               error.message.includes('registered') ||
               error.message.includes('duplicate')) {
-            toast.error('Bu e-posta adresi zaten kullanılıyor');
+            toast.error('This email address is already in use');
           } else {
             toast.error(error.message);
           }
           throw error;
         }
 
-        // Eğer user var ama session yok ise, bu duplicate e-posta demektir
+  // If user exists but no session, it's a duplicate email
         if (data.user && !data.session) {
-          toast.error('Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapın.');
-          setIsSignUp(false); // Giriş moduna geç
+          toast.error('This email is already registered. Please sign in.');
+          setIsSignUp(false); // Switch to sign-in mode
           return;
         }
         
         if (data.user && !data.user.email_confirmed_at) {
-          toast.success('Kayıt başarılı! E-posta adresinize gelen linke tıklayarak hesabınızı doğrulayın.');
+          toast.success('Sign up successful! Please verify your account via the link sent to your email.');
         } else {
-          toast.success('Kayıt başarılı!');
+          toast.success('Sign up successful!');
         }
         
-        // Formu temizle
+  // Clear form
         setFormData({
           email: '',
           password: '',
@@ -243,10 +243,10 @@ export default function AuthComponent() {
           username: ''
         });
         
-        // Giriş moduna geç
+  // Switch to sign-in mode
         setIsSignUp(false);
       } else {
-        // Giriş işlemi
+  // Sign-in flow
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -260,12 +260,12 @@ export default function AuthComponent() {
             const remainingAttempts = RATE_LIMITS.AUTH_ATTEMPTS - (currentState?.attempts || 0);
             
             if (remainingAttempts > 1) {
-              toast.error(`E-posta veya şifre hatalı. ${remainingAttempts - 1} deneme hakkınız kaldı.`);
+              toast.error(`Incorrect email or password. ${remainingAttempts - 1} attempts remaining.`);
             } else {
-              toast.error('E-posta veya şifre hatalı. Çok fazla yanlış deneme yaparsanız hesabınız geçici olarak kilitlenecek.');
+              toast.error('Incorrect email or password. Too many failed attempts may temporarily lock your account.');
             }
           } else if (error.message.includes('Email not confirmed')) {
-            toast.error('Lütfen e-posta adresinizi doğrulayın');
+            toast.error('Please verify your email address');
           } else {
             toast.error(error.message);
           }
@@ -273,14 +273,14 @@ export default function AuthComponent() {
         }
         
         recordAttempt(formData.email, 'auth', true);
-        toast.success('Giriş başarılı!');
+  toast.success('Signed in successfully!');
         router.push('/');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      // Hata mesajını sadece beklenmedik durumlar için göster
+  // Show error toast only for unexpected cases
       if (!error.message.includes('already') && !error.message.includes('Invalid')) {
-        toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
+  toast.error('Something went wrong. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -299,10 +299,10 @@ export default function AuthComponent() {
   };
 
   const toggleForgotPassword = () => {
-    setIsForgotPassword(!isForgotPassword);
+  setIsForgotPassword(!isForgotPassword);
     setIsSignUp(false);
     setFormData({
-      email: formData.email, // E-posta'yı koru
+  email: formData.email, // Keep email
       password: '',
       confirmPassword: '',
       username: ''
@@ -321,13 +321,13 @@ export default function AuthComponent() {
               className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Geri Dön
+              Go Back
             </button>
             <h3 className="text-xl font-semibold text-gray-900">
-              Şifre Sıfırlama
+              Password Reset
             </h3>
             <p className="text-sm text-gray-600 mt-2">
-              E-posta adresinizi girin, size şifre sıfırlama linki gönderelim.
+              Enter your email address and we’ll send you a password reset link.
             </p>
           </div>
         )}
@@ -338,10 +338,10 @@ export default function AuthComponent() {
             <div className="flex items-start">
               <AlertTriangle className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">Güvenlik Bilgisi:</p>
+                <p className="font-medium mb-1">Security Notice:</p>
                 <ul className="text-xs space-y-1 text-blue-700">
-                  <li>• 5 yanlış deneme sonrası hesap 30 dakika kilitlenir</li>
-                  <li>• Şifre sıfırlama: saatte 3 istek limiti</li>
+                  <li>• 5 failed attempts will lock the account for 30 minutes</li>
+                  <li>• Password reset: 3 requests per hour limit</li>
                 </ul>
               </div>
             </div>
@@ -351,7 +351,7 @@ export default function AuthComponent() {
         {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            E-posta
+            Email
           </label>
           <input
             type="email"
@@ -365,11 +365,11 @@ export default function AuthComponent() {
           />
         </div>
 
-        {/* Username (sadece kayıt için) */}
+  {/* Username (sign up only) */}
         {isSignUp && !isForgotPassword && (
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Kullanıcı Adı
+              Username
             </label>
             <input
               type="text"
@@ -379,16 +379,16 @@ export default function AuthComponent() {
               value={formData.username}
               onChange={handleInputChange}
               className="input-modern"
-              placeholder="kullaniciadi"
+              placeholder="username"
             />
           </div>
         )}
 
-        {/* Password (şifre sıfırlama hariç) */}
+  {/* Password (except reset mode) */}
         {!isForgotPassword && (
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Şifre
+              Password
             </label>
             <div className="relative">
               <input
@@ -416,11 +416,11 @@ export default function AuthComponent() {
           </div>
         )}
 
-        {/* Confirm Password (sadece kayıt için) */}
+  {/* Confirm Password (sign up only) */}
         {isSignUp && !isForgotPassword && (
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Şifre Tekrar
+              Confirm Password
             </label>
             <div className="relative">
               <input
@@ -454,9 +454,9 @@ export default function AuthComponent() {
           disabled={loading}
           className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Yükleniyor...' : (
-            isForgotPassword ? 'Sıfırlama Linki Gönder' :
-            isSignUp ? 'Kayıt Ol' : 'Giriş Yap'
+          {loading ? 'Loading...' : (
+            isForgotPassword ? 'Send Reset Link' :
+            isSignUp ? 'Sign Up' : 'Sign In'
           )}
         </button>
 
@@ -471,8 +471,8 @@ export default function AuthComponent() {
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
                 {isSignUp 
-                  ? 'Hesabınız var mı? Giriş yapın' 
-                  : 'Hesabınız yok mu? Kayıt olun'
+                  ? 'Already have an account? Sign in' 
+                  : "Don't have an account? Sign up"
                 }
               </button>
             </div>
@@ -485,7 +485,7 @@ export default function AuthComponent() {
                   onClick={toggleForgotPassword}
                   className="text-gray-500 hover:text-gray-700 text-sm"
                 >
-                  Şifrenizi mi unuttunuz?
+                  Forgot your password?
                 </button>
               </div>
             )}

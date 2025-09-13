@@ -21,29 +21,29 @@ export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Client-side'da çalıştığımızdan emin olalım
+    // Ensure we are running client-side
     if (typeof window === 'undefined') return;
 
-    // Debug info'yu ayarla
+    // Set debug info
     setDebugInfo({
       hash: window.location.hash,
       search: window.location.search
     });
 
-    // Supabase auth callback'ini işle
+    // Handle Supabase auth callback
     const handleAuthCallback = async () => {
       try {
         console.log('Full URL:', window.location.href);
         console.log('Hash:', window.location.hash);
         console.log('Search:', window.location.search);
         
-        // Supabase'in auth callback sistemi ile session'u al
+  // Get session via Supabase auth callback system
         const { data, error } = await supabase.auth.getSession();
         console.log('Current session check:', { data, error });
 
         if (error) {
           console.error('Session error:', error);
-          toast.error(`Session hatası: ${error.message}`);
+          toast.error(`Session error: ${error.message}`);
           router.push('/auth');
           return;
         }
@@ -51,7 +51,7 @@ export default function ResetPasswordForm() {
         // Session varsa, bu bir başarılı password reset callback'i
         if (data.session && data.session.user) {
           console.log('Valid session found:', data.session.user.email);
-          toast.success('Yeni şifrenizi belirleyebilirsiniz');
+          toast.success('You can now set your new password');
           return;
         }
 
@@ -71,15 +71,15 @@ export default function ResetPasswordForm() {
           errorDescription 
         });
 
-        // URL'de hata varsa
+        // If URL contains an error
         if (error_code) {
           console.error('URL contains error:', error_code, errorDescription);
-          toast.error(`Hata: ${errorDescription || error_code}`);
+          toast.error(`Error: ${errorDescription || error_code}`);
           router.push('/auth');
           return;
         }
 
-        // Recovery token'ları varsa session'u ayarla
+        // If recovery tokens exist, set session
         if (type === 'recovery' && accessToken && refreshToken) {
           console.log('Setting session with recovery tokens...');
           const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
@@ -89,25 +89,25 @@ export default function ResetPasswordForm() {
 
           if (sessionError) {
             console.error('Session set error:', sessionError);
-            toast.error(`Session hatası: ${sessionError.message}`);
+            toast.error(`Session error: ${sessionError.message}`);
             router.push('/auth');
             return;
           }
 
           console.log('Session set successfully:', sessionData);
-          toast.success('Yeni şifrenizi belirleyebilirsiniz');
+          toast.success('You can now set your new password');
           
-          // URL'den token'ları temizle (güvenlik için)
+          // Clean tokens from URL (for security)
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
-          // Hiçbir valid token bulunamadı
+          // No valid tokens found
           console.log('No valid tokens found');
-          toast.error('Geçersiz şifre sıfırlama linki');
+          toast.error('Invalid password reset link');
           router.push('/auth');
         }
       } catch (error) {
         console.error('Auth callback error:', error);
-        toast.error(`Beklenmeyen hata: ${error}`);
+        toast.error(`Unexpected error: ${error}`);
         router.push('/auth');
       }
     };
@@ -124,17 +124,17 @@ export default function ResetPasswordForm() {
 
   const validateForm = () => {
     if (!formData.password || !formData.confirmPassword) {
-      toast.error('Lütfen tüm alanları doldurun');
+      toast.error('Please fill in all fields');
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Şifreler eşleşmiyor');
+      toast.error('Passwords do not match');
       return false;
     }
 
     if (formData.password.length < 6) {
-      toast.error('Şifre en az 6 karakter olmalı');
+      toast.error('Password must be at least 6 characters');
       return false;
     }
 
@@ -153,7 +153,7 @@ export default function ResetPasswordForm() {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !sessionData.session) {
-        toast.error('Geçersiz oturum. Lütfen şifre sıfırlama linkini tekrar kullanın.');
+        toast.error('Invalid session. Please use the password reset link again.');
         router.push('/auth');
         return;
       }
@@ -166,19 +166,19 @@ export default function ResetPasswordForm() {
 
       if (error) {
         console.error('Password update error:', error);
-        toast.error(`Şifre güncellenirken hata: ${error.message}`);
+        toast.error(`Error updating password: ${error.message}`);
         throw error;
       }
 
-      console.log('Password updated successfully:', data);
-      toast.success('Şifreniz başarıyla güncellendi! Yeni şifrenizle giriş yapabilirsiniz.');
+  console.log('Password updated successfully:', data);
+  toast.success('Your password has been updated! You can now sign in with your new password.');
       
       // Session'ı temizle ve giriş sayfasına yönlendir
       await supabase.auth.signOut();
       router.push('/auth');
     } catch (error: any) {
       console.error('Password reset error:', error);
-      toast.error('Şifre güncellenirken bir hata oluştu. Lütfen tekrar deneyin.');
+      toast.error('An error occurred while updating the password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -192,13 +192,13 @@ export default function ResetPasswordForm() {
             href="/auth" 
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
-            ← Giriş sayfasına dön
+            ← Back to Sign In
           </Link>
           <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Yeni Şifre Belirleyin
+            Set a New Password
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Güvenli bir şifre seçin ve onaylayın
+            Choose a secure password and confirm it
           </p>
           
           {/* Debug Info - sadece development için */}
@@ -214,7 +214,7 @@ export default function ResetPasswordForm() {
           {/* New Password */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Yeni Şifre
+              New Password
             </label>
             <div className="relative">
               <input
@@ -240,14 +240,14 @@ export default function ResetPasswordForm() {
               </button>
             </div>
             <p className="mt-1 text-xs text-gray-500">
-              En az 6 karakter olmalı
+              Must be at least 6 characters
             </p>
           </div>
 
           {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Şifre Tekrar
+              Confirm Password
             </label>
             <div className="relative">
               <input
@@ -280,12 +280,12 @@ export default function ResetPasswordForm() {
             disabled={loading}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
+            {loading ? 'Updating...' : 'Update Password'}
           </button>
         </form>
 
         <div className="text-center text-sm text-gray-500">
-          <p>Şifrenizi güncelledikten sonra yeni şifrenizle giriş yapabilirsiniz.</p>
+          <p>After updating, you can sign in with your new password.</p>
         </div>
       </div>
     </div>
