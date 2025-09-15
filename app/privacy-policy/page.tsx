@@ -1,10 +1,24 @@
 'use client';
 import Link from 'next/link';
+import Script from 'next/script';
+import { structuredData } from '../lib/structuredData';
 import { ArrowLeft, Shield, Lock, Eye, Trash2, Server, UserCheck } from 'lucide-react';
 
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <Script
+        id="breadcrumbs-privacy"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            structuredData.generateBreadcrumb([
+              { name: 'Home', url: 'https://www.tezai.com.tr' },
+              { name: 'Privacy Policy', url: 'https://www.tezai.com.tr/privacy-policy' },
+            ])
+          ),
+        }}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">

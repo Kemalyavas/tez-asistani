@@ -7,6 +7,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import toast from 'react-hot-toast'
 
 import { PRICE_CONFIG, getFormattedPrice, getYearlySavings } from '../lib/pricing';
+import Script from 'next/script'
+import { structuredData } from '../lib/structuredData'
 
 const PLANS = [
   {
@@ -131,11 +133,23 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
+      <Script
+        id="breadcrumbs-pricing"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            structuredData.generateBreadcrumb([
+              { name: 'Home', url: 'https://www.tezai.com.tr' },
+              { name: 'Pricing', url: 'https://www.tezai.com.tr/pricing' },
+            ])
+          ),
+        }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Size Uygun <span className="text-blue-600">Planı</span> Seçin
+            Choose the <span className="text-blue-600">Right Plan</span> for You
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Access professional tools to accelerate your thesis writing process.
@@ -228,7 +242,7 @@ export default function PricingPage() {
                   {loading === plan.id ? (
                     <span className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      İşleniyor...
+                      Processing...
                     </span>
                   ) : (
                     plan.buttonText
@@ -241,19 +255,19 @@ export default function PricingPage() {
 
         {/* FAQ Section */}
         <div className="mt-20 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Sıkça Sorulan Sorular</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h2>
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">İstediğim zaman iptal edebilir miyim?</h3>
-              <p className="text-gray-600">Evet, istediğiniz zaman iptal edebilirsiniz. İptal sonrası mevcut dönem sonuna kadar hizmetlerinizi kullanmaya devam edebilirsiniz.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Can I cancel anytime?</h3>
+              <p className="text-gray-600">Yes, you can cancel anytime. After cancellation, you can continue using the service until the end of the current period.</p>
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Ödeme güvenli mi?</h3>
-              <p className="text-gray-600">Tüm ödemelerimiz SSL şifreli ve PCI DSS standartlarında güvenli İyzico altyapısı üzerinden işlenmektedir.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Is payment secure?</h3>
+              <p className="text-gray-600">All payments are SSL encrypted and processed via Iyzico’s PCI DSS-compliant infrastructure.</p>
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Fatura alabilir miyim?</h3>
-              <p className="text-gray-600">Evet, tüm ödemeleriniz için e-fatura otomatik olarak düzenlenir ve email adresinize gönderilir.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Can I get an invoice?</h3>
+              <p className="text-gray-600">Yes, an e-invoice is automatically issued for all payments and sent to your email address.</p>
             </div>
           </div>
         </div>
@@ -263,19 +277,19 @@ export default function PricingPage() {
           <div className="flex items-center justify-center space-x-8 opacity-60">
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-2" />
-              <span className="text-sm text-gray-600">SSL Güvenlik</span>
+              <span className="text-sm text-gray-600">SSL Security</span>
             </div>
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-2" />
-              <span className="text-sm text-gray-600">256-bit Şifreleme</span>
+              <span className="text-sm text-gray-600">256-bit Encryption</span>
             </div>
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-2" />
-              <span className="text-sm text-gray-600">PCI DSS Uyumlu</span>
+              <span className="text-sm text-gray-600">PCI DSS Compliant</span>
             </div>
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-2" />
-              <span className="text-sm text-gray-600">KVKK Uyumlu</span>
+              <span className="text-sm text-gray-600">KVKK Compliant</span>
             </div>
           </div>
         </div>

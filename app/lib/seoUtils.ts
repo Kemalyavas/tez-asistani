@@ -2,13 +2,13 @@
 
 // Generate canonical URL
 export function generateCanonicalUrl(path: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tez-asistani.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.tezai.com.tr'
   return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`
 }
 
 // Generate Open Graph image URL
 export function generateOGImageUrl(title: string, description?: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tez-asistani.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.tezai.com.tr'
   const params = new URLSearchParams({
     title,
     ...(description && { description }),
@@ -47,7 +47,7 @@ export function optimizeMetaDescription(text: string, maxLength = 155): string {
 }
 
 // Title optimizer (ideal length: 50-60 chars)
-export function optimizeTitle(title: string, siteName = 'Tez Asistanı', maxLength = 60): string {
+export function optimizeTitle(title: string, siteName = 'TezAI', maxLength = 60): string {
   const fullTitle = `${title} | ${siteName}`
   
   if (fullTitle.length <= maxLength) return fullTitle
@@ -100,21 +100,21 @@ export function calculateReadingTime(text: string): { minutes: number; seconds: 
 export function generateBreadcrumbData(pathname: string) {
   const paths = pathname.split('/').filter(Boolean)
   const breadcrumbs = [
-    { name: 'Ana Sayfa', url: '/' }
+    { name: 'Home', url: '/' }
   ]
   
   const routeMap: Record<string, string> = {
-    'pricing': 'Fiyatlar',
-    'auth': 'Giriş Yap',
-    'profile': 'Profilim',
-    'privacy-policy': 'Gizlilik Politikası',
-    'hakkimizda': 'Hakkımızda',
-    'iletisim': 'İletişim',
-    'sss': 'Sıkça Sorulan Sorular',
+    'pricing': 'Pricing',
+    'auth': 'Sign In',
+    'profile': 'My Profile',
+    'privacy-policy': 'Privacy Policy',
+    'hakkimizda': 'About',
+    'iletisim': 'Contact',
+    'sss': 'FAQ',
     'blog': 'Blog',
-    'ozellikler': 'Özellikler',
-    'akademik-formatlar': 'Akademik Formatlar',
-    'universitelere-ozel': 'Üniversitelere Özel'
+    'ozellikler': 'Features',
+    'akademik-formatlar': 'Academic Formats',
+    'universitelere-ozel': 'For Universities'
   }
   
   let currentPath = ''

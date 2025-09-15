@@ -32,12 +32,12 @@ export default function Home() {
    
   }, [supabase]);
   
-  // Scroll için ref'ler
+  // Scroll refs
   const howItWorksRef = useRef<HTMLDivElement>(null);
   const mainAppRef = useRef<HTMLDivElement>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
 
-  // Scroll fonksiyonları
+  // Scroll helpers
   const scrollToHowItWorks = () => {
     howItWorksRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -109,12 +109,12 @@ export default function Home() {
   const handleSelectPlan = async (planId: string) => {
     if (planId === 'free') {
       scrollToApp();
-      toast.success('Ücretsiz denemeniz başladı! 1 analiz hakkınız var.');
+  toast.success('Your free trial has started! You have 1 analysis.');
       return;
     }
 
     if (!user) {
-      toast.error('Lütfen önce giriş yapın');
+  toast.error('Please sign in first');
       router.push('/auth');
       return;
     }
@@ -137,14 +137,14 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Ödeme işlemi başlatılamadı');
+  throw new Error(data.error || 'Payment could not be initiated');
       }
       
       window.location.href = data.url;
 
     } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error(error.message || 'Ödeme işlemi başlatılamadı');
+  toast.error(error.message || 'Payment could not be initiated');
     } finally {
       setLoadingPlan(null);
     }
@@ -415,7 +415,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PRICING SECTION - GÜNCELLENMİŞ BUTONLAR */}
+  {/* PRICING SECTION - UPDATED BUTTONS */}
       <section id="pricing" ref={pricingRef} className="py-24 gradient-bg">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
