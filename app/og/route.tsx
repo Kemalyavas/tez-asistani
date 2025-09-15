@@ -1,8 +1,6 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'TezAI – AI Thesis Writing Assistant'
-export const contentType = 'image/png'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
