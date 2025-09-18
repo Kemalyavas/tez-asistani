@@ -84,7 +84,7 @@ export default function TestimonialsCarousel() {
 
     const interval = setInterval(() => {
       nextSlide();
-    }, 4000); // 4 saniyede bir otomatik geçiş
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [currentIndex, isAutoPlaying, isTransitioning]);
@@ -203,7 +203,7 @@ export default function TestimonialsCarousel() {
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </button>
         
-        <span className="text-sm text-gray-500 font-medium">
+        <span className="text-sm text-gray-500 font-medium" aria-live="polite">
           {currentIndex + 1} / {totalSlides}
         </span>
         
@@ -214,6 +214,17 @@ export default function TestimonialsCarousel() {
           aria-label="Next testimonial"
         >
           <ChevronRight className="h-5 w-5 text-gray-600" />
+        </button>
+      </div>
+
+      {/* Autoplay toggle for accessibility */}
+      <div className="mt-4 flex justify-center">
+        <button
+          onClick={() => setIsAutoPlaying((p) => !p)}
+          className="text-xs text-gray-500 hover:text-gray-700 underline"
+          aria-pressed={isAutoPlaying}
+        >
+          {isAutoPlaying ? 'Pause auto-play' : 'Resume auto-play'}
         </button>
       </div>
 

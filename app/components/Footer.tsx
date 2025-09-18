@@ -11,22 +11,22 @@ export default function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-8">
               <FileText className="h-6 w-6 text-blue-400" />
-              <span className="font-bold text-xl text-white">Thesis Assistant</span>
+              <span className="font-bold text-xl text-white">TezAI</span>
             </div>
-            <p className="text-sm">
-              AI-powered assistant for error-free thesis writing following academic standards
+            <p className="text-sm max-w-sm">
+              Practical tools that help you format, cite, and polish your thesis with confidence.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Quick Links</h3>
+            <h3 className="font-semibold text-white mb-4">Quick links</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/" className="hover:text-blue-400 transition">Home</Link></li>
               <li><Link href="/#features" className="hover:text-blue-400 transition">Features</Link></li>
               <li><Link href="/#pricing" className="hover:text-blue-400 transition">Pricing</Link></li>
-              <li><Link href="/#app" className="hover:text-blue-400 transition">Application</Link></li>
-              <li><Link href="/auth" className="hover:text-blue-400 transition">Login</Link></li>
+              <li><Link href="/#app" className="hover:text-blue-400 transition">Tools</Link></li>
+              <li><Link href="/auth" className="hover:text-blue-400 transition">Sign in</Link></li>
             </ul>
           </div>
 
@@ -51,9 +51,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/kvkk" className="hover:text-blue-400 transition">
-                  GDPR Compliance
-                </Link>
+                <span className="text-gray-500">GDPR compliant</span>
               </li>
             </ul>
           </div>
@@ -69,14 +67,13 @@ export default function Footer() {
               <li className="mt-8">
                 <p className="text-xs text-gray-400 mb-2 mt-6">Secure Payment</p>
 
-                
                 <Image
-            src="/logo_band_colored@3x.png"
-                    alt="Payment Methods: Iyzico, Mastercard, Visa, American Express, Troy"
-                  width={320} 
-                      height={40}  
-                      className="w-full max-w-[320px] mt-4" 
-/>
+                  src="/logo_band_colored@3x.png"
+                  alt="Accepted payments: iyzico, Mastercard, Visa, American Express, Troy"
+                  width={320}
+                  height={40}
+                  className="w-full max-w-[320px] mt-4"
+                />
 
               </li>
             </ul>

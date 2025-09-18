@@ -44,14 +44,14 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50">
+    <nav className="bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center group">
             <div className="relative w-20 h-20 group-hover:scale-110 transition-transform duration-300">
               <Image 
                 src="/logo.png" 
-                alt="TezAI Logo" 
+                alt="TezAI logo" 
                 width={80}
                 height={80}
                 className="object-contain"
@@ -64,33 +64,33 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection('features')}
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
               Features
             </button>
             <button 
               onClick={() => scrollToSection('how-it-works')}
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              How It Works
+              How it works
             </button>
             <button 
               onClick={() => scrollToSection('pricing')}
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
               Pricing
             </button>
             <button 
               onClick={() => scrollToSection('app')}
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              Application
+              Tools
             </button>
             <Link 
               href="/privacy-policy" 
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              Privacy
+              Privacy Policy
             </Link>
             
             {/* Auth Buttons */}
@@ -98,14 +98,14 @@ export default function Navbar() {
               <div className="flex items-center space-x-4">
                 <Link 
                   href="/profile"
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-all duration-300 group"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
                 </Link>
                 <button 
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-300"
+                  className="flex items-center space-x-1 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
@@ -114,10 +114,10 @@ export default function Navbar() {
             ) : (
               <Link 
                 href="/auth" 
-                className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300"
+                className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
                 <LogIn className="h-4 w-4" />
-                <span>Login</span>
+                <span>Sign in</span>
               </Link>
             )}
           </div>
@@ -125,7 +125,8 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -161,10 +162,10 @@ export default function Navbar() {
               </button>
               <Link 
                 href="/privacy-policy" 
-                className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
+                className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Privacy
+                Privacy Policy
               </Link>
               
               {/* Mobile Auth Section */}
@@ -190,9 +191,9 @@ export default function Navbar() {
                   <Link 
                     href="/auth"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block text-blue-600 hover:bg-blue-50 font-medium transition-colors duration-300 py-2"
+                    className="block text-blue-600 hover:bg-blue-50 font-medium transition-colors duration-200 py-2"
                   >
-                    Login / Register
+                    Sign in / Register
                   </Link>
                 )}
               </div>

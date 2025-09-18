@@ -51,10 +51,10 @@ export default function Home() {
   };
 
   const features = [
-    { icon: <FileSearch className="h-6 w-6" />, title: 'Format Check', desc: 'Academic standards compliance' },
-    { icon: <BookOpen className="h-6 w-6" />, title: 'Citation Formatting', desc: 'APA, MLA, Chicago formats' },
-    { icon: <Zap className="h-6 w-6" />, title: 'Abstract Generation', desc: 'AI-powered summaries' },
-    { icon: <CheckCircle className="h-6 w-6" />, title: 'Fast Analysis', desc: 'Results within seconds' },
+    { icon: <FileSearch className="h-6 w-6" />, title: 'Format checks', desc: 'Validates against academic standards' },
+    { icon: <BookOpen className="h-6 w-6" />, title: 'Citations', desc: 'APA, MLA, or Chicago in one click' },
+    { icon: <Zap className="h-6 w-6" />, title: 'Abstracts', desc: 'Clear, concise summaries you can edit' },
+    { icon: <CheckCircle className="h-6 w-6" />, title: 'Fast results', desc: 'See issues in seconds, not hours' },
   ];
 
   // Pricing plans
@@ -163,32 +163,26 @@ export default function Home() {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-fade-in">
-            <div className="mb-6">
-              <span className="inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mb-4 animate-bounce-gentle">
-                🎓 Academic Standards
-              </span>
-            </div>
-            <h1 className="text-6xl md:text-7xl font-bold mb-8 leading-tight">
-              Simplifying Your <br/>
-              <span className="text-gradient animate-slide-in">Thesis Writing</span>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              Ship a thesis you’re proud of
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in">
-              AI-powered assistant for error-free thesis writing following academic standards. 
-              <span className="text-blue-600 font-semibold"> Professional results in minutes.</span>
+            <p className="text-lg md:text-xl text-gray-700 mb-10 max-w-3xl mx-auto leading-relaxed">
+              TezAI points out formatting issues, fixes citations, and helps you polish abstracts so you can focus on the research.
             </p>
             
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12 animate-slide-in">
               <button 
                 onClick={scrollToApp}
                 className="btn-primary text-lg px-8 py-4 min-w-[200px]"
+                aria-label="Try TezAI tools for free"
               >
-                Try for Free
+                Try for free
               </button>
               <button 
                 onClick={scrollToHowItWorks}
                 className="btn-secondary text-lg px-8 py-4 min-w-[200px]"
               >
-                📖 How It Works
+                How it works
               </button>
             </div>
             
@@ -213,7 +207,7 @@ export default function Home() {
               <div className="bg-white/80 backdrop-blur-sm border border-white/40 rounded-2xl p-8 shadow-2xl">
                 <div className="flex items-center justify-center mb-4">
                   <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
-                  <h3 className="text-2xl font-bold text-gray-800">100% Secure & Private</h3>
+                  <h3 className="text-2xl font-bold text-gray-800">Secure and private</h3>
                 </div>
                 <p className="text-gray-700 mb-6 leading-relaxed">
                   Your thesis files are protected with SSL encryption, automatically deleted after analysis, and never 
@@ -252,9 +246,9 @@ export default function Home() {
       <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">Power Up Your <span className="text-gradient">Thesis Writing</span></h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Speed up your thesis preparation process with modern AI technology following academic standards
+            <h2 className="text-4xl font-bold mb-4">Work faster, with fewer mistakes</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Concrete checks and suggestions instead of vague “AI magic”.
             </p>
           </div>
           <div className="grid md:grid-cols-4 gap-8">
@@ -277,10 +271,8 @@ export default function Home() {
       <section id="how-it-works" ref={howItWorksRef} className="py-24 gradient-bg">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">How It <span className="text-gradient">Works?</span></h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Analyze your thesis and get professional results in 3 simple steps
-            </p>
+            <h2 className="text-4xl font-bold mb-4">How it works</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">Get guidance in three steps.</p>
           </div>
           
           <div className="max-w-5xl mx-auto">
@@ -292,7 +284,7 @@ export default function Home() {
                     1
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800">📄 Upload Thesis</h3>
+                <h3 className="text-xl font-bold mb-4 text-gray-800">Upload your thesis</h3>
                 <p className="text-gray-600 leading-relaxed">
                   Upload your thesis document in PDF or DOCX format to our secure system.
                   <span className="text-blue-600 font-semibold"> Automatic format detection</span> gets you started quickly.
@@ -305,7 +297,7 @@ export default function Home() {
                     2
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800 no-decoration">🤖 AI Analysis</h3>
+                <h3 className="text-xl font-bold mb-4 text-gray-800 no-decoration">Review with AI</h3>
                 <p className="text-gray-600 leading-relaxed">
                   Advanced AI technology analyzes your thesis in detail according to <span className="text-purple-600 font-semibold">academic standards</span> 
                   and performs format checks.
@@ -318,7 +310,7 @@ export default function Home() {
                     3
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800">📊 Get Report</h3>
+                <h3 className="text-xl font-bold mb-4 text-gray-800">Get your report</h3>
                 <p className="text-gray-600 leading-relaxed">
                   Perfect your thesis with comprehensive analysis report, <span className="text-green-600 font-semibold">correction suggestions</span> and 
                   professional formatting recommendations.
@@ -332,7 +324,7 @@ export default function Home() {
                 onClick={scrollToApp}
                 className="btn-primary text-lg px-10 py-4"
               >
-                Try for Free!
+                Start free
               </button>
             </div>
           </div>
@@ -343,10 +335,8 @@ export default function Home() {
       <section id="app" ref={mainAppRef} className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">Your Thesis <span className="text-gradient">Assistant</span></h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Try professional thesis preparation tools for free
-            </p>
+            <h2 className="text-4xl font-bold mb-4">Your thesis assistant</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">Try our tools for free.</p>
           </div>
           
           <div className="max-w-5xl mx-auto">
@@ -360,7 +350,7 @@ export default function Home() {
                     : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
                 }`}
               >
-                📄 Upload Thesis
+                Upload Thesis
               </button>
               <button
                 onClick={() => setActiveTab('citation')}
@@ -370,7 +360,7 @@ export default function Home() {
                     : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
                 }`}
               >
-                📚 Format Citation
+                Format Citation
               </button>
               <button
                 onClick={() => setActiveTab('abstract')}
@@ -380,7 +370,7 @@ export default function Home() {
                     : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
                 }`}
               >
-                ✨ Generate Abstract
+                Generate Abstract
               </button>
             </div>
 
@@ -503,7 +493,7 @@ export default function Home() {
                     plan.id === 'free' ? 'bg-gray-100 text-gray-800 hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
-                  {loadingPlan === plan.id ? 'Yönlendiriliyor...' : plan.cta}
+                  {loadingPlan === plan.id ? 'Redirecting…' : plan.cta}
                 </button>
               </div>
             ))}

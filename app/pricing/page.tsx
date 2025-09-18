@@ -87,13 +87,13 @@ export default function PricingPage() {
 
   const handlePlanSelect = async (planId: string) => {
     if (!user) {
-      toast.error('Lütfen önce giriş yapın')
+      toast.error('Please sign in first')
       router.push('/auth')
       return
     }
 
     if (userProfile?.subscription_status === 'premium') {
-      toast.error('Zaten premium üyeliğiniz var. Tekrar üyelik alamazsınız.')
+      toast.error('You already have a premium subscription.')
       return
     }
 
@@ -117,7 +117,7 @@ export default function PricingPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Ödeme işlemi başlatılamadı')
+        throw new Error(data.error || 'Payment could not be initiated')
       }
 
       // İyzico Checkout'a yönlendir
@@ -125,7 +125,7 @@ export default function PricingPage() {
 
     } catch (error: any) {
       console.error('Checkout error:', error)
-      toast.error(error.message || 'Ödeme işlemi başlatılamadı')
+      toast.error(error.message || 'Payment could not be initiated')
     } finally {
       setLoading(null)
     }
