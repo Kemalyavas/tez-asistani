@@ -11,7 +11,7 @@ export default function MesafeliSatisSozlesmesi() {
               <p><strong>Seller:</strong></p>
               <p>Company: Thesis Assistant</p>
               <p>Address: Kocaeli/Izmit</p>
-              <p>Email: info@tezasistani.com</p>
+              <p>Email: kemalyavaas@outlook.com</p>
               <p>Phone: 554 969 00 11</p>
               
               <p className="mt-4"><strong>Buyer:</strong></p>

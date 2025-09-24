@@ -62,7 +62,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-center">
                 <Mail className="h-3 w-3 mr-2" />
-                info@tezasistani.com
+                kemalyavaas@outlook.com
               </li>
               <li className="mt-8">
                 <p className="text-xs text-gray-400 mb-2 mt-6">Secure Payment</p>

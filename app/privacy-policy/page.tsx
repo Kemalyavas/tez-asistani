@@ -245,7 +245,7 @@ export default function PrivacyPolicy() {
                   For questions, requests or complaints about data privacy:
                 </p>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>Email:</strong> info@tezasistani.com</p>
+                  <p><strong>Email:</strong> kemalyavaas@outlook.com</p>
                   <p><strong>Address:</strong> Kocaeli/Izmit</p>
                   <p><strong>Data Protection Officer:</strong> Ali Kemal Yavaş</p>
                 </div>

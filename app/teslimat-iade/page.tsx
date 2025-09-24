@@ -39,7 +39,7 @@ export default function TeslimatIade() {
 
               <h3 className="font-semibold mt-4 mb-2">İade Süreci:</h3>
               <ol className="list-decimal pl-6 space-y-2">
-                <li>info@tezasistani.com adresine iade talebinizi gönderin</li>
+                <li>kemalyavaas@outlook.com adresine iade talebinizi gönderin</li>
                 <li>Sipariş numaranız ve iade nedeninizi belirtin</li>
                 <li>Talebiniz 3 iş günü içinde değerlendirilir</li>
                 <li>Onaylanan iadeler 7-10 iş günü içinde kartınıza yansır</li>
@@ -67,7 +67,7 @@ export default function TeslimatIade() {
             <div className="text-gray-700">
               <p>Sorularınız için bizimle iletişime geçin:</p>
               <p className="mt-2">
-                <strong>E-posta:</strong> info@tezasistani.com<br/>
+                <strong>E-posta:</strong> kemalyavaas@outlook.com<br/>
                 <strong>Yanıt Süresi:</strong> 24-48 saat
               </p>
             </div>
