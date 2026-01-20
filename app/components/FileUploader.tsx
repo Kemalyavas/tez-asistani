@@ -75,14 +75,42 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
     }
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
 
     try {
+      // Step 1: Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      toast.loading('Uploading file...');
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('thesis-files')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      toast.dismiss();
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      toast.loading('Analyzing thesis...');
+
+      // Step 2: Send file path to API for analysis
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filePath: uploadData.path,
+          fileName: file.name
+        }),
       });
+
+      toast.dismiss();
 
       // Check if response is JSON
       const contentType = response.headers.get('content-type');
@@ -105,10 +133,10 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
 
       // Refresh credits after successful analysis
       await refreshCredits();
-      
+
       onAnalysisComplete(data);
       toast.success(`Analysis complete! Used ${data.credits_used} credits.`);
-      
+
     } catch (error: any) {
       toast.error(error.message || 'An error occurred. Please try again.');
       console.error(error);

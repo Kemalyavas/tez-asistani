@@ -79,22 +79,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get file from form data
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    
-    if (!file) {
+    // Get file path from request body
+    const body = await request.json();
+    const { filePath, fileName } = body;
+
+    if (!filePath || !fileName) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: 'No file path provided' },
         { status: 400 }
       );
     }
 
+    // Download file from Supabase Storage
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('thesis-files')
+      .download(filePath);
+
+    if (downloadError || !fileData) {
+      console.error('File download error:', downloadError);
+      return NextResponse.json(
+        { error: 'Could not download file from storage' },
+        { status: 500 }
+      );
+    }
+
     // Validate file type
-    const isDocx = file.name.endsWith('.docx') || 
-      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    const isPdf = file.name.endsWith('.pdf') || file.type === 'application/pdf';
-    
+    const isDocx = fileName.endsWith('.docx');
+    const isPdf = fileName.endsWith('.pdf');
+
     if (!isDocx && !isPdf) {
       return NextResponse.json(
         { error: 'Please upload a PDF or DOCX file' },
@@ -102,11 +114,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract text from file
-    const bytes = await file.arrayBuffer();
+    // Convert Blob to Buffer
+    const bytes = await fileData.arrayBuffer();
     const buffer = Buffer.from(bytes);
     let text = '';
-    
+
     if (isDocx) {
       const mammoth = await import('mammoth');
       const result = await mammoth.extractRawText({ buffer });
@@ -133,8 +145,8 @@ export async function POST(request: NextRequest) {
     // Estimate document size
     const pageCount = estimatePageCount(text);
     const wordCount = getWordCount(text);
-    
-    console.log(`[ANALYZE] File: ${file.name}, Pages: ~${pageCount}, Words: ${wordCount}`);
+
+    console.log(`[ANALYZE] File: ${fileName}, Pages: ~${pageCount}, Words: ${wordCount}`);
 
     // Determine analysis tier and credit cost
     const analysisTier = getAnalysisTier(pageCount);
@@ -156,7 +168,7 @@ export async function POST(request: NextRequest) {
         p_user_id: user.id,
         p_amount: creditsRequired,
         p_action_type: actionType,
-        p_description: `Thesis analysis: ${file.name} (~${pageCount} pages)`
+        p_description: `Thesis analysis: ${fileName} (~${pageCount} pages)`
       });
 
       if (creditError) {
@@ -186,8 +198,8 @@ export async function POST(request: NextRequest) {
       .from('thesis_documents')
       .insert({
         user_id: user.id,
-        filename: file.name,
-        file_size: file.size,
+        filename: fileName,
+        file_size: fileData.size,
         file_type: isPdf ? 'pdf' : 'docx',
         page_count: pageCount,
         word_count: wordCount,
@@ -281,6 +293,11 @@ export async function POST(request: NextRequest) {
       const processingTime = Date.now() - startTime;
       console.log(`[ANALYZE] Completed in ${processingTime}ms`);
 
+      // Clean up: Delete file from storage after successful analysis
+      await supabase.storage
+        .from('thesis-files')
+        .remove([filePath]);
+
       // Return result
       return NextResponse.json({
         success: true,
@@ -358,7 +375,12 @@ export async function POST(request: NextRequest) {
 
     } catch (analysisError: any) {
       console.error('Analysis error:', analysisError);
-      
+
+      // Clean up: Delete file from storage
+      await supabase.storage
+        .from('thesis-files')
+        .remove([filePath]);
+
       // Update document status to failed
       if (thesisId) {
         await supabase
@@ -366,18 +388,20 @@ export async function POST(request: NextRequest) {
           .update({ status: 'failed' })
           .eq('id', thesisId);
       }
-      
-      // Refund credits on analysis failure
-      await supabase.rpc('add_credits', {
-        p_user_id: user.id,
-        p_amount: creditsRequired,
-        p_bonus: 0,
-        p_payment_id: null,
-        p_package_id: null
-      });
+
+      // Refund credits on analysis failure (skip for admin)
+      if (!userIsAdmin) {
+        await supabase.rpc('add_credits', {
+          p_user_id: user.id,
+          p_amount: creditsRequired,
+          p_bonus: 0,
+          p_payment_id: null,
+          p_package_id: null
+        });
+      }
 
       return NextResponse.json(
-        { 
+        {
           error: 'Analysis failed. Your credits have been refunded.',
           details: analysisError.message
         },
