@@ -22,6 +22,7 @@ import {
   Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { isAdmin, isAdminEmail } from '../lib/adminUtils';
 import Link from 'next/link';
 
 interface UserProfile {
@@ -65,6 +66,7 @@ export default function ProfileContent() {
     confirm: false
   });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -80,6 +82,7 @@ export default function ProfileContent() {
         }
 
         setUser(user);
+        setIsAdminUser(isAdmin(user.id) || isAdminEmail(user.email));
 
   // Fetch user profile information
         const { data: profileData, error: profileError } = await supabase
@@ -199,6 +202,8 @@ export default function ProfileContent() {
     }
   };
 
+  const displayCredits = isAdminUser ? '∞' : (profile?.credits ?? 0);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -257,9 +262,12 @@ export default function ProfileContent() {
                 <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
                   <div className="flex items-center justify-center space-x-2">
                     <Coins className="h-6 w-6 text-blue-600" />
-                    <span className="text-3xl font-bold text-blue-600">{profile.credits}</span>
+                    <span className="text-3xl font-bold text-blue-600">{displayCredits}</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">Available Credits</p>
+                  {isAdminUser && (
+                    <p className="text-xs text-blue-500 mt-1">Admin unlimited</p>
+                  )}
                   <Link
                     href="/pricing"
                     className="mt-3 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
@@ -477,8 +485,11 @@ export default function ProfileContent() {
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-blue-600">{profile.credits} credits</p>
+                    <p className="text-2xl font-bold text-blue-600">{displayCredits} credits</p>
                     <p className="text-sm text-gray-600">Available balance</p>
+                    {isAdminUser && (
+                      <p className="text-xs text-blue-500 mt-1">Admin unlimited</p>
+                    )}
                   </div>
                   <Link
                     href="/pricing"

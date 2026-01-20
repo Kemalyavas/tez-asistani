@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CREDIT_COSTS, getCreditCost } from '../lib/pricing';
-import { isAdmin } from '../lib/adminUtils';
+import { isAdmin, isAdminEmail } from '../lib/adminUtils';
 
 // ============================================================================
 // Types
@@ -108,9 +108,14 @@ export function useCredits() {
       if (!forceRefresh) {
         const cached = loadFromStorage();
         if (cached && cached.credits) {
-          globalCache = cached;
+          const isAdminUser = cached.user && (isAdmin(cached.user.id) || isAdminEmail(cached.user.email));
+          const adjustedCredits = isAdminUser
+            ? { ...cached.credits, credits: 999999 }
+            : cached.credits;
+
+          globalCache = { ...cached, credits: adjustedCredits };
           setUser(cached.user);
-          setCredits(cached.credits);
+          setCredits(adjustedCredits);
           setLoading(false);
           return;
         }
@@ -146,8 +151,10 @@ export function useCredits() {
         return;
       }
 
+      const isAdminUser = isAdmin(authUser.id) || isAdminEmail(authUser.email);
+
       const userCredits: UserCredits = {
-        credits: profile?.credits || 0,
+        credits: isAdminUser ? 999999 : (profile?.credits || 0),
         totalPurchased: profile?.total_credits_purchased || 0,
         totalUsed: profile?.total_credits_used || 0,
         thesisCount: profile?.thesis_analyses_count || 0,
@@ -219,7 +226,7 @@ export function useCredits() {
     }
 
     // Admin bypass - unlimited access
-    if (isAdmin(user.id)) {
+    if (isAdmin(user.id) || isAdminEmail(user.email)) {
       return {
         allowed: true,
         currentCredits: 999999, // Display unlimited
@@ -261,7 +268,7 @@ export function useCredits() {
     }
 
     // Admin bypass - don't deduct credits
-    if (isAdmin(user.id)) {
+    if (isAdmin(user.id) || isAdminEmail(user.email)) {
       console.log('[ADMIN] Credit check bypassed for:', actionType);
       return { success: true, newBalance: 999999 };
     }
@@ -383,7 +390,7 @@ export function useCredits() {
     // Convenience getters
     currentCredits: credits.credits,
     isAuthenticated: !!user,
-    isAdmin: user ? isAdmin(user.id) : false
+    isAdmin: user ? (isAdmin(user.id) || isAdminEmail(user.email)) : false
   };
 }
 
