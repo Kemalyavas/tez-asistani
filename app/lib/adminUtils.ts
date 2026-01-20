@@ -1,8 +1,6 @@
-'use client';
-
 /**
- * Admin yönetimi için gizli utility fonksiyonları
- * Bu dosyanın içeriği yalnızca yönetici erişimine yöneliktir
+ * Admin yönetimi için utility fonksiyonları
+ * Bu dosya hem client hem server-side'da çalışır
  */
 
 // Admin kullanıcılar - sınırsız erişim
