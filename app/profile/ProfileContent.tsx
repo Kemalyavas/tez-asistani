@@ -3,21 +3,23 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { 
-  User, 
-  Mail, 
-  Calendar, 
-  Shield, 
-  Edit3, 
-  Save, 
-  X, 
-  Eye, 
+import {
+  User,
+  Mail,
+  Calendar,
+  Shield,
+  Edit3,
+  Save,
+  X,
+  Eye,
   EyeOff,
   ArrowLeft,
   FileText,
   Award,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Coins,
+  Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -33,9 +35,13 @@ interface UserProfile {
   bio?: string;
   university?: string;
   department?: string;
-  thesis_count?: number;
-  subscription_status?: string;
-  subscription_plan?: string;
+  // Credit system fields
+  credits?: number;
+  total_credits_purchased?: number;
+  total_credits_used?: number;
+  thesis_analyses_count?: number;
+  abstracts_count?: number;
+  citations_count?: number;
 }
 
 export default function ProfileContent() {
@@ -97,9 +103,13 @@ export default function ProfileContent() {
           bio: profileData?.bio || '',
           university: profileData?.university || '',
           department: profileData?.department || '',
-          thesis_count: profileData?.thesis_count || 0,
-          subscription_status: profileData?.subscription_status || 'free',
-          subscription_plan: profileData?.subscription_plan || ''
+          // Credit system fields
+          credits: profileData?.credits || 0,
+          total_credits_purchased: profileData?.total_credits_purchased || 0,
+          total_credits_used: profileData?.total_credits_used || 0,
+          thesis_analyses_count: profileData?.thesis_analyses_count || 0,
+          abstracts_count: profileData?.abstracts_count || 0,
+          citations_count: profileData?.citations_count || 0
         };
 
         setProfile(userProfile);
@@ -234,6 +244,7 @@ export default function ProfileContent() {
           
           {/* Left Sidebar - Profile Summary */}
           <div className="lg:col-span-1">
+            {/* Profile Card */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <div className="text-center">
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -241,50 +252,76 @@ export default function ProfileContent() {
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">{profile.full_name || profile.username}</h2>
                 <p className="text-gray-600">{profile.email}</p>
-                <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                    profile.subscription_status === 'premium' || profile.subscription_status === 'pro'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                  <Shield className="h-3 w-3 mr-1" />
-                  {(profile.subscription_status === 'premium' || profile.subscription_status === 'pro')
-                    ? `Premium Member${profile.subscription_plan ? ` - ${profile.subscription_plan?.toUpperCase()}` : ''}`
-                    : 'Free Member'}
+
+                {/* Credit Balance */}
+                <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
+                  <div className="flex items-center justify-center space-x-2">
+                    <Coins className="h-6 w-6 text-blue-600" />
+                    <span className="text-3xl font-bold text-blue-600">{profile.credits}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">Available Credits</p>
+                  <Link
+                    href="/pricing"
+                    className="mt-3 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+                  >
+                    <Zap className="h-4 w-4 mr-1" />
+                    Buy More Credits
+                  </Link>
                 </div>
               </div>
             </div>
 
-            {/* Statistics */}
+            {/* Usage Statistics */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Statistics</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Usage Statistics</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-blue-600" />
                     <span className="text-sm text-gray-600">Theses Analyzed</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{profile.thesis_count}</span>
+                  <span className="font-semibold text-gray-900">{profile.thesis_analyses_count}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-gray-600">Registration Date</span>
+                    <Award className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm text-gray-600">Abstracts Generated</span>
                   </div>
-                  <span className="font-semibold text-gray-900">
-                    {new Date(profile.created_at).toLocaleDateString('en-US')}
-                  </span>
+                  <span className="font-semibold text-gray-900">{profile.abstracts_count}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm text-gray-600">Last Update</span>
+                    <FileText className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-gray-600">Citations Formatted</span>
                   </div>
-                  <span className="font-semibold text-gray-900">
-                    {profile.updated_at 
-                      ? new Date(profile.updated_at).toLocaleDateString('en-US')
-                      : 'Never'
-                    }
-                  </span>
+                  <span className="font-semibold text-gray-900">{profile.citations_count}</span>
+                </div>
+                <div className="border-t pt-4 mt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Coins className="h-4 w-4 text-amber-600" />
+                      <span className="text-sm text-gray-600">Credits Purchased</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{profile.total_credits_purchased}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Coins className="h-4 w-4 text-red-500" />
+                      <span className="text-sm text-gray-600">Credits Used</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{profile.total_credits_used}</span>
+                  </div>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">Member Since</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">
+                      {new Date(profile.created_at).toLocaleDateString('en-US')}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -434,64 +471,28 @@ export default function ProfileContent() {
               </div>
             </div>
 
-            {/* Subscription Management - Only for Premium Users */}
-            {profile.subscription_status === 'premium' && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Subscription Management</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-900">Current Plan</h4>
-                      <p className="text-sm text-gray-600">
-                        {profile.subscription_plan?.replace('_', ' ').toUpperCase()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Status</p>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Active
-                      </span>
-                    </div>
+            {/* Credit Purchase History Link */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Credits</h3>
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-blue-600">{profile.credits} credits</p>
+                    <p className="text-sm text-gray-600">Available balance</p>
                   </div>
-                  
-                  <div className="border-t pt-4">
-                    <button
-                      onClick={async () => {
-                        if (confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')) {
-                          try {
-                            const { error } = await supabase
-                              .from('profiles')
-                              .update({
-                                subscription_status: 'free',
-                                subscription_plan: null,
-                                updated_at: new Date().toISOString()
-                              })
-                              .eq('id', user.id);
-
-                            if (error) throw error;
-
-                            setProfile({
-                              ...profile,
-                              subscription_status: 'free',
-                              subscription_plan: ''
-                            });
-
-                            toast.success('Your subscription has been cancelled.');
-                          } catch (error: any) {
-                            console.error('Subscription cancel error:', error);
-                            toast.error('Subscription could not be cancelled: ' + error.message);
-                          }
-                        }
-                      }}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      Cancel Subscription
-                    </button>
-                  </div>
+                  <Link
+                    href="/pricing"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Buy Credits
+                  </Link>
                 </div>
               </div>
-            )}
+              <p className="text-sm text-gray-500 mt-4">
+                Credits never expire. Use them whenever you need to analyze theses, generate abstracts, or format citations.
+              </p>
+            </div>
 
           </div>
         </div>

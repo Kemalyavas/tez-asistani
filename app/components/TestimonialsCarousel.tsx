@@ -12,7 +12,7 @@ const testimonials = [
   },
   {
     id: 2,
-    text: "The citation formatting part is truly a lifesaver. When I tried to do it manually I kept making mistakes—now it gets everything right.",
+    text: "The citation formatting part is truly a lifesaver. When I tried to do it manually I kept making mistakes, now it gets everything right.",
     name: "Zoe K.",
     color: "bg-purple-600"
   },

@@ -1,10 +1,12 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, File, X, Loader2, AlertCircle, Coins, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import { useUserLimits } from '../hooks/useUserLimits';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useCredits } from '../hooks/useCredits';
+import { CREDIT_COSTS, getAnalysisTier } from '../lib/pricing';
 
 interface FileUploaderProps {
   onAnalysisComplete: (result: any) => void;
@@ -13,12 +15,35 @@ interface FileUploaderProps {
 export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const { user, usage, loading: userLoading, checkLimit, incrementUsage, refreshData } = useUserLimits();
+  const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
+  const [estimatedCredits, setEstimatedCredits] = useState<number>(10);
+  const [user, setUser] = useState<any>(null);
+  
+  const supabase = createClientComponentClient();
   const router = useRouter();
+  const { currentCredits, loading: creditsLoading, refresh: refreshCredits } = useCredits();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, [supabase]);
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
+      const uploadedFile = acceptedFiles[0];
+      setFile(uploadedFile);
+      
+      // Estimate page count from file size (rough: 50KB per page for PDF)
+      const estimatedPagesFromSize = Math.ceil(uploadedFile.size / 50000);
+      setEstimatedPages(estimatedPagesFromSize);
+      
+      // Get estimated credits based on tier
+      const tier = getAnalysisTier(estimatedPagesFromSize);
+      const actionType = `thesis_${tier.id}` as keyof typeof CREDIT_COSTS;
+      setEstimatedCredits(CREDIT_COSTS[actionType]?.creditsRequired || 10);
     }
   }, []);
 
@@ -29,6 +54,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
     },
     maxFiles: 1,
+    maxSize: 10 * 1024 * 1024, // 10MB
   });
 
   const handleAnalyze = async () => {
@@ -41,17 +67,16 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       return;
     }
 
-    // Limit check - use the useUserLimits hook
-    const limitCheck = checkLimit('thesis_analyses');
-    if (!limitCheck.allowed) {
-      toast.error(limitCheck.reason || 'Usage limit exceeded');
+    // Credit check
+    if (currentCredits < estimatedCredits) {
+      toast.error(`Insufficient credits. You need ${estimatedCredits} credits for this analysis.`);
+      router.push('/pricing');
       return;
     }
 
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('userId', user.id);
 
     try {
       const response = await fetch('/api/analyze', {
@@ -59,21 +84,25 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Analiz başarısız');
+        if (response.status === 402) {
+          toast.error(`Insufficient credits. Need ${data.creditsRequired} credits.`);
+          router.push('/pricing');
+          return;
+        }
+        throw new Error(data.error || 'Analysis failed');
       }
 
-      const data = await response.json();
-      
-      // Hook'tan usage'ı artır
-      await incrementUsage('thesis_analyses');
+      // Refresh credits after successful analysis
+      await refreshCredits();
       
       onAnalysisComplete(data);
-      toast.success('Tez başarıyla analiz edildi!');
+      toast.success(`Analysis complete! Used ${data.credits_used} credits.`);
       
-    } catch (error) {
-      toast.error('An error occurred. Please try again.');
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred. Please try again.');
       console.error(error);
     } finally {
       setLoading(false);
@@ -82,29 +111,42 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
 
   const removeFile = () => {
     setFile(null);
+    setEstimatedPages(null);
+    setEstimatedCredits(10);
   };
 
   return (
     <div className="space-y-6">
-      {/* Usage Limit Indicator */}
-      {user && usage && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      {/* Credit Balance Indicator */}
+      {user && (
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <AlertCircle className="h-5 w-5 text-blue-600 mr-2" />
+              <Coins className="h-5 w-5 text-blue-600 mr-2" />
               <span className="text-sm text-blue-800">
-                Plan: <strong>{usage.subscription_status === 'free' ? 'Free' : usage.subscription_status === 'pro' ? 'Pro' : 'Expert'}</strong>
+                Your Credits: <strong className="text-lg">{creditsLoading ? '...' : currentCredits}</strong>
               </span>
             </div>
-            <span className="text-sm text-blue-800">
-              Remaining: <strong>
-                {usage.subscription_status === 'expert' ? 'Unlimited' : 
-                 usage.subscription_status === 'free' ? 
-                 `${Math.max(0, 1 - usage.thesis_analyses)}/1` :
-                 `${Math.max(0, 30 - usage.thesis_analyses)}/30`}
-              </strong>
-            </span>
+            <button
+              onClick={() => router.push('/pricing')}
+              className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition flex items-center"
+            >
+              <Zap className="h-4 w-4 mr-1" />
+              Buy Credits
+            </button>
           </div>
+          {file && (
+            <div className="mt-3 pt-3 border-t border-blue-200">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-blue-700">
+                  Estimated: ~{estimatedPages} pages → <strong>{estimatedCredits} credits</strong>
+                </span>
+                <span className={`font-medium ${currentCredits >= estimatedCredits ? 'text-green-600' : 'text-red-600'}`}>
+                  {currentCredits >= estimatedCredits ? '✓ Sufficient' : '✗ Need more credits'}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

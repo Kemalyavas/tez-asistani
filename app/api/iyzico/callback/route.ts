@@ -1,28 +1,46 @@
+// app/api/iyzico/callback/route.ts
+// Credit Purchase Payment Callback Handler
+
 import { NextRequest, NextResponse } from 'next/server';
 import Iyzipay from 'iyzipay';
-import { URLSearchParams } from 'url';
+import { createClient } from '@supabase/supabase-js';
+import { CREDIT_PACKAGES } from '../../../lib/pricing';
 
 export const dynamic = 'force-dynamic';
 
-// GET isteği için handler - tarayıcıdan doğrudan URL ziyaretleri için
+// Initialize Supabase with service role for admin operations
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+// GET request handler - for direct URL visits
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
     
     if (!token) {
-      console.error('[HATA] Token bulunamadı (GET)');
-      return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl), { status: 303 });
+      console.error('[ERROR] Token not found (GET)');
+      return NextResponse.redirect(
+        new URL('/payment/fail?error=missing_token', request.nextUrl),
+        { status: 303 }
+      );
     }
 
-    // Aynı işlemi GET isteği için de gerçekleştir
-    return verifyAndRedirect(token, request);
+    return verifyAndProcessPayment(token, request);
   } catch (error: any) {
-    console.error('[KRİTİK-HATA] GET:', error.message);
-    return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl), { status: 303 });
+    console.error('[CRITICAL ERROR] GET:', error.message);
+    return NextResponse.redirect(
+      new URL('/payment/fail?error=server_error', request.nextUrl),
+      { status: 303 }
+    );
   }
 }
 
+// POST request handler - Iyzico callback
 export async function POST(request: NextRequest) {
   try {
     const bodyText = await request.text();
@@ -30,120 +48,176 @@ export async function POST(request: NextRequest) {
     const token = params.get('token');
 
     if (!token) {
-      console.error('[HATA] Iyzico token göndermedi.');
-      return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl));
+      console.error('[ERROR] Iyzico did not send token');
+      return NextResponse.redirect(
+        new URL('/payment/fail?error=missing_token', request.nextUrl),
+        { status: 303 }
+      );
     }
 
-    const iyzipay = new Iyzipay({
-      apiKey: process.env.IYZICO_API_KEY!,
-      secretKey: process.env.IYZICO_SECRET_KEY!,
-      uri: process.env.IYZICO_BASE_URL!,
-    });
+    return verifyAndProcessPayment(token, request);
+  } catch (error: any) {
+    console.error('[CRITICAL ERROR] POST:', error.message);
+    return NextResponse.redirect(
+      new URL('/payment/fail?error=server_error', request.nextUrl),
+      { status: 303 }
+    );
+  }
+}
 
+// Main verification and credit addition function
+async function verifyAndProcessPayment(token: string, request: NextRequest) {
+  const iyzipay = new Iyzipay({
+    apiKey: process.env.IYZICO_API_KEY!,
+    secretKey: process.env.IYZICO_SECRET_KEY!,
+    uri: process.env.IYZICO_BASE_URL!
+  });
+
+  try {
+    // Retrieve payment details from Iyzico
     const result = await new Promise<any>((resolve, reject) => {
       iyzipay.checkoutForm.retrieve({ token }, (err, res) => {
         if (err) {
-          console.error('[IYZICO-HATA]', { err, res });
+          console.error('[IYZICO ERROR]', err);
           return reject(err);
         }
         resolve(res);
       });
     });
 
-    return verifyAndRedirect(token, request, result);
+    console.log('[IYZICO RESULT]', {
+      status: result.status,
+      paymentStatus: result.paymentStatus,
+      basketId: result.basketId,
+      paymentId: result.paymentId
+    });
+
+    // Check if payment was successful
+    if (result.status !== 'success' || result.paymentStatus !== 'SUCCESS') {
+      const errorMessage = encodeURIComponent(result.errorMessage || 'payment_failed');
+      
+      // Update payment history with failure
+      await updatePaymentStatus(token, 'failed', result);
+      
+      return NextResponse.redirect(
+        new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl),
+        { status: 303 }
+      );
+    }
+
+    // Payment successful - extract details
+    const basketId = result.basketId || '';
+    const basketParts = basketId.split('_');
+    // basketId format: basket_<userId8>_<packageId>_<timestamp>
+    const userId = basketParts[1]; // First 8 chars of user ID
+    const packageId = basketParts[2];
+
+    console.log('[PAYMENT SUCCESS]', {
+      basketId,
+      userId,
+      packageId,
+      paymentId: result.paymentId
+    });
+
+    // Get credit package details
+    const creditPackage = CREDIT_PACKAGES[packageId];
+    if (!creditPackage) {
+      console.error('[ERROR] Invalid package ID:', packageId);
+      return NextResponse.redirect(
+        new URL('/payment/fail?error=invalid_package', request.nextUrl),
+        { status: 303 }
+      );
+    }
+
+    const supabase = getSupabaseAdmin();
+
+    // Find user by partial ID match
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('id', `${userId}%`)
+      .limit(1);
+
+    if (profileError || !profiles || profiles.length === 0) {
+      console.error('[ERROR] User not found:', userId);
+      return NextResponse.redirect(
+        new URL('/payment/fail?error=user_not_found', request.nextUrl),
+        { status: 303 }
+      );
+    }
+
+    const fullUserId = profiles[0].id;
+
+    // Add credits to user account using database function
+    const { data: creditResult, error: creditError } = await supabase.rpc('add_credits', {
+      p_user_id: fullUserId,
+      p_amount: creditPackage.credits,
+      p_bonus: creditPackage.bonusCredits,
+      p_payment_id: result.paymentId,
+      p_package_id: packageId
+    });
+
+    if (creditError) {
+      console.error('[CREDIT ERROR]', creditError);
+      return NextResponse.redirect(
+        new URL('/payment/fail?error=credit_add_failed', request.nextUrl),
+        { status: 303 }
+      );
+    }
+
+    const addResult = creditResult?.[0];
+    console.log('[CREDITS ADDED]', {
+      userId: fullUserId,
+      credits: creditPackage.credits,
+      bonus: creditPackage.bonusCredits,
+      newBalance: addResult?.new_balance
+    });
+
+    // Update payment history with success
+    await supabase
+      .from('payment_history')
+      .update({
+        payment_id: result.paymentId,
+        status: 'success',
+        iyzico_response: result,
+        completed_at: new Date().toISOString()
+      })
+      .eq('payment_id', token); // Match by initial token
+
+    // Redirect to success page with details
+    const successParams = new URLSearchParams({
+      package: packageId,
+      credits: creditPackage.totalCredits.toString(),
+      balance: addResult?.new_balance?.toString() || '0'
+    });
+
+    return NextResponse.redirect(
+      new URL(`/payment/success?${successParams.toString()}`, request.nextUrl),
+      { status: 303 }
+    );
+
   } catch (error: any) {
-    console.error('[KRİTİK-HATA]', error.message);
-    return NextResponse.redirect(new URL(`/payment/fail?error=sunucu_hatasi`, request.nextUrl), { status: 303 });
+    console.error('[VERIFICATION ERROR]', error.message);
+    return NextResponse.redirect(
+      new URL('/payment/fail?error=verification_failed', request.nextUrl),
+      { status: 303 }
+    );
   }
 }
 
-// Yardımcı fonksiyon - Hem GET hem de POST istekleri için aynı doğrulama mantığını kullanır
-async function verifyAndRedirect(token: string, request: NextRequest, result?: any) {
-  if (!token) {
-    console.error('[HATA] Token bulunamadı');
-    return NextResponse.redirect(new URL('/payment/fail?error=token_yok', request.nextUrl), { status: 303 });
-  }
-  
+// Helper function to update payment status
+async function updatePaymentStatus(token: string, status: string, result: any) {
   try {
-    // Eğer result parametresi verilmediyse (GET isteği durumu), iyzipay'den bilgileri al
-    if (!result) {
-      const iyzipay = new Iyzipay({
-        apiKey: process.env.IYZICO_API_KEY!,
-        secretKey: process.env.IYZICO_SECRET_KEY!,
-        uri: process.env.IYZICO_BASE_URL!,
-      });
-      
-      result = await new Promise<any>((resolve, reject) => {
-        iyzipay.checkoutForm.retrieve({ token }, (err, res) => {
-          if (err) {
-            console.error('[IYZICO-HATA]', { err, res });
-            return reject(err);
-          }
-          resolve(res);
-        });
-      });
-    }
-    
-    if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
-      // Başarılı ödemede kullanıcı bilgilerini güncelle
-      try {
-        console.log('[ÖDEME-BAŞARILI] Kullanıcı veritabanı güncelleniyor...');
-        
-        // Basketid ve conversationId'den kullanıcı ID'sini çıkar
-        const basketId = result.basketId || '';
-        const userId = basketId.split('_')[1];
-        
-        // İşlem detaylarından plan bilgisini al
-        const itemId = result.itemTransactions?.[0]?.itemId || '';
-        const planType = itemId.split('_')[0]; // "pro" veya "expert"
-        
-        console.log('[ÖDEME-DETAY]', {
-          userId,
-          planType,
-          basketId,
-          itemId,
-          paymentId: result.paymentId
-        });
-        
-        // Supabase client import edilmediği için doğrudan import ediyoruz
-        const { createClient } = await import('@supabase/supabase-js');
-        
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY! // Admin yetkisiyle güncellemek için Service Role Key kullan
-        );
-        
-        // Kullanıcı profilini güncelle
-        const { data, error } = await supabase
-          .from('profiles')
-          .update({
-            subscription_status: 'premium', // Sabit değer olarak premium kullan
-            subscription_plan: planType,
-            subscription_start_date: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId)
-          .select();
-          
-        if (error) {
-          console.error('[VERİTABANI-HATA]', error);
-        } else {
-          console.log('[KULLANICI-GÜNCELLENDİ]', data);
-        }
-      } catch (dbError) {
-        console.error('[VERİTABANI-GÜNCELLENİRKEN-HATA]', dbError);
-        // Hata olsa bile kullanıcıyı başarılı sayfasına yönlendir
-      }
-      
-      // 303 kodu kullanarak POST isteğini GET isteğine dönüştür
-      return NextResponse.redirect(new URL('/payment/success', request.nextUrl), { status: 303 });
-    } else {
-      const errorMessage = encodeURIComponent(result?.errorMessage || 'odeme_basarisiz');
-      // 303 kodu kullanarak POST isteğini GET isteğine dönüştür
-      return NextResponse.redirect(new URL(`/payment/fail?error=${errorMessage}`, request.nextUrl), { status: 303 });
-    }
-  } catch (error: any) {
-    console.error('[DOĞRULAMA-HATASI]', error.message);
-    return NextResponse.redirect(new URL(`/payment/fail?error=dogrulama_hatasi`, request.nextUrl), { status: 303 });
+    const supabase = getSupabaseAdmin();
+    await supabase
+      .from('payment_history')
+      .update({
+        status,
+        iyzico_response: result,
+        error_message: result.errorMessage
+      })
+      .eq('payment_id', token);
+  } catch (error) {
+    console.error('[DB ERROR] Failed to update payment status:', error);
   }
 }

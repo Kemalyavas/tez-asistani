@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { FileText, Loader2, Languages, Lock, AlertCircle } from 'lucide-react';
+import { FileText, Loader2, Languages, Lock, AlertCircle, Coins } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useUserLimits } from '../hooks/useUserLimits';
+import { useCredits } from '../hooks/useCredits';
+import { CREDIT_COSTS } from '../lib/pricing';
 
 export default function AbstractGenerator() {
   const [text, setText] = useState('');
@@ -11,7 +12,8 @@ export default function AbstractGenerator() {
   const [abstract, setAbstract] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { user, usage, checkLimit, incrementUsage, limits } = useUserLimits();
+  const { user, credits, checkCredits, refresh } = useCredits();
+  const creditCost = CREDIT_COSTS.abstract_generate.creditsRequired;
 
   const generateAbstract = async () => {
     if (!text) {
@@ -19,10 +21,10 @@ export default function AbstractGenerator() {
       return;
     }
 
-    // Limit kontrolü
-    const limitCheck = checkLimit('abstract_generations');
-    if (!limitCheck.allowed) {
-      toast.error(limitCheck.reason || 'Limit exceeded');
+    // Kredi kontrolü
+    const creditCheck = checkCredits('abstract_generate');
+    if (!creditCheck.allowed) {
+      toast.error(creditCheck.reason || 'Insufficient credits');
       return;
     }
 
@@ -35,14 +37,19 @@ export default function AbstractGenerator() {
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate abstract');
+      }
+
       setAbstract(data.abstract);
-      
-      // Increment usage
-      await incrementUsage('abstract_generations');
-      
-      toast.success('Abstract generated!');
-    } catch (error) {
-      toast.error('Failed to generate abstract');
+
+      // Kredi bakiyesini güncelle (API zaten kredi kesti)
+      await refresh();
+
+      toast.success(`Abstract generated! (${creditCost} credits used)`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to generate abstract');
     } finally {
       setLoading(false);
     }
@@ -100,39 +107,39 @@ export default function AbstractGenerator() {
         </p>
       </div>
 
-      {/* Usage Info & Limit Warning */}
+      {/* Credit Info */}
       {user && (
         <div className={`rounded-lg p-4 ${
-          checkLimit('abstract_generations').allowed 
-            ? 'bg-green-50' 
-            : 'bg-gradient-to-r from-green-50 to-purple-50 border-l-4 border-green-500'
+          checkCredits('abstract_generate').allowed
+            ? 'bg-green-50'
+            : 'bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500'
         }`}>
-          {checkLimit('abstract_generations').allowed ? (
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-green-600" />
-              <span className="text-sm text-green-800">
-                Abstract Generation: {usage.abstract_generations} / {limits.abstract_generations === -1 ? '∞' : limits.abstract_generations} used
-              </span>
+          {checkCredits('abstract_generate').allowed ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Coins className="h-5 w-5 text-green-600" />
+                <span className="text-sm text-green-800">
+                  You have <strong>{credits.credits}</strong> credits • This action costs <strong>{creditCost}</strong> credits
+                </span>
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
+                  <AlertCircle className="h-5 w-5 text-amber-500" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-700">
-                    Get <strong>Pro</strong> for more <strong>Abstract Generations</strong>
+                    You need <strong>{creditCost}</strong> credits but have <strong>{credits.credits}</strong>
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => window.location.href = '/#pricing'}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                Get Pro
+                Buy Credits
               </button>
             </div>
           )}
@@ -141,7 +148,7 @@ export default function AbstractGenerator() {
 
       <button
         onClick={generateAbstract}
-        disabled={loading || !text || !user || !checkLimit('abstract_generations').allowed}
+        disabled={loading || !text || !user || !checkCredits('abstract_generate').allowed}
         className="w-full btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? (
@@ -154,15 +161,15 @@ export default function AbstractGenerator() {
             <Lock className="h-5 w-5 mr-2" />
             Sign In
           </>
-        ) : !checkLimit('abstract_generations').allowed ? (
+        ) : !checkCredits('abstract_generate').allowed ? (
           <>
-            <Lock className="h-5 w-5 mr-2" />
-            Limit Exceeded
+            <Coins className="h-5 w-5 mr-2" />
+            Insufficient Credits
           </>
         ) : (
           <>
             <Languages className="h-5 w-5 mr-2" />
-            Generate Abstract
+            Generate Abstract ({creditCost} credits)
           </>
         )}
       </button>

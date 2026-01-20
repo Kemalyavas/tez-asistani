@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * @deprecated Bu hook artık kullanılmıyor.
+ * Kredi sistemi için useCredits hook'unu kullanın.
+ *
+ * Bu dosya eski abonelik sisteminden kalmıştır ve
+ * gelecekte tamamen kaldırılacaktır.
+ *
+ * Yeni implementasyon: app/hooks/useCredits.ts
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { isAdmin } from '../lib/adminUtils';

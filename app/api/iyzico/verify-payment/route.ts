@@ -1,11 +1,18 @@
+// app/api/iyzico/verify-payment/route.ts
+// Fallback Payment Verification - Credit System
+// Bu route, callback başarısız olursa yedek olarak kredi ekler
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Iyzipay from 'iyzipay'
+import { CREDIT_PACKAGES } from '../../../lib/pricing'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 const iyzipay = new Iyzipay({
   apiKey: process.env.IYZICO_API_KEY!,
@@ -67,47 +74,106 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
           failureUrl.searchParams.set('error', 'Ödeme sağlayıcısı ile doğrulama başarısız oldu.');
           resolve(NextResponse.redirect(failureUrl, { status: 303 }));
         } else if (result.status === 'success') {
-          // Ödeme başarılı. Webhook zaten asıl güncellemeyi yapıyor.
-          // Burası kullanıcıyı bilgilendirme ve yönlendirme amaçlı.
+          // Ödeme başarılı - Kredi ekle (callback'in yedek versiyonu)
           try {
-            console.log('[VERIFY-PAYMENT] Ödeme doğrulama başarılı, kullanıcı güncelleniyor');
-            const basketId = result.basketId
-            const userId = basketId.split('_')[1]
-            const itemId = result.itemTransactions[0].itemId
-            const plan = itemId.split('_')[0]
-            
-            console.log('[VERIFY-PAYMENT] Kullanıcı bilgileri:', { 
-              userId, 
-              plan, 
-              basketId, 
-              itemId,
-              paymentId: result.paymentId
-            })
-            
-            // Webhook'a ek olarak burada da bir güncelleme yapmak yedeklilik sağlar.
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: userId, // Supabase'de user.id'yi kullan
-                subscription_status: 'premium', // Sabit premium değeri kullan
-                subscription_plan: plan,
-                subscription_start_date: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
+            console.log('[VERIFY-PAYMENT] Ödeme doğrulama başarılı');
+            const basketId = result.basketId;
+            // basketId format: basket_<userId8>_<packageId>_<timestamp>
+            const basketParts = basketId.split('_');
+            const userIdPartial = basketParts[1];
+            const packageId = basketParts[2];
 
-            if (updateError) {
-              console.error('Abonelik güncelleme hatası (verify-payment):', updateError)
+            console.log('[VERIFY-PAYMENT] Bilgiler:', {
+              userIdPartial,
+              packageId,
+              basketId,
+              paymentId: result.paymentId
+            });
+
+            // Kredi paketi kontrolü
+            const creditPackage = CREDIT_PACKAGES[packageId];
+            if (!creditPackage) {
+              console.error('[VERIFY-PAYMENT] Geçersiz paket ID:', packageId);
+              const failureUrl = new URL('/payment/status', siteUrl);
+              failureUrl.searchParams.set('status', 'failure');
+              failureUrl.searchParams.set('error', 'Geçersiz kredi paketi.');
+              resolve(NextResponse.redirect(failureUrl, { status: 303 }));
+              return;
             }
+
+            const supabase = getSupabaseAdmin();
+
+            // Kullanıcıyı bul
+            const { data: profiles, error: profileError } = await supabase
+              .from('profiles')
+              .select('id')
+              .ilike('id', `${userIdPartial}%`)
+              .limit(1);
+
+            if (profileError || !profiles || profiles.length === 0) {
+              console.error('[VERIFY-PAYMENT] Kullanıcı bulunamadı:', userIdPartial);
+              const failureUrl = new URL('/payment/status', siteUrl);
+              failureUrl.searchParams.set('status', 'failure');
+              failureUrl.searchParams.set('error', 'Kullanıcı bulunamadı.');
+              resolve(NextResponse.redirect(failureUrl, { status: 303 }));
+              return;
+            }
+
+            const fullUserId = profiles[0].id;
+
+            // Daha önce işlenmiş mi kontrol et (idempotency)
+            const { data: existingPayment } = await supabase
+              .from('payment_history')
+              .select('id, status')
+              .eq('payment_id', result.paymentId)
+              .single();
+
+            if (existingPayment?.status === 'success') {
+              console.log('[VERIFY-PAYMENT] Bu ödeme zaten işlenmiş:', result.paymentId);
+              // Zaten işlenmişse başarı sayfasına yönlendir
+              const successUrl = new URL('/payment/status', siteUrl);
+              successUrl.searchParams.set('status', 'success');
+              successUrl.searchParams.set('package', creditPackage.name);
+              successUrl.searchParams.set('credits', creditPackage.totalCredits.toString());
+              resolve(NextResponse.redirect(successUrl, { status: 303 }));
+              return;
+            }
+
+            // Kredi ekle (RPC fonksiyonu ile)
+            const { data: creditResult, error: creditError } = await supabase.rpc('add_credits', {
+              p_user_id: fullUserId,
+              p_amount: creditPackage.credits,
+              p_bonus: creditPackage.bonusCredits,
+              p_payment_id: result.paymentId,
+              p_package_id: packageId
+            });
+
+            if (creditError) {
+              console.error('[VERIFY-PAYMENT] Kredi ekleme hatası:', creditError);
+              const failureUrl = new URL('/payment/status', siteUrl);
+              failureUrl.searchParams.set('status', 'failure');
+              failureUrl.searchParams.set('error', 'Kredi eklenemedi.');
+              resolve(NextResponse.redirect(failureUrl, { status: 303 }));
+              return;
+            }
+
+            const addResult = creditResult?.[0];
+            console.log('[VERIFY-PAYMENT] Kredi başarıyla eklendi:', {
+              userId: fullUserId,
+              credits: creditPackage.credits,
+              bonus: creditPackage.bonusCredits,
+              newBalance: addResult?.new_balance
+            });
 
             const successUrl = new URL('/payment/status', siteUrl);
             successUrl.searchParams.set('status', 'success');
-            const planName = itemId.includes('_') ? itemId.split('_')[0].charAt(0).toUpperCase() + itemId.split('_')[0].slice(1) + ' Plan' : 'Pro Plan';
-            successUrl.searchParams.set('plan', planName);
-            successUrl.searchParams.set('amount', result.paidPrice);
+            successUrl.searchParams.set('package', creditPackage.name);
+            successUrl.searchParams.set('credits', creditPackage.totalCredits.toString());
+            successUrl.searchParams.set('balance', addResult?.new_balance?.toString() || '0');
             resolve(NextResponse.redirect(successUrl, { status: 303 }));
 
           } catch (dbError) {
-            console.error('Database error:', dbError)
+            console.error('[VERIFY-PAYMENT] Veritabanı hatası:', dbError);
             const failureUrl = new URL('/payment/status', siteUrl);
             failureUrl.searchParams.set('status', 'failure');
             failureUrl.searchParams.set('error', 'Ödeme sonrası veritabanı güncelleme hatası.');

@@ -1,22 +1,59 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { rateLimit, getClientIP } from '../../lib/rateLimit'; // Rate limit fonksiyonlarını import et
-import anthropic from "../../lib/anthropic";
-import { extractPdfText } from '../../lib/fileUtils';
+// app/api/analyze/route.ts
+// ============================================================================
+// Thesis Analysis API Route - Credit-Based with RAG Support
+// ============================================================================
 
-// Kullanım limitlerini merkezi yapılandırmadan al
-import { USAGE_LIMITS } from '../../lib/pricing';
+import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { rateLimit, getClientIP } from '../../lib/rateLimit';
+import { extractPdfText } from '../../lib/fileUtils';
+import { CREDIT_COSTS, getAnalysisTier } from '../../lib/pricing';
+import { 
+  chunkThesisText, 
+  getChunkEmbeddings,
+  ThesisChunk 
+} from '../../lib/thesis/chunkingService';
+import { 
+  analyzeThesis, 
+  quickAnalysis,
+  AnalysisResult 
+} from '../../lib/thesis/analysisService';
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Estimate page count from text length
+ */
+function estimatePageCount(text: string): number {
+  // Average thesis page: ~2500-3000 characters (including spaces)
+  const charsPerPage = 2750;
+  return Math.ceil(text.length / charsPerPage);
+}
+
+/**
+ * Get word count
+ */
+function getWordCount(text: string): number {
+  return text.split(/\s+/).filter(w => w.length > 0).length;
+}
+
+// ============================================================================
+// Main Handler
+// ============================================================================
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    // --- YENİ EKLENEN KOD BAŞLANGICI ---
     // Rate limiting
     const clientIP = getClientIP(request, request.headers);
     const rateLimitResult = rateLimit(`analyze_${clientIP}`, {
-      windowMs: 15 * 60 * 1000, // 15 dakika
-      maxAttempts: 10, // 15 dakikada 10 istek
-      blockDurationMs: 30 * 60 * 1000 // 30 dakika engelle
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      maxAttempts: 5, // 5 analyses per 15 minutes
+      blockDurationMs: 30 * 60 * 1000 // 30 minutes block
     });
 
     if (!rateLimitResult.allowed) {
@@ -25,56 +62,49 @@ export async function POST(request: NextRequest) {
         : Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
         
       return NextResponse.json(
-        { error: `Çok fazla istek denemesi. Lütfen ${waitTime} dakika sonra tekrar deneyin.` },
+        { error: `Too many requests. Please try again in ${waitTime} minutes.` },
         { status: 429 }
       );
     }
-    // --- YENİ EKLENEN KOD SONU ---
 
-    // Kullanıcı authentication kontrolü
-    const supabase = createServerComponentClient({ cookies });
+    // Authentication
+    const supabase = createRouteHandlerClient({ cookies });
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Giriş yapmanız gerekiyor' },
+        { error: 'Please sign in to analyze your thesis' },
         { status: 401 }
       );
     }
 
-    // Kullanıcı profilini al
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    const subscription = (profile?.subscription_status === 'premium' ? 'pro' : profile?.subscription_status) || 'free';
-    const currentUsage = profile?.thesis_count || 0;
-    const limit = USAGE_LIMITS[subscription as keyof typeof USAGE_LIMITS].thesis_analyses;
-
-    // Limit kontrolü
-    if (limit !== -1 && currentUsage >= limit) {
-      return NextResponse.json(
-        { error: 'Daha fazla tez analizi için Pro üyelik alın' },
-        { status: 403 }
-      );
-    }
-
+    // Get file from form data
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
     if (!file) {
-      return NextResponse.json({ error: 'Dosya bulunamadı' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No file provided' },
+        { status: 400 }
+      );
     }
 
+    // Validate file type
+    const isDocx = file.name.endsWith('.docx') || 
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const isPdf = file.name.endsWith('.pdf') || file.type === 'application/pdf';
+    
+    if (!isDocx && !isPdf) {
+      return NextResponse.json(
+        { error: 'Please upload a PDF or DOCX file' },
+        { status: 400 }
+      );
+    }
+
+    // Extract text from file
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
     let text = '';
-    
-    const isDocx = file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    const isPdf = file.name.endsWith('.pdf') || file.type === 'application/pdf';
     
     if (isDocx) {
       const mammoth = await import('mammoth');
@@ -82,271 +112,273 @@ export async function POST(request: NextRequest) {
       text = result.value;
     } else if (isPdf) {
       try {
-        // Özel PDF metin çıkarma fonksiyonunu kullan
         text = await extractPdfText(buffer);
       } catch (pdfError) {
-        console.error('PDF parse hatası:', pdfError);
-        return NextResponse.json({ 
-          error: 'PDF dosyası işlenirken bir hata oluştu. Lütfen farklı bir dosya deneyin.' 
-        }, { status: 400 });
+        console.error('PDF parse error:', pdfError);
+        return NextResponse.json(
+          { error: 'Could not read PDF file. Please try a different file or convert to DOCX.' },
+          { status: 400 }
+        );
       }
-    } else {
-      return NextResponse.json({ 
-        error: 'Desteklenmeyen dosya formatı. Lütfen PDF veya DOCX dosyası yükleyin.' 
-      }, { status: 400 });
     }
-    
-    if (!text || text.length < 10) {
-      return NextResponse.json({ 
-        error: 'Dosya içeriği okunamadı veya çok kısa' 
-      }, { status: 400 });
+
+    if (!text || text.length < 1000) {
+      return NextResponse.json(
+        { error: 'Document is too short or could not be read. Minimum 1000 characters required.' },
+        { status: 400 }
+      );
     }
+
+    // Estimate document size
+    const pageCount = estimatePageCount(text);
+    const wordCount = getWordCount(text);
     
-    // Abonelik planına göre analiz derinliğini belirle
-    const analysisPlan = {
-      free: { max_tokens: 40000, chunk_size: 40000 },
-      pro: { max_tokens: 60000, chunk_size: 80000 },
-      expert: { max_tokens: 80000, chunk_size: 120000 }
-    };
+    console.log(`[ANALYZE] File: ${file.name}, Pages: ~${pageCount}, Words: ${wordCount}`);
 
-    // Abonelik türüne göre analiz derinliğini ve metin kapsamını ayarla
-    const { max_tokens, chunk_size } = analysisPlan[subscription as keyof typeof analysisPlan] || analysisPlan.free;
-    
-    // Daha fazla metin parçası alın (abonelik seviyesine göre)
-    const textSample = text.substring(0, chunk_size);
-    
-    const response = await anthropic.messages.create({
-      model: "claude-3-7-sonnet-20250219",
-      max_tokens: max_tokens,
-      messages: [
-        {
-          role: "user",
-          content: `Sen YÖK tez inceleme komisyonunda 20+ yıl görev yapmış deneyimli bir akademisyensin. Binlerce tezi değerlendirdin ve hangi kritik hataların tez reddi ile sonuçlandığını çok iyi biliyorsun.
+    // Determine analysis tier and credit cost
+    const analysisTier = getAnalysisTier(pageCount);
+    const actionType = `thesis_${analysisTier.id}` as keyof typeof CREDIT_COSTS;
+    const creditsRequired = CREDIT_COSTS[actionType]?.creditsRequired || 10;
 
-🎯 GÖREV: Bu tezi YÖK 2024 standartlarına göre titizlikle değerlendir ve objektif puanlama yap.
+    console.log(`[ANALYZE] Tier: ${analysisTier.id}, Credits: ${creditsRequired}`);
 
-📊 DEĞERLENDİRME METODOLOJİSİ:
-
-1. YAPISAL ANALİZ (25 puan):
-   - Bölüm sıralaması ve mantıksal akış
-   - Özet-Abstract uyumu ve kalitesi 
-   - Giriş-sonuç tutarlılığı
-   - Hipotez/araştırma sorusu netliği
-
-2. METODOLOJİK DEĞERLENDİRME (25 puan):
-   - Araştırma yöntemi seçimi ve gerekçesi
-   - Örneklem büyüklüğü ve temsil gücü
-   - Veri toplama araçlarının geçerliliği
-   - Analiz yöntemlerinin uygunluğu
-
-3. AKADEMİK YAZIM KALİTESİ (25 puan):
-   - Bilimsel dil kullanımı ve netlik
-   - Argümantasyon gücü ve mantıksal bütünlük
-   - Eleştirel bakış açısı ve analiz derinliği
-   - Terminoloji tutarlılığı
-
-4. KAYNAK VE ATIF KALİTESİ (25 puan):
-   - Güncel ve relevan kaynak kullanımı
-   - Atıf formatı ve doğruluğu (APA 7)
-   - Kaynak çeşitliliği ve kalitesi
-   - İntihal riski değerlendirmesi
-
-🔍 ÖZEL KONTROL NOKTALARI:
-- Türkçe dil bilgisi hataları (yazım, imla, noktalama)
-- Sayfa düzeni ve format standartları
-- Şekil/tablo numerasyonu ve açıklamaları
-- Kaynakça organizasyonu ve eksilikler
-- Etik beyan ve onay belgelerinin varlığı
-
-⚠️ KRİTİK SORUN ARAŞTIRMASI:
-Bu alanları özellikle inceleyerek GERÇEK sorunları tespit et:
-- Kopya-yapıştır izleri
-- Tutarsız referans formatları  
-- Mantık hataları ve çelişkiler
-- Yetersiz literatür taraması
-- Geçersiz istatistiksel analizler
-
-📋 RAPOR FORMATI:
-{
-  "overall_score": [0-100 arası tam sayı],
-  "grade_category": "Mükemmel|İyi|Orta|Zayıf|Yetersiz",
-  "summary": "3-4 cümlelik genel değerlendirme",
-  
-  "critical_issues": [
-    {
-      "title": "Kısa başlık",
-      "description": "Detaylı açıklama",
-      "impact": "critical|major|minor",
-      "solution": "Spesifik çözüm önerisi",
-      "example": "Metinden alıntı örnek"
-    }
-  ],
-  
-  "category_scores": {
-    "structure": {
-      "score": [0-25],
-      "feedback": "Yapısal analiz sonucu"
-    },
-    "methodology": {
-      "score": [0-25], 
-      "feedback": "Metodolojik değerlendirme"
-    },
-    "writing_quality": {
-      "score": [0-25],
-      "feedback": "Yazım kalitesi analizi"
-    },
-    "references": {
-      "score": [0-25],
-      "feedback": "Kaynak kullanımı değerlendirmesi"
-    }
-  },
-  
-  "strengths": ["3-5 güçlü yön"],
-  "immediate_actions": ["En acil 3-5 düzeltme"],
-  "recommendations": ["Geliştirme önerileri"]
-}
-
-⚡ ÖNEMLİ: Sadece GERÇEKTEN VAR OLAN sorunları belirt. Eğer bir alanda sorun yoksa bunu olumlu olarak değerlendir.`
-        },
-        {
-          role: "user",
-          content: `Aşağıda analiz edeceğin tez metni var. Her kelimeyi dikkatli oku ve akademik standartlara göre değerlendir.
-
-📊 METIN BİLGİLERİ:
-- Dosya adı: ${file.name}
-- Metin uzunluğu: ${text.length} karakter
-- Dosya türü: ${file.type}
-
-📝 ANALİZ EDİLECEK METIN:
----
-${textSample}
----
-
-🎯 GÖREV: Bu metni objektif bir şekilde değerlendir. Sadece GERÇEKTEN MEVCUT olan sorunları belirt, hayali problemler üretme. Her verdiğin puanı gerekçelendir.
-
-⚠️ DİKKAT: 
-- Metnin tamamını göremiyorsan bunu belirt
-- Eksik bölümler için varsayım yapma
-- Sadece gördüğün kısım için değerlendirme yap
-- Puanlamanı mevcut içeriğin kalitesine göre ver`
-        }
-      ],
-      temperature: 0.3, // Daha tutarlı sonuçlar için temperature değerini düşürdük
-      system: `Sen Türkiye'nin en prestijli üniversitelerinden birinde görev yapan, 20+ yıl deneyimli bir tez danışmanısın. 
-
-🏆 UZMANLIKLARIN:
-- YÖK tez değerlendirme kriterleri ve standartları
-- Akademik yazım kuralları ve bilimsel metodoloji  
-- İstatistiksel analiz ve araştırma yöntemleri
-- Ulusal/uluslararası akademik yayıncılık standartları
-
-🎯 DEĞERLENDIRME YAKLAŞIMIN:
-- OBJEKTIF ve ADIL puanlama
-- Sadece MEVCUT sorunları tespit etme
-- Yapıcı ve uygulanabilir öneriler sunma
-- Akademik kaliteyi artırmaya odaklanma
-
-⚡ ÖNEMLİ: 
-- Sadece JSON formatında yanıt ver
-- Markdown başlıkları KULLANMA
-- Sadece istenen JSON formatında yanıt ver, fazladan açıklama ekleme`,
+    // Deduct credits
+    const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
+      p_user_id: user.id,
+      p_amount: creditsRequired,
+      p_action_type: actionType,
+      p_description: `Thesis analysis: ${file.name} (~${pageCount} pages)`
     });
-    
-    const rawMessage = response.content[0].text || "{}";
-    
-    try {
-      // Daha güçlü temizleme fonksiyonu: Markdown işaretleri ve başlıkları temizle
-      let cleanMessage = rawMessage.trim();
-      
-      // Markdown başlıkları temizle (# ile başlayan satırlar)
-      cleanMessage = cleanMessage.replace(/^#.*$/gm, '').trim();
-      
-      // Kod blokları temizle
-      if (cleanMessage.includes('```')) {
-        // Code block içerisindeki JSON'u bul
-        const jsonMatch = cleanMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (jsonMatch && jsonMatch[1]) {
-          cleanMessage = jsonMatch[1].trim();
-        } else {
-          // Kod blok işaretlerini kaldır
-          cleanMessage = cleanMessage.replace(/```(?:json)?\s*/g, '').replace(/\s*```/g, '');
-        }
-      }
-      
-      // Boş satırları temizle
-      cleanMessage = cleanMessage.replace(/^\s*[\r\n]/gm, '').trim();
-      
-      console.log("Temizlenmiş JSON:", cleanMessage.substring(0, 100) + "..."); // Debug için
-      
-      const result = JSON.parse(cleanMessage);
-      
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ thesis_count: currentUsage + 1 })
-        .eq('id', user.id);
 
-      if (updateError) {
-        console.error('Kullanım sayısı güncellenirken hata:', updateError);
+    if (creditError) {
+      console.error('Credit deduction error:', creditError);
+      return NextResponse.json(
+        { error: 'Failed to process credits. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    const creditInfo = creditResult?.[0];
+    if (!creditInfo?.success) {
+      return NextResponse.json(
+        { 
+          error: creditInfo?.error_message || 'Insufficient credits',
+          creditsRequired,
+          currentCredits: creditInfo?.new_balance || 0,
+          analysisTier: analysisTier.name
+        },
+        { status: 402 }
+      );
+    }
+
+    // Create thesis document record
+    const { data: thesisDoc, error: docError } = await supabase
+      .from('thesis_documents')
+      .insert({
+        user_id: user.id,
+        filename: file.name,
+        file_size: file.size,
+        file_type: isPdf ? 'pdf' : 'docx',
+        page_count: pageCount,
+        word_count: wordCount,
+        status: 'processing',
+        analysis_type: analysisTier.id,
+        credits_used: creditsRequired
+      })
+      .select('id')
+      .single();
+
+    const thesisId = thesisDoc?.id;
+
+    // Perform analysis based on tier
+    let analysisResult: AnalysisResult;
+
+    try {
+      if (analysisTier.id === 'basic') {
+        // Basic: Quick single-pass analysis
+        analysisResult = await quickAnalysis(text, pageCount);
+        
+      } else {
+        // Standard/Comprehensive: Full RAG-based analysis
+        
+        // 1. Chunk the text
+        const chunks = chunkThesisText(text, {
+          maxTokensPerChunk: analysisTier.id === 'comprehensive' ? 2000 : 1500,
+          overlapTokens: 150,
+          preserveSections: true
+        });
+
+        console.log(`[ANALYZE] Created ${chunks.length} chunks`);
+
+        // 2. Store chunks in database (for potential future queries)
+        if (thesisId) {
+          const chunkInserts = chunks.map(chunk => ({
+            thesis_id: thesisId,
+            user_id: user.id,
+            chunk_index: chunk.index,
+            content: chunk.content,
+            token_count: chunk.tokenCount,
+            section_type: chunk.sectionType,
+            metadata: chunk.metadata
+          }));
+
+          // Insert chunks in batches
+          const batchSize = 50;
+          for (let i = 0; i < chunkInserts.length; i += batchSize) {
+            const batch = chunkInserts.slice(i, i + batchSize);
+            await supabase.from('thesis_chunks').insert(batch);
+          }
+        }
+
+        // 3. Generate embeddings for comprehensive analysis
+        if (analysisTier.id === 'comprehensive' && chunks.length > 0) {
+          try {
+            const embeddings = await getChunkEmbeddings(chunks.slice(0, 50)); // Limit for cost
+            
+            // Update chunks with embeddings
+            for (const [index, embedding] of embeddings) {
+              if (thesisId) {
+                await supabase
+                  .from('thesis_chunks')
+                  .update({ embedding: JSON.stringify(embedding) })
+                  .eq('thesis_id', thesisId)
+                  .eq('chunk_index', index);
+              }
+            }
+          } catch (embeddingError) {
+            console.warn('Embedding generation failed, continuing without:', embeddingError);
+          }
+        }
+
+        // 4. Run multi-pass analysis
+        analysisResult = await analyzeThesis(chunks, analysisTier.id as 'standard' | 'comprehensive');
+      }
+
+      // Update thesis document with results
+      if (thesisId) {
+        await supabase
+          .from('thesis_documents')
+          .update({
+            status: 'analyzed',
+            analysis_result: analysisResult,
+            overall_score: analysisResult.overallScore,
+            analyzed_at: new Date().toISOString()
+          })
+          .eq('id', thesisId);
+      }
+
+      const processingTime = Date.now() - startTime;
+      console.log(`[ANALYZE] Completed in ${processingTime}ms`);
+
+      // Return result
+      return NextResponse.json({
+        success: true,
+        
+        // Main results
+        overall_score: analysisResult.overallScore,
+        grade_category: analysisResult.gradeCategory,
+        summary: analysisResult.summary,
+        
+        // Category scores
+        category_scores: {
+          structure: {
+            score: analysisResult.categoryScores.structure.score,
+            feedback: analysisResult.categoryScores.structure.feedback
+          },
+          methodology: {
+            score: analysisResult.categoryScores.methodology.score,
+            feedback: analysisResult.categoryScores.methodology.feedback
+          },
+          writing_quality: {
+            score: analysisResult.categoryScores.writingQuality.score,
+            feedback: analysisResult.categoryScores.writingQuality.feedback
+          },
+          references: {
+            score: analysisResult.categoryScores.references.score,
+            feedback: analysisResult.categoryScores.references.feedback
+          }
+        },
+        
+        // Issues
+        critical_issues: analysisResult.criticalIssues.map(i => ({
+          title: i.title,
+          description: i.description,
+          impact: i.impact,
+          solution: i.solution,
+          example: i.example || ''
+        })),
+        
+        major_issues: analysisResult.majorIssues.map(i => ({
+          title: i.title,
+          description: i.description,
+          impact: i.impact,
+          solution: i.solution,
+          example: i.example || ''
+        })),
+        
+        minor_issues: analysisResult.minorIssues.map(i => ({
+          title: i.title,
+          description: i.description,
+          impact: i.impact,
+          solution: i.solution,
+          example: i.example || ''
+        })),
+        
+        // Positives and recommendations
+        strengths: analysisResult.strengths,
+        immediate_actions: analysisResult.immediateActions,
+        recommendations: analysisResult.recommendations,
+        
+        // Metadata
+        metadata: {
+          thesis_id: thesisId,
+          analysis_type: analysisTier.id,
+          page_count: pageCount,
+          word_count: wordCount,
+          sections_found: analysisResult.metadata.sectionsFound,
+          missing_sections: analysisResult.metadata.missingEssentialSections,
+          processing_time_ms: processingTime
+        },
+        
+        // Credit info
+        credits_used: creditsRequired,
+        remaining_credits: creditInfo.new_balance
+      });
+
+    } catch (analysisError: any) {
+      console.error('Analysis error:', analysisError);
+      
+      // Update document status to failed
+      if (thesisId) {
+        await supabase
+          .from('thesis_documents')
+          .update({ status: 'failed' })
+          .eq('id', thesisId);
       }
       
-      await supabase
-        .from('documents')
-        .insert({
-          user_id: user.id,
-          title: file.name,
-          file_type: file.type,
-          file_size: file.size,
-          processed: true,
-          analysis_result: result
-        });
-      
-      return NextResponse.json(result);
-    } catch (parseError) {
-      console.error('JSON parse hatası:', parseError);
-      return NextResponse.json({
-        overall_score: 75,
-        grade_category: "Orta",
-        summary: "Tez başarıyla analiz edildi ancak sonuç formatında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-        critical_issues: [
-          {
-            title: "Teknik Analiz Sorunu",
-            description: "Sistem geçici bir sorun yaşadı",
-            impact: "minor",
-            solution: "Lütfen dosyayı tekrar yükleyip analiz ettirin",
-            example: ""
-          }
-        ],
-        category_scores: {
-          structure: { score: 18, feedback: "Kısmi değerlendirme yapılabildi" },
-          methodology: { score: 18, feedback: "Kısmi değerlendirme yapılabildi" },
-          writing_quality: { score: 20, feedback: "Kısmi değerlendirme yapılabildi" },
-          references: { score: 19, feedback: "Kısmi değerlendirme yapılabildi" }
-        },
-        strengths: ["Dosya başarıyla yüklendi"],
-        immediate_actions: ["Tekrar analiz deneyin"],
-        recommendations: ["Farklı dosya formatı deneyebilirsiniz"]
+      // Refund credits on analysis failure
+      await supabase.rpc('add_credits', {
+        p_user_id: user.id,
+        p_amount: creditsRequired,
+        p_bonus: 0,
+        p_payment_id: null,
+        p_package_id: null
       });
+
+      return NextResponse.json(
+        { 
+          error: 'Analysis failed. Your credits have been refunded.',
+          details: analysisError.message
+        },
+        { status: 500 }
+      );
     }
-    
+
   } catch (error: any) {
-    console.error('API Route Hatası:', error);
-    
-    if (error.message?.includes('API key')) {
-      return NextResponse.json(
-        { error: 'Anthropic API key hatası. Lütfen kontrol edin.' },
-        { status: 500 }
-      );
-    }
-    
-    if (error.message?.includes('credit') || error.message?.includes('rate limit')) {
-      return NextResponse.json(
-        { error: 'Anthropic API limiti aşıldı veya kredi yetersiz' },
-        { status: 500 }
-      );
-    }
+    console.error('API Route Error:', error);
     
     return NextResponse.json(
-      { error: 'Analiz sırasında bir hata oluştu: ' + error.message },
+      { error: 'An error occurred during analysis: ' + error.message },
       { status: 500 }
     );
   }

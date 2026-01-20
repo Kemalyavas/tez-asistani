@@ -7,14 +7,13 @@ import ResultDisplay from './components/ResultDisplay';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
 import TestimonialsCarousel from './components/TestimonialsCarousel';
-import { Zap, CheckCircle, BookOpen, FileSearch, Check, X, Star } from 'lucide-react';
-import { PRICE_CONFIG } from './lib/pricing';
+import { Zap, CheckCircle, BookOpen, FileSearch, Check, Coins, Gift, Sparkles } from 'lucide-react';
+import { CREDIT_PACKAGES, CREDIT_COSTS } from './lib/pricing';
 import toast from 'react-hot-toast';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('upload');
   const [analysisResult, setAnalysisResult] = useState<any>(null);
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [isHydrated, setIsHydrated] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -57,69 +56,24 @@ export default function Home() {
     { icon: <CheckCircle className="h-6 w-6" />, title: 'Fast results', desc: 'See issues in seconds, not hours' },
   ];
 
-  // Pricing plans
-  const plans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: 0,
-      description: 'Perfect for trying out',
-      features: [
-        '1 thesis analysis',
-        '1 abstract generation',
-        '5 citation formattings',
-        'Basic AI support',
-        'Community forums',
-      ],
-      notIncluded: [
-        'Unlimited usage',
-        'Priority support',
-        'Advanced AI models',
-        'Premium features',
-      ],
-      cta: 'Start Free',
-      popular: false,
-    },
-    {
-      id: 'pro',
-      price: isHydrated ? (billingPeriod === 'monthly' ? PRICE_CONFIG.pro.monthly : PRICE_CONFIG.pro.yearly) : PRICE_CONFIG.pro.monthly, // Price from central config
-
-      description: 'For academics and students',
-      features: PRICE_CONFIG.pro.features,
-      notIncluded: [
-        'Unlimited usage',
-        '24/7 dedicated support',
-      ],
-      cta: 'Choose Pro',
-      popular: true,
-      name: 'Pro',
-    },
-    {
-      id: 'expert',
-      name: 'Expert',
-      price: isHydrated ? (billingPeriod === 'monthly' ? PRICE_CONFIG.expert.monthly : PRICE_CONFIG.expert.yearly) : PRICE_CONFIG.expert.monthly, // Price from central config
-      description: 'For unlimited usage',
-      features: PRICE_CONFIG.expert.features,
-      notIncluded: [],
-      cta: 'Choose Expert',
-      popular: false,
-    },
+  // Credit cost info for display
+  const creditCostInfo = [
+    { action: 'Citation Formatting', credits: CREDIT_COSTS.citation_format.creditsRequired, note: 'APA, MLA, Chicago, IEEE' },
+    { action: 'Abstract Generation', credits: CREDIT_COSTS.abstract_generate.creditsRequired, note: 'Turkish, English or Both' },
+    { action: 'Thesis Analysis (1-30 pages)', credits: CREDIT_COSTS.thesis_basic.creditsRequired, note: '' },
+    { action: 'Thesis Analysis (31-70 pages)', credits: CREDIT_COSTS.thesis_standard.creditsRequired, note: '' },
+    { action: 'Thesis Analysis (71+ pages)', credits: CREDIT_COSTS.thesis_comprehensive.creditsRequired, note: 'RAG-powered' },
   ];
 
-  const handleSelectPlan = async (planId: string) => {
-    if (planId === 'free') {
-      scrollToApp();
-  toast.success('Your free trial has started! You have 1 analysis.');
-      return;
-    }
+  const handleSelectPackage = async (packageId: string) => {
 
     if (!user) {
-  toast.error('Please sign in first');
+      toast.error('Please sign in first');
       router.push('/auth');
       return;
     }
 
-    setLoadingPlan(planId);
+    setLoadingPlan(packageId);
 
     try {
       const response = await fetch('/api/iyzico/checkout', {
@@ -127,24 +81,23 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        // --- DEĞİŞİKLİK: user_id ARTIK GÖNDERİLMİYOR ---
         body: JSON.stringify({
-          plan: planId,
-          billing_cycle: billingPeriod
+          packageId,
+          user_id: user.id,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-  throw new Error(data.error || 'Payment could not be initiated');
+        throw new Error(data.error || 'Payment could not be initiated');
       }
       
       window.location.href = data.url;
 
     } catch (error: any) {
       console.error('Checkout error:', error);
-  toast.error(error.message || 'Payment could not be initiated');
+      toast.error(error.message || 'Payment could not be initiated');
     } finally {
       setLoadingPlan(null);
     }
@@ -405,98 +358,106 @@ export default function Home() {
         </div>
       </section>
 
-  {/* PRICING SECTION - UPDATED BUTTONS */}
+  {/* PRICING SECTION - CREDIT-BASED */}
       <section id="pricing" ref={pricingRef} className="py-24 gradient-bg">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl font-bold mb-4">
-              Simple and Transparent <span className="text-gradient">Pricing</span>
+              Pay Only For What You <span className="text-gradient">Use</span>
             </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Choose a plan that suits you, cancel anytime.</p>
-
-            <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setBillingPeriod('monthly')}
-                className={`px-6 py-2 rounded-md transition font-medium ${
-                  billingPeriod === 'monthly' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingPeriod('yearly')}
-                className={`px-6 py-2 rounded-md transition font-medium ${
-                  billingPeriod === 'yearly' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Yearly
-                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                  2 months free
-                </span>
-              </button>
-            </div>
+            <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
+              No subscriptions. No monthly fees. Credits never expire.
+            </p>
+            <p className="text-sm text-gray-500">
+              New users get <strong>10 free credits</strong> on signup!
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {plans.map((plan, index) => (
+          {/* Credit Packages Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-16">
+            {Object.values(CREDIT_PACKAGES).map((pkg) => (
               <div
-                key={index}
-                className={`relative bg-white rounded-2xl shadow-xl p-8 ${
-                  plan.popular ? 'ring-2 ring-blue-600 transform scale-105' : 'hover:shadow-2xl transition-shadow'
+                key={pkg.id}
+                className={`relative bg-white rounded-2xl shadow-xl p-6 ${
+                  pkg.popular ? 'ring-2 ring-blue-600 transform scale-105 z-10' : 'hover:shadow-2xl transition-shadow'
                 }`}
               >
-                {plan.popular && (
+                {pkg.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center">
-                      <Star className="h-4 w-4 mr-1" />
-                      Most Popular
+                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1.5 rounded-full text-sm font-semibold flex items-center">
+                      <Sparkles className="h-4 w-4 mr-1" />
+                      Best Value
                     </span>
                   </div>
                 )}
 
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-gray-600 mb-4">{plan.description}</p>
-                  <div className="mb-2">
-                    <div className="text-4xl font-bold">
-                      {plan.price === 0 ? '$0' : `$${plan.price}`}
-                      <span className="text-lg text-gray-500 font-normal">
-                        /{billingPeriod === 'monthly' ? 'month' : 'year'}
-                      </span>
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold mb-2">{pkg.name}</h3>
+                  <p className="text-sm text-gray-500 mb-4">{pkg.description}</p>
+                  
+                  {/* Price */}
+                  <div className="text-4xl font-bold mb-2">${pkg.priceUsd}</div>
+                  
+                  {/* Credits */}
+                  <div className="bg-blue-50 rounded-lg py-3 px-4">
+                    <div className="flex items-center justify-center">
+                      <Coins className="h-5 w-5 text-blue-600 mr-2" />
+                      <span className="text-2xl font-bold text-blue-600">{pkg.credits}</span>
+                      <span className="text-blue-600 ml-1">credits</span>
                     </div>
+                    {pkg.bonusCredits > 0 && (
+                      <div className="flex items-center justify-center mt-1 text-green-600 text-sm">
+                        <Gift className="h-4 w-4 mr-1" />
+                        +{pkg.bonusCredits} bonus!
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Per Credit Price */}
+                  <p className="text-sm text-gray-500 mt-2">
+                    ${pkg.pricePerCredit.toFixed(2)} per credit
+                  </p>
+                </div>
+
+                {/* What you can do */}
+                <div className="space-y-2 mb-6 text-sm">
+                  <p className="font-medium text-gray-700">With {pkg.totalCredits} credits:</p>
+                  <div className="text-gray-600 space-y-1 text-xs">
+                    <p>• ~{Math.floor(pkg.totalCredits / CREDIT_COSTS.thesis_standard.creditsRequired)} thesis analyses</p>
+                    <p>• ~{Math.floor(pkg.totalCredits / CREDIT_COSTS.abstract_generate.creditsRequired)} abstracts</p>
+                    <p>• ~{pkg.totalCredits} citations</p>
                   </div>
                 </div>
 
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                  {plan.notIncluded.map((feature, idx) => (
-                    <li key={idx} className="flex items-start opacity-50">
-                      <X className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-500 line-through text-sm">
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
                 <button
-                  onClick={() => handleSelectPlan(plan.id)} // plan.name yerine plan.id kullandık
-                  disabled={loadingPlan === plan.id}
+                  onClick={() => handleSelectPackage(pkg.id)}
+                  disabled={loadingPlan === pkg.id}
                   className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
-                    plan.popular ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800' : 
-                    plan.id === 'free' ? 'bg-gray-100 text-gray-800 hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
+                    pkg.popular 
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700' 
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
-                  {loadingPlan === plan.id ? 'Redirecting…' : plan.cta}
+                  {loadingPlan === pkg.id ? 'Redirecting…' : `Buy ${pkg.totalCredits} Credits`}
                 </button>
               </div>
             ))}
+          </div>
+
+          {/* Credit Cost Table */}
+          <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+            <h3 className="text-xl font-bold text-center mb-6">Credit Costs</h3>
+            <div className="space-y-3">
+              {creditCostInfo.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                  <div>
+                    <span className="text-gray-700">{item.action}</span>
+                    {item.note && <span className="text-xs text-gray-400 ml-2">({item.note})</span>}
+                  </div>
+                  <span className="font-semibold text-blue-600">{item.credits} credit{item.credits > 1 ? 's' : ''}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -523,28 +484,28 @@ export default function Home() {
             <div className="space-y-6">
               <div className="bg-gray-50 rounded-lg p-6">
                 <h3 className="font-semibold mb-2">
-                  Do I need a credit card for the free trial?
+                  Do I need a credit card to start?
                 </h3>
                 <p className="text-gray-600">
-                  No, you don’t need a credit card to use the free plan. You can use your 1 thesis analysis credit immediately.
+                  No! When you sign up, you get <strong>10 free credits</strong> instantly. That's enough for a full thesis analysis or multiple citations and abstracts.
                 </p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-6">
                 <h3 className="font-semibold mb-2">
-                  Is the 30 analysis limit in the Pro plan enough?
+                  Do credits expire?
                 </h3>
                 <p className="text-gray-600">
-                  For most students 30 analyses per month is more than enough. A typical thesis writing process uses about 15–20 analyses.
+                  No, your credits <strong>never expire</strong>. Buy once and use whenever you need them. No monthly fees, no subscriptions, no pressure.
                 </p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-6">
                 <h3 className="font-semibold mb-2">
-                  What’s different about the Expert plan?
+                  Which credit package should I choose?
                 </h3>
                 <p className="text-gray-600">
-                  The Expert plan offers unlimited usage, advanced AI models, custom reports and a more powerful workflow. Ideal for academics and heavy users.
+                  For a single thesis, the <strong>Starter</strong> or <strong>Standard</strong> package is usually enough. If you're working on multiple projects or want the best value, the <strong>Pro</strong> package offers 600 credits with bonus.
                 </p>
               </div>
 
