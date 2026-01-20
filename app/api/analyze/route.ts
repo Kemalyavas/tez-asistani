@@ -9,15 +9,16 @@ import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';
 import { extractPdfText } from '../../lib/fileUtils';
 import { CREDIT_COSTS, getAnalysisTier } from '../../lib/pricing';
-import { 
-  chunkThesisText, 
+import { isAdmin } from '../../lib/adminUtils';
+import {
+  chunkThesisText,
   getChunkEmbeddings,
-  ThesisChunk 
+  ThesisChunk
 } from '../../lib/thesis/chunkingService';
-import { 
-  analyzeThesis, 
+import {
+  analyzeThesis,
   quickAnalysis,
-  AnalysisResult 
+  AnalysisResult
 } from '../../lib/thesis/analysisService';
 
 // ============================================================================
@@ -142,33 +143,42 @@ export async function POST(request: NextRequest) {
 
     console.log(`[ANALYZE] Tier: ${analysisTier.id}, Credits: ${creditsRequired}`);
 
-    // Deduct credits
-    const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
-      p_user_id: user.id,
-      p_amount: creditsRequired,
-      p_action_type: actionType,
-      p_description: `Thesis analysis: ${file.name} (~${pageCount} pages)`
-    });
+    // Admin bypass - skip credit deduction
+    const userIsAdmin = isAdmin(user.id);
+    let creditInfo: any = null;
 
-    if (creditError) {
-      console.error('Credit deduction error:', creditError);
-      return NextResponse.json(
-        { error: 'Failed to process credits. Please try again.' },
-        { status: 500 }
-      );
-    }
+    if (userIsAdmin) {
+      console.log('[ADMIN] Credit check bypassed for user:', user.id);
+      creditInfo = { success: true, new_balance: 999999 };
+    } else {
+      // Deduct credits for non-admin users
+      const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
+        p_user_id: user.id,
+        p_amount: creditsRequired,
+        p_action_type: actionType,
+        p_description: `Thesis analysis: ${file.name} (~${pageCount} pages)`
+      });
 
-    const creditInfo = creditResult?.[0];
-    if (!creditInfo?.success) {
-      return NextResponse.json(
-        { 
-          error: creditInfo?.error_message || 'Insufficient credits',
-          creditsRequired,
-          currentCredits: creditInfo?.new_balance || 0,
-          analysisTier: analysisTier.name
-        },
-        { status: 402 }
-      );
+      if (creditError) {
+        console.error('Credit deduction error:', creditError);
+        return NextResponse.json(
+          { error: 'Failed to process credits. Please try again.' },
+          { status: 500 }
+        );
+      }
+
+      creditInfo = creditResult?.[0];
+      if (!creditInfo?.success) {
+        return NextResponse.json(
+          {
+            error: creditInfo?.error_message || 'Insufficient credits',
+            creditsRequired,
+            currentCredits: creditInfo?.new_balance || 0,
+            analysisTier: analysisTier.name
+          },
+          { status: 402 }
+        );
+      }
     }
 
     // Create thesis document record
@@ -236,11 +246,12 @@ export async function POST(request: NextRequest) {
             const embeddings = await getChunkEmbeddings(chunks.slice(0, 50)); // Limit for cost
             
             // Update chunks with embeddings
+            // Note: Supabase/pgvector accepts embedding array directly, not JSON string
             for (const [index, embedding] of embeddings) {
               if (thesisId) {
                 await supabase
                   .from('thesis_chunks')
-                  .update({ embedding: JSON.stringify(embedding) })
+                  .update({ embedding: embedding })
                   .eq('thesis_id', thesisId)
                   .eq('chunk_index', index);
               }

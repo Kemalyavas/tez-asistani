@@ -86,13 +86,15 @@ export async function POST(request: NextRequest) {
       const fullUserId = profiles[0].id;
 
       // Daha önce işlenmiş mi kontrol et (idempotency)
-      const { data: existingPayment } = await supabase
+      // Check both paymentId and conversationId for consistency with callback
+      const { data: existingPayments } = await supabase
         .from('payment_history')
-        .select('id, status')
-        .eq('payment_id', paymentId)
-        .single();
+        .select('id, status, payment_id')
+        .or(`payment_id.eq.${paymentId},conversation_id.eq.${conversationId}`)
+        .eq('status', 'success')
+        .limit(1);
 
-      if (existingPayment?.status === 'success') {
+      if (existingPayments && existingPayments.length > 0) {
         console.log('[WEBHOOK] Bu ödeme zaten işlenmiş:', paymentId);
         return NextResponse.json({ status: 'already_processed' });
       }
@@ -120,13 +122,15 @@ export async function POST(request: NextRequest) {
       });
 
       // Payment history güncelle
+      // Match by conversationId since initial payment_id was token, not paymentId
       await supabase
         .from('payment_history')
         .update({
+          payment_id: paymentId, // Update to real Iyzico paymentId
           status: 'success',
           completed_at: new Date().toISOString()
         })
-        .eq('payment_id', paymentId);
+        .eq('conversation_id', conversationId);
     }
 
     return NextResponse.json({ status: 'ok' });

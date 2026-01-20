@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CREDIT_COSTS, getCreditCost } from '../lib/pricing';
+import { isAdmin } from '../lib/adminUtils';
 
 // ============================================================================
 // Types
@@ -217,6 +218,16 @@ export function useCredits() {
       };
     }
 
+    // Admin bypass - unlimited access
+    if (isAdmin(user.id)) {
+      return {
+        allowed: true,
+        currentCredits: 999999, // Display unlimited
+        requiredCredits: required,
+        shortfall: 0
+      };
+    }
+
     if (current < required) {
       return {
         allowed: false,
@@ -249,6 +260,12 @@ export function useCredits() {
       return { success: false, error: check.reason };
     }
 
+    // Admin bypass - don't deduct credits
+    if (isAdmin(user.id)) {
+      console.log('[ADMIN] Credit check bypassed for:', actionType);
+      return { success: true, newBalance: 999999 };
+    }
+
     try {
       // Call Supabase function to deduct credits
       const { data, error: rpcError } = await supabase.rpc('use_credits', {
@@ -264,7 +281,7 @@ export function useCredits() {
       }
 
       const result = data?.[0];
-      
+
       if (!result?.success) {
         return { success: false, error: result?.error_message || 'Credit deduction failed' };
       }
@@ -286,7 +303,7 @@ export function useCredits() {
       }
 
       setCredits(newCredits);
-      
+
       // Update cache
       const newCache: CacheData = {
         user,
@@ -355,17 +372,18 @@ export function useCredits() {
     credits,
     loading,
     error,
-    
+
     // Actions
     checkCredits,
     useCreditsForAction,
     addCredits,
     getTransactions,
     refresh,
-    
+
     // Convenience getters
     currentCredits: credits.credits,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    isAdmin: user ? isAdmin(user.id) : false
   };
 }
 

@@ -17,6 +17,20 @@ TezAI, akademik tez yazarlarına yardımcı olan yapay zeka destekli bir platfor
 
 ## Kritik Kurallar
 
+### Admin Sistemi (ÖNEMLİ!)
+**Admin kullanıcı:** kemalyavaas@outlook.com (ID: 90bc0065-4115-4730-8c00-12c74b4f8748)
+
+**Admin Özellikleri:**
+- Sınırsız kredi (999999 görünür)
+- Hiçbir işlem için kredi düşmez
+- Tüm rate limit'ler bypass edilir
+- `adminUtils.ts` içinde `isAdmin()` fonksiyonu ile kontrol edilir
+
+**Admin Kontrolü Yapılan Yerler:**
+- `useCredits` hook - checkCredits ve useCreditsForAction
+- API route'ları - analyze, format-citation, generate-abstract
+- UI componentleri - sınırsız görünür
+
 ### Kredi Sistemi (ÖNEMLİ!)
 Proje **kredi tabanlı** sistem kullanıyor. Eski abonelik sistemi **KALDIRILDI**.
 
@@ -29,6 +43,7 @@ Proje **kredi tabanlı** sistem kullanıyor. Eski abonelik sistemi **KALDIRILDI*
 - Kredi işlemleri için `useCredits` hook'unu kullan
 - Ödeme sonrası `add_credits()` RPC fonksiyonunu çağır
 - UI'da "kredi" terminolojisi kullan
+- Admin kontrolü için `isAdmin(userId)` kullan
 
 ### Kredi Maliyetleri (pricing.ts)
 ```
@@ -73,7 +88,8 @@ app/
 ├── pricing/               # Fiyatlandırma sayfası
 └── payment/
     ├── success/           # Başarılı ödeme
-    └── failed/            # Başarısız ödeme
+    ├── fail/              # Başarısız ödeme (hata detayları)
+    └── status/            # Ödeme durumu (verify-payment yönlendirmesi)
 ```
 
 ## Database Şeması (Supabase)
@@ -158,7 +174,10 @@ npm run lint     # ESLint kontrolü
 2. **Admin kullanıcıları**: `adminUtils.ts` içinde tanımlı, sınırsız erişim
 3. **Dil**: UI İngilizce, kod yorumları Türkçe olabilir
 4. **Para birimi**: USD ($)
-5. **Webhook idempotency**: Aynı payment_id ile tekrar işlem yapılmaz
+5. **Ödeme Idempotency**: Çift kredi eklemeyi önlemek için tüm ödeme route'larında kontrol var:
+   - `callback`, `webhook`, `verify-payment` → `payment_id` VEYA `conversation_id` ile kontrol
+   - Checkout'ta token, sonra gerçek paymentId'ye güncelleniyor
+6. **Embedding**: pgvector için array direkt gönderilmeli, `JSON.stringify()` kullanılmamalı
 
 ## Yaygın Hatalar ve Çözümleri
 

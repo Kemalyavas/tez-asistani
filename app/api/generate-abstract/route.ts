@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';
 import anthropic from "../../lib/anthropic";
 import { CREDIT_COSTS } from '../../lib/pricing';
+import { isAdmin } from '../../lib/adminUtils';
 
 const ACTION_TYPE = 'abstract_generate';
 const CREDITS_REQUIRED = CREDIT_COSTS[ACTION_TYPE].creditsRequired;
@@ -50,32 +51,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Deduct credits using the database function
-    const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
-      p_user_id: user.id,
-      p_amount: CREDITS_REQUIRED,
-      p_action_type: ACTION_TYPE,
-      p_description: `Generate abstract: ${language === 'tr' ? 'Turkish' : language === 'en' ? 'English' : 'Both'}`
-    });
+    // Admin bypass - skip credit deduction
+    const userIsAdmin = isAdmin(user.id);
+    let result: any = null;
 
-    if (creditError) {
-      console.error('Credit deduction error:', creditError);
-      return NextResponse.json(
-        { error: 'Failed to process credits' },
-        { status: 500 }
-      );
-    }
+    if (userIsAdmin) {
+      console.log('[ADMIN] Credit check bypassed for user:', user.id);
+      result = { success: true, new_balance: 999999 };
+    } else {
+      // Deduct credits using the database function
+      const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
+        p_user_id: user.id,
+        p_amount: CREDITS_REQUIRED,
+        p_action_type: ACTION_TYPE,
+        p_description: `Generate abstract: ${language === 'tr' ? 'Turkish' : language === 'en' ? 'English' : 'Both'}`
+      });
 
-    const result = creditResult?.[0];
-    if (!result?.success) {
-      return NextResponse.json(
-        { 
-          error: result?.error_message || 'Insufficient credits',
-          creditsRequired: CREDITS_REQUIRED,
-          currentCredits: result?.new_balance || 0
-        },
-        { status: 402 } // Payment Required
-      );
+      if (creditError) {
+        console.error('Credit deduction error:', creditError);
+        return NextResponse.json(
+          { error: 'Failed to process credits' },
+          { status: 500 }
+        );
+      }
+
+      result = creditResult?.[0];
+      if (!result?.success) {
+        return NextResponse.json(
+          {
+            error: result?.error_message || 'Insufficient credits',
+            creditsRequired: CREDITS_REQUIRED,
+            currentCredits: result?.new_balance || 0
+          },
+          { status: 402 } // Payment Required
+        );
+      }
     }
 
     // Parse word count range

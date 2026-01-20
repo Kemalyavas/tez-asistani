@@ -122,19 +122,22 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
             const fullUserId = profiles[0].id;
 
             // Daha önce işlenmiş mi kontrol et (idempotency)
-            const { data: existingPayment } = await supabase
+            // Both paymentId and conversationId should be checked
+            const { data: existingPayments } = await supabase
               .from('payment_history')
-              .select('id, status')
-              .eq('payment_id', result.paymentId)
-              .single();
+              .select('id, status, payment_id')
+              .or(`payment_id.eq.${result.paymentId},conversation_id.eq.${result.conversationId}`)
+              .eq('status', 'success')
+              .limit(1);
 
-            if (existingPayment?.status === 'success') {
+            if (existingPayments && existingPayments.length > 0) {
               console.log('[VERIFY-PAYMENT] Bu ödeme zaten işlenmiş:', result.paymentId);
               // Zaten işlenmişse başarı sayfasına yönlendir
               const successUrl = new URL('/payment/status', siteUrl);
               successUrl.searchParams.set('status', 'success');
               successUrl.searchParams.set('package', creditPackage.name);
               successUrl.searchParams.set('credits', creditPackage.totalCredits.toString());
+              successUrl.searchParams.set('already_processed', 'true');
               resolve(NextResponse.redirect(successUrl, { status: 303 }));
               return;
             }
@@ -164,6 +167,17 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
               bonus: creditPackage.bonusCredits,
               newBalance: addResult?.new_balance
             });
+
+            // Update payment history with success and real paymentId
+            await supabase
+              .from('payment_history')
+              .update({
+                payment_id: result.paymentId, // Update to real Iyzico paymentId
+                status: 'success',
+                iyzico_response: result,
+                completed_at: new Date().toISOString()
+              })
+              .or(`payment_id.eq.${token},conversation_id.eq.${result.conversationId}`);
 
             const successUrl = new URL('/payment/status', siteUrl);
             successUrl.searchParams.set('status', 'success');

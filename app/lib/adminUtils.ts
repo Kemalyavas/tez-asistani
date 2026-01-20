@@ -5,11 +5,14 @@
  * Bu dosyanın içeriği yalnızca yönetici erişimine yöneliktir
  */
 
-// Güvenlik için admin ID'si kodda hardcoded olarak saklıdır
-// Bu değeri kendi Supabase kullanıcı ID'nizle değiştirin
+// Admin kullanıcılar - sınırsız erişim
 const ADMIN_USER_IDS = [
-  // Ana admin kullanıcı ID'si (sizin kullanıcı ID'niz ile değiştirin)
-  process.env.ADMIN_USER_ID || 'buraya_sizin_kullanıcı_id_nizi_yazın'
+  '90bc0065-4115-4730-8c00-12c74b4f8748', // kemalyavaas@outlook.com
+];
+
+// Admin email'leri (yedek kontrol için)
+const ADMIN_EMAILS = [
+  'kemalyavaas@outlook.com',
 ];
 
 /**
@@ -19,7 +22,15 @@ const ADMIN_USER_IDS = [
  */
 export const isAdmin = (userId: string | undefined): boolean => {
   if (!userId) return false;
-  
-  // Listenin içinde ID varsa admin olarak işaretle
   return ADMIN_USER_IDS.includes(userId);
+};
+
+/**
+ * Email'in admin olup olmadığını kontrol eder
+ * @param email Kontrol edilecek email
+ * @returns Email'in admin olup olmadığı
+ */
+export const isAdminEmail = (email: string | undefined): boolean => {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
 };

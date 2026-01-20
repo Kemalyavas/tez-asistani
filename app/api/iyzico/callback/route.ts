@@ -148,6 +148,29 @@ async function verifyAndProcessPayment(token: string, request: NextRequest) {
 
     const fullUserId = profiles[0].id;
 
+    // Idempotency check - prevent double credit addition
+    // Check if this payment was already processed (by paymentId)
+    const { data: existingPayment } = await supabase
+      .from('payment_history')
+      .select('id, status, payment_id')
+      .or(`payment_id.eq.${result.paymentId},conversation_id.eq.${result.conversationId}`)
+      .eq('status', 'success')
+      .limit(1);
+
+    if (existingPayment && existingPayment.length > 0) {
+      console.log('[CALLBACK] Payment already processed:', result.paymentId);
+      // Already processed - redirect to success without adding credits again
+      const successParams = new URLSearchParams({
+        package: packageId,
+        credits: creditPackage.totalCredits.toString(),
+        already_processed: 'true'
+      });
+      return NextResponse.redirect(
+        new URL(`/payment/success?${successParams.toString()}`, request.nextUrl),
+        { status: 303 }
+      );
+    }
+
     // Add credits to user account using database function
     const { data: creditResult, error: creditError } = await supabase.rpc('add_credits', {
       p_user_id: fullUserId,
@@ -174,15 +197,21 @@ async function verifyAndProcessPayment(token: string, request: NextRequest) {
     });
 
     // Update payment history with success
-    await supabase
+    // First try to match by token (initial payment_id), then update with real paymentId
+    const { error: updateError } = await supabase
       .from('payment_history')
       .update({
-        payment_id: result.paymentId,
+        payment_id: result.paymentId, // Update to real Iyzico paymentId for consistency
         status: 'success',
         iyzico_response: result,
         completed_at: new Date().toISOString()
       })
-      .eq('payment_id', token); // Match by initial token
+      .or(`payment_id.eq.${token},conversation_id.eq.${result.conversationId}`);
+
+    if (updateError) {
+      console.warn('[CALLBACK] Could not update payment_history:', updateError);
+      // Continue anyway - credits were added successfully
+    }
 
     // Redirect to success page with details
     const successParams = new URLSearchParams({
