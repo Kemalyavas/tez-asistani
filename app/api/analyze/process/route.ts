@@ -41,13 +41,22 @@ function getWordCount(text: string): number {
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+  let timeoutOccurred = false;
+  let timeoutTimer: NodeJS.Timeout | null = null;
 
   try {
+    // Set timeout guard (280s = 4m 40s, before 300s Vercel limit)
+    const TIMEOUT_MS = 280000; // 280 seconds
+    timeoutTimer = setTimeout(() => {
+      timeoutOccurred = true;
+    }, TIMEOUT_MS);
+
     // Authentication
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      if (timeoutTimer) clearTimeout(timeoutTimer);
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -59,9 +68,20 @@ export async function POST(request: NextRequest) {
     const { documentId, filePath, fileName } = body;
 
     if (!documentId || !filePath || !fileName) {
+      if (timeoutTimer) clearTimeout(timeoutTimer);
       return NextResponse.json(
         { error: 'Missing required parameters' },
         { status: 400 }
+      );
+    }
+
+    // Check timeout before heavy operations
+    if (timeoutOccurred) {
+      console.error(`[ANALYZE/PROCESS] Timeout occurred during initialization`);
+      await markAsFailedWithTimeout(supabase, documentId, user.id, 0);
+      return NextResponse.json(
+        { error: 'Analysis timeout - document too large. Please try with a smaller file.' },
+        { status: 504 }
       );
     }
 
@@ -74,6 +94,7 @@ export async function POST(request: NextRequest) {
 
     if (docError || !doc) {
       console.error('Document not found:', docError);
+      if (timeoutTimer) clearTimeout(timeoutTimer);
       return NextResponse.json(
         { error: 'Document not found' },
         { status: 404 }
@@ -81,6 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (doc.user_id !== user.id) {
+      if (timeoutTimer) clearTimeout(timeoutTimer);
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }
@@ -89,6 +111,7 @@ export async function POST(request: NextRequest) {
 
     if (doc.status !== 'processing') {
       // Already processed or failed
+      if (timeoutTimer) clearTimeout(timeoutTimer);
       return NextResponse.json({
         success: true,
         message: 'Document already processed',
@@ -97,6 +120,16 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[ANALYZE/PROCESS] Starting analysis for document: ${documentId}`);
+
+    // Check timeout
+    if (timeoutOccurred) {
+      console.error(`[ANALYZE/PROCESS] Timeout before file download`);
+      await markAsFailedWithTimeout(supabase, documentId, user.id, doc.credits_used);
+      return NextResponse.json(
+        { error: 'Analysis timeout - document too large' },
+        { status: 504 }
+      );
+    }
 
     // Download file from Supabase Storage
     const { data: fileData, error: downloadError } = await supabase.storage
@@ -149,6 +182,16 @@ export async function POST(request: NextRequest) {
     const analysisTier = doc.analysis_type;
 
     console.log(`[ANALYZE/PROCESS] Pages: ${pageCount}, Words: ${wordCount}, Tier: ${analysisTier}`);
+
+    // Check timeout before heavy analysis
+    if (timeoutOccurred) {
+      console.error(`[ANALYZE/PROCESS] Timeout before analysis - ${pageCount} pages, ${wordCount} words`);
+      await markAsFailedWithTimeout(supabase, documentId, user.id, doc.credits_used);
+      return NextResponse.json(
+        { error: `Analysis timeout - document too large (${pageCount} pages). Please try with a smaller file.` },
+        { status: 504 }
+      );
+    }
 
     // Perform analysis
     let analysisResult: AnalysisResult;
@@ -259,6 +302,9 @@ export async function POST(request: NextRequest) {
       const processingTime = Date.now() - startTime;
       console.log(`[ANALYZE/PROCESS] Completed in ${processingTime}ms`);
 
+      // Clean up timer
+      if (timeoutTimer) clearTimeout(timeoutTimer);
+
       // Clean up: Delete file from storage
       await supabase.storage
         .from('thesis-files')
@@ -272,6 +318,9 @@ export async function POST(request: NextRequest) {
 
     } catch (analysisError: any) {
       console.error('Analysis error:', analysisError);
+
+      // Clean up timer
+      if (timeoutTimer) clearTimeout(timeoutTimer);
 
       // Clean up file
       await supabase.storage
@@ -289,6 +338,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('API Route Error:', error);
+
+    // Clean up timer
+    if (timeoutTimer) clearTimeout(timeoutTimer);
 
     return NextResponse.json(
       { error: 'An error occurred: ' + error.message },
@@ -322,5 +374,40 @@ async function markAsFailed(
       p_package_id: null
     });
     console.log(`[ANALYZE/PROCESS] Refunded ${creditsUsed} credits to user ${userId}`);
+  }
+}
+
+// Helper function to mark as failed due to timeout
+async function markAsFailedWithTimeout(
+  supabase: any,
+  documentId: string,
+  userId: string,
+  creditsUsed: number
+) {
+  console.error(`[ANALYZE/PROCESS] TIMEOUT - Marking document ${documentId} as failed`);
+  
+  // Update document status with timeout error
+  await supabase
+    .from('thesis_documents')
+    .update({ 
+      status: 'failed',
+      analysis_result: {
+        error: 'Analysis timeout - document too large for processing. Please try with a smaller file or contact support.'
+      }
+    })
+    .eq('id', documentId)
+    .eq('status', 'processing');
+
+  // Refund credits (skip for admin)
+  const userIsAdmin = isAdmin(userId);
+  if (!userIsAdmin && creditsUsed > 0) {
+    await supabase.rpc('add_credits', {
+      p_user_id: userId,
+      p_amount: creditsUsed,
+      p_bonus: 0,
+      p_payment_id: null,
+      p_package_id: null
+    });
+    console.log(`[ANALYZE/PROCESS] TIMEOUT REFUND - ${creditsUsed} credits to user ${userId}`);
   }
 }
