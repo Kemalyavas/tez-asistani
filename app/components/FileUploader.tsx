@@ -1,7 +1,7 @@
 'use client';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, Loader2, AlertCircle, Coins, Zap } from 'lucide-react';
+import { Upload, File, X, Loader2, AlertCircle, Coins, Zap, CheckCircle, FileText, Brain, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -12,12 +12,25 @@ interface FileUploaderProps {
   onAnalysisComplete: (result: any) => void;
 }
 
+type AnalysisStep = 'idle' | 'uploading' | 'processing' | 'analyzing' | 'finalizing' | 'complete' | 'error';
+
+const ANALYSIS_STEPS = [
+  { id: 'uploading', label: 'Uploading file', icon: Upload },
+  { id: 'processing', label: 'Processing document', icon: FileText },
+  { id: 'analyzing', label: 'AI Analysis', icon: Brain },
+  { id: 'finalizing', label: 'Generating report', icon: BarChart3 },
+];
+
 export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState<AnalysisStep>('idle');
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
   const [estimatedCredits, setEstimatedCredits] = useState<number>(10);
   const [user, setUser] = useState<any>(null);
+  const [statusMessage, setStatusMessage] = useState<string>('');
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -57,6 +70,83 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
     maxSize: 10 * 1024 * 1024, // 10MB
   });
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
+
+  // Poll for analysis status
+  const pollAnalysisStatus = async (docId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('thesis_documents')
+        .select('status, analysis_result, overall_score')
+        .eq('id', docId)
+        .single();
+
+      if (error) {
+        console.error('Polling error:', error);
+        return;
+      }
+
+      if (data.status === 'analyzed' && data.analysis_result) {
+        // Analysis complete!
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+
+        setCurrentStep('complete');
+        setStatusMessage('Analysis completed!');
+        await refreshCredits();
+
+        // Transform the result to match expected format
+        const result = data.analysis_result;
+        onAnalysisComplete({
+          success: true,
+          overall_score: result.overall_score || result.overallScore,
+          grade_category: result.grade_category || result.gradeCategory,
+          summary: result.summary,
+          category_scores: result.category_scores || {
+            structure: result.categoryScores?.structure,
+            methodology: result.categoryScores?.methodology,
+            writing_quality: result.categoryScores?.writingQuality,
+            references: result.categoryScores?.references
+          },
+          critical_issues: result.critical_issues || result.criticalIssues || [],
+          major_issues: result.major_issues || result.majorIssues || [],
+          minor_issues: result.minor_issues || result.minorIssues || [],
+          strengths: result.strengths || [],
+          immediate_actions: result.immediate_actions || result.immediateActions || [],
+          recommendations: result.recommendations || [],
+          metadata: result.metadata || {}
+        });
+
+        toast.success('Analysis complete!');
+        setLoading(false);
+
+      } else if (data.status === 'failed') {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+
+        setCurrentStep('error');
+        setStatusMessage('Analysis failed. Your credits have been refunded.');
+        toast.error('Analysis failed. Please try again.');
+        setLoading(false);
+      }
+      // If still processing, continue polling
+
+    } catch (err) {
+      console.error('Poll error:', err);
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!file) return;
 
@@ -75,13 +165,13 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
     }
 
     setLoading(true);
+    setCurrentStep('uploading');
+    setStatusMessage('Uploading your file...');
 
     try {
       // Step 1: Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      toast.loading('Uploading file...');
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('thesis-files')
@@ -90,16 +180,15 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           upsert: false
         });
 
-      toast.dismiss();
-
       if (uploadError) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      toast.loading('Analyzing thesis...');
+      setCurrentStep('processing');
+      setStatusMessage('Processing document...');
 
-      // Step 2: Send file path to API for analysis
-      const response = await fetch('/api/analyze', {
+      // Step 2: Start analysis (returns immediately with document ID)
+      const response = await fetch('/api/analyze/start', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,8 +198,6 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           fileName: file.name
         }),
       });
-
-      toast.dismiss();
 
       // Check if response is JSON
       const contentType = response.headers.get('content-type');
@@ -126,21 +213,45 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         if (response.status === 402) {
           toast.error(`Insufficient credits. Need ${data.creditsRequired} credits.`);
           router.push('/pricing');
+          setLoading(false);
+          setCurrentStep('idle');
           return;
         }
-        throw new Error(data.error || 'Analysis failed');
+        throw new Error(data.error || 'Analysis failed to start');
       }
 
-      // Refresh credits after successful analysis
-      await refreshCredits();
+      // Store the document ID and start polling
+      const docId = data.documentId;
+      setAnalysisId(docId);
+      setCurrentStep('analyzing');
+      setStatusMessage('AI is analyzing your thesis...');
 
-      onAnalysisComplete(data);
-      toast.success(`Analysis complete! Used ${data.credits_used} credits.`);
+      // Start polling for status updates
+      pollingRef.current = setInterval(() => {
+        pollAnalysisStatus(docId);
+      }, 3000); // Poll every 3 seconds
+
+      // Also trigger the actual analysis in background
+      fetch('/api/analyze/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          documentId: docId,
+          filePath: uploadData.path,
+          fileName: file.name
+        }),
+      }).catch(err => {
+        console.error('Background analysis error:', err);
+        // Don't throw - polling will catch the failure status
+      });
 
     } catch (error: any) {
+      setCurrentStep('error');
+      setStatusMessage(error.message || 'An error occurred');
       toast.error(error.message || 'An error occurred. Please try again.');
       console.error(error);
-    } finally {
       setLoading(false);
     }
   };
@@ -149,6 +260,25 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
     setFile(null);
     setEstimatedPages(null);
     setEstimatedCredits(10);
+    setCurrentStep('idle');
+    setStatusMessage('');
+    setAnalysisId(null);
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  };
+
+  const getStepStatus = (stepId: string): 'pending' | 'active' | 'completed' => {
+    const stepOrder = ['uploading', 'processing', 'analyzing', 'finalizing'];
+    const currentIndex = stepOrder.indexOf(currentStep);
+    const stepIndex = stepOrder.indexOf(stepId);
+
+    if (currentStep === 'complete') return 'completed';
+    if (currentStep === 'error') return stepIndex <= currentIndex ? 'active' : 'pending';
+    if (stepIndex < currentIndex) return 'completed';
+    if (stepIndex === currentIndex) return 'active';
+    return 'pending';
   };
 
   return (
@@ -238,6 +368,83 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         </div>
       )}
 
+      {/* Progress Steps - shown during analysis */}
+      {loading && currentStep !== 'idle' && (
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="space-y-4">
+            {ANALYSIS_STEPS.map((step, index) => {
+              const status = getStepStatus(step.id);
+              const Icon = step.icon;
+
+              return (
+                <div key={step.id} className="flex items-center">
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 transition-all ${
+                    status === 'completed' ? 'bg-green-100' :
+                    status === 'active' ? 'bg-blue-100' :
+                    'bg-gray-100'
+                  }`}>
+                    {status === 'completed' ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : status === 'active' ? (
+                      <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                    ) : (
+                      <Icon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-medium ${
+                      status === 'completed' ? 'text-green-600' :
+                      status === 'active' ? 'text-blue-600' :
+                      'text-gray-400'
+                    }`}>
+                      {step.label}
+                    </p>
+                    {status === 'active' && currentStep === step.id && (
+                      <p className="text-sm text-gray-500">{statusMessage}</p>
+                    )}
+                  </div>
+                  {index < ANALYSIS_STEPS.length - 1 && (
+                    <div className={`hidden sm:block absolute left-5 mt-10 w-0.5 h-4 ${
+                      status === 'completed' ? 'bg-green-300' : 'bg-gray-200'
+                    }`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Estimated time message */}
+          <div className="mt-6 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-500">
+                {currentStep === 'analyzing'
+                  ? 'AI analysis may take 1-3 minutes depending on document size'
+                  : 'Please wait...'}
+              </span>
+              {analysisId && (
+                <span className="text-gray-400 text-xs">ID: {analysisId.slice(0, 8)}...</span>
+              )}
+            </div>
+          </div>
+
+          {/* Error state */}
+          {currentStep === 'error' && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                <span className="text-red-700">{statusMessage}</span>
+              </div>
+              <button
+                onClick={removeFile}
+                className="mt-3 text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Try again with a different file
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <button
         onClick={handleAnalyze}
         disabled={!file || loading || !user}
@@ -246,7 +453,11 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         {loading ? (
           <>
             <Loader2 className="animate-spin h-5 w-5 mr-2" />
-            Analyzing...
+            {currentStep === 'uploading' ? 'Uploading...' :
+             currentStep === 'processing' ? 'Processing...' :
+             currentStep === 'analyzing' ? 'Analyzing...' :
+             currentStep === 'finalizing' ? 'Finalizing...' :
+             'Please wait...'}
           </>
         ) : (
           'Analyze Thesis'

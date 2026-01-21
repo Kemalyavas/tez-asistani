@@ -19,7 +19,12 @@ import {
   Clock,
   CheckCircle,
   Coins,
-  Zap
+  Zap,
+  TrendingUp,
+  AlertCircle,
+  Loader2,
+  ChevronRight,
+  BarChart3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { isAdmin, isAdminEmail } from '../lib/adminUtils';
@@ -45,12 +50,27 @@ interface UserProfile {
   citations_count?: number;
 }
 
+interface ThesisAnalysis {
+  id: string;
+  filename: string;
+  status: 'processing' | 'analyzed' | 'failed';
+  overall_score: number | null;
+  page_count: number;
+  word_count: number;
+  analysis_type: string;
+  credits_used: number;
+  created_at: string;
+  analyzed_at: string | null;
+}
+
 export default function ProfileContent() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [recentAnalyses, setRecentAnalyses] = useState<ThesisAnalysis[]>([]);
+  const [analysesLoading, setAnalysesLoading] = useState(true);
   const [editForm, setEditForm] = useState({
     username: '',
     full_name: ''
@@ -120,6 +140,24 @@ export default function ProfileContent() {
           username: userProfile.username || '',
           full_name: userProfile.full_name || ''
         });
+
+        // Fetch recent analyses
+        try {
+          const { data: analysesData, error: analysesError } = await supabase
+            .from('thesis_documents')
+            .select('id, filename, status, overall_score, page_count, word_count, analysis_type, credits_used, created_at, analyzed_at')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+          if (!analysesError && analysesData) {
+            setRecentAnalyses(analysesData as ThesisAnalysis[]);
+          }
+        } catch (analysesErr) {
+          console.error('Error fetching analyses:', analysesErr);
+        } finally {
+          setAnalysesLoading(false);
+        }
 
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -503,6 +541,87 @@ export default function ProfileContent() {
               <p className="text-sm text-gray-500 mt-4">
                 Credits never expire. Use them whenever you need to analyze theses, generate abstracts, or format citations.
               </p>
+            </div>
+
+            {/* Recent Analyses */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Analyses</h3>
+                {recentAnalyses.length > 0 && (
+                  <Link
+                    href="/analyses"
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                  >
+                    View All
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Link>
+                )}
+              </div>
+
+              {analysesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                </div>
+              ) : recentAnalyses.length === 0 ? (
+                <div className="text-center py-8">
+                  <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-4">No analyses yet</p>
+                  <Link
+                    href="/"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Analyze Your First Thesis
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentAnalyses.map((analysis) => (
+                    <Link
+                      key={analysis.id}
+                      href={`/analyses/${analysis.id}`}
+                      className="block bg-gray-50 hover:bg-gray-100 rounded-xl p-4 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">
+                            {analysis.filename}
+                          </p>
+                          <div className="flex items-center space-x-3 mt-1 text-sm text-gray-500">
+                            <span>{analysis.page_count} pages</span>
+                            <span>•</span>
+                            <span>{new Date(analysis.created_at).toLocaleDateString('en-US')}</span>
+                          </div>
+                        </div>
+                        <div className="ml-4 flex-shrink-0">
+                          {analysis.status === 'processing' ? (
+                            <div className="flex items-center text-amber-600">
+                              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                              <span className="text-sm">Processing</span>
+                            </div>
+                          ) : analysis.status === 'failed' ? (
+                            <div className="flex items-center text-red-600">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm">Failed</span>
+                            </div>
+                          ) : analysis.overall_score !== null ? (
+                            <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                              analysis.overall_score >= 80 ? 'bg-green-100 text-green-700' :
+                              analysis.overall_score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              <TrendingUp className="h-4 w-4 mr-1" />
+                              {analysis.overall_score}/100
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">No score</span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>

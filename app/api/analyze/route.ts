@@ -4,6 +4,9 @@
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// Extend timeout for this route (Vercel Pro: up to 300s)
+export const maxDuration = 300; // 5 minutes
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';

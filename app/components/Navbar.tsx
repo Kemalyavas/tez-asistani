@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Image from 'next/image';
@@ -96,14 +96,21 @@ export default function Navbar() {
             {/* Auth Buttons */}
             {user ? (
               <div className="flex items-center space-x-4">
-                <Link 
+                <Link
+                  href="/analyses"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">My Analyses</span>
+                </Link>
+                <Link
                   href="/profile"
                   className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
                 </Link>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="flex items-center space-x-1 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 >
@@ -172,7 +179,15 @@ export default function Navbar() {
               <div className="border-t pt-4">
                 {user ? (
                   <>
-                    <Link 
+                    <Link
+                      href="/analyses"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300 py-2"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      <span className="text-sm font-medium">My Analyses</span>
+                    </Link>
+                    <Link
                       href="/profile"
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300 py-2"
@@ -180,7 +195,7 @@ export default function Navbar() {
                       <User className="h-4 w-4" />
                       <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
                     </Link>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="w-full text-left text-red-600 hover:bg-red-50 font-medium transition-colors duration-300 py-2"
                     >
