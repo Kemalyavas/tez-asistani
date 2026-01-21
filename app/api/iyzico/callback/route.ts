@@ -105,18 +105,17 @@ async function verifyAndProcessPayment(token: string, request: NextRequest) {
       );
     }
 
-    // Payment successful - extract details
+    // Payment successful - extract details from basketId for package info
     const basketId = result.basketId || '';
     const basketParts = basketId.split('_');
     // basketId format: basket_<userId8>_<packageId>_<timestamp>
-    const userId = basketParts[1]; // First 8 chars of user ID
     const packageId = basketParts[2];
 
     console.log('[PAYMENT SUCCESS]', {
       basketId,
-      userId,
       packageId,
-      paymentId: result.paymentId
+      paymentId: result.paymentId,
+      conversationId: result.conversationId
     });
 
     // Get credit package details
@@ -131,44 +130,51 @@ async function verifyAndProcessPayment(token: string, request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // Find user by partial ID match
-    const { data: profiles, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .ilike('id', `${userId}%`)
-      .limit(1);
+    // FIXED: Get user_id directly from payment_history (stored during checkout)
+    // This avoids UUID collision risk from parsing basketId
+    const { data: pendingPayment, error: pendingError } = await supabase
+      .from('payment_history')
+      .select('id, user_id, status, payment_id')
+      .or(`payment_id.eq.${token},conversation_id.eq.${result.conversationId}`)
+      .limit(1)
+      .single();
 
-    if (profileError || !profiles || profiles.length === 0) {
-      console.error('[ERROR] User not found:', userId);
+    if (pendingError || !pendingPayment) {
+      console.error('[ERROR] Payment record not found:', { token, conversationId: result.conversationId });
       return NextResponse.redirect(
-        new URL('/payment/fail?error=user_not_found', request.nextUrl),
+        new URL('/payment/fail?error=payment_not_found', request.nextUrl),
         { status: 303 }
       );
     }
 
-    const fullUserId = profiles[0].id;
+    const fullUserId = pendingPayment.user_id;
 
     // Idempotency check - prevent double credit addition
-    // Check if this payment was already processed (by paymentId)
-    const { data: existingPayment } = await supabase
-      .from('payment_history')
-      .select('id, status, payment_id')
-      .or(`payment_id.eq.${result.paymentId},conversation_id.eq.${result.conversationId}`)
-      .eq('status', 'success')
-      .limit(1);
-
-    if (existingPayment && existingPayment.length > 0) {
+    if (pendingPayment.status === 'success') {
       console.log('[CALLBACK] Payment already processed:', result.paymentId);
-      // Already processed - redirect to success without adding credits again
-      const successParams = new URLSearchParams({
-        package: packageId,
-        credits: creditPackage.totalCredits.toString(),
-        already_processed: 'true'
-      });
-      return NextResponse.redirect(
-        new URL(`/payment/success?${successParams.toString()}`, request.nextUrl),
-        { status: 303 }
-      );
+
+      // FIXED: Verify credits were actually added by checking credit_transactions
+      const { data: creditTx } = await supabase
+        .from('credit_transactions')
+        .select('id')
+        .eq('payment_id', result.paymentId)
+        .limit(1);
+
+      if (!creditTx || creditTx.length === 0) {
+        // Payment marked success but credits not added - need to add credits
+        console.warn('[CALLBACK] Payment marked success but credits missing, retrying...');
+      } else {
+        // Already processed with credits - redirect to success
+        const successParams = new URLSearchParams({
+          package: packageId,
+          credits: creditPackage.totalCredits.toString(),
+          already_processed: 'true'
+        });
+        return NextResponse.redirect(
+          new URL(`/payment/success?${successParams.toString()}`, request.nextUrl),
+          { status: 303 }
+        );
+      }
     }
 
     // Add credits to user account using database function

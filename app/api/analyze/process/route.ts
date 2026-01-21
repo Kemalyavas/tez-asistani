@@ -241,10 +241,20 @@ export async function POST(request: NextRequest) {
         analyzed_at: new Date().toISOString()
       };
 
-      await supabase
+      const { data: updatedRows, error: updateError } = await supabase
         .from('thesis_documents')
         .update(updateData)
-        .eq('id', documentId);
+        .eq('id', documentId)
+        .eq('status', 'processing')
+        .select('id');
+
+      if (updateError) {
+        console.warn('[ANALYZE/PROCESS] Update error:', updateError);
+      }
+
+      if (!updatedRows || updatedRows.length === 0) {
+        console.warn('[ANALYZE/PROCESS] Document status changed; skipping final update.');
+      }
 
       const processingTime = Date.now() - startTime;
       console.log(`[ANALYZE/PROCESS] Completed in ${processingTime}ms`);
@@ -298,7 +308,8 @@ async function markAsFailed(
   await supabase
     .from('thesis_documents')
     .update({ status: 'failed' })
-    .eq('id', documentId);
+    .eq('id', documentId)
+    .eq('status', 'processing');
 
   // Refund credits (skip for admin)
   const userIsAdmin = isAdmin(userId);

@@ -52,11 +52,10 @@ export async function POST(request: NextRequest) {
 
       // basketId format: basket_<userId8>_<packageId>_<timestamp>
       const basketParts = basketId.split('_');
-      const userIdPartial = basketParts[1]; // İlk 8 karakter
       const packageId = basketParts[2];
 
-      if (!userIdPartial || !packageId) {
-        console.error('[WEBHOOK] userId veya packageId alınamadı:', { basketId });
+      if (!packageId) {
+        console.error('[WEBHOOK] packageId alınamadı:', { basketId });
         return NextResponse.json({ error: 'Geçersiz basket formatı' }, { status: 400 });
       }
 
@@ -67,36 +66,42 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Geçersiz paket' }, { status: 400 });
       }
 
-      console.log('[WEBHOOK] Kredi ekleniyor:', { userIdPartial, packageId, credits: creditPackage.credits });
-
       const supabase = getSupabaseAdmin();
 
-      // Kullanıcıyı bul (tam UUID ile eşleştir)
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .ilike('id', `${userIdPartial}%`)
-        .limit(1);
+      // FIXED: Get user_id directly from payment_history (stored during checkout)
+      // This avoids UUID collision risk from parsing basketId
+      const { data: pendingPayment, error: pendingError } = await supabase
+        .from('payment_history')
+        .select('id, user_id, status, payment_id')
+        .or(`payment_id.eq.${paymentId},conversation_id.eq.${conversationId}`)
+        .limit(1)
+        .single();
 
-      if (profileError || !profiles || profiles.length === 0) {
-        console.error('[WEBHOOK] Kullanıcı bulunamadı:', userIdPartial);
-        return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
+      if (pendingError || !pendingPayment) {
+        console.error('[WEBHOOK] Ödeme kaydı bulunamadı:', { paymentId, conversationId });
+        return NextResponse.json({ error: 'Ödeme kaydı bulunamadı' }, { status: 404 });
       }
 
-      const fullUserId = profiles[0].id;
+      const fullUserId = pendingPayment.user_id;
+      console.log('[WEBHOOK] Kredi ekleniyor:', { userId: fullUserId, packageId, credits: creditPackage.credits });
 
       // Daha önce işlenmiş mi kontrol et (idempotency)
-      // Check both paymentId and conversationId for consistency with callback
-      const { data: existingPayments } = await supabase
-        .from('payment_history')
-        .select('id, status, payment_id')
-        .or(`payment_id.eq.${paymentId},conversation_id.eq.${conversationId}`)
-        .eq('status', 'success')
-        .limit(1);
-
-      if (existingPayments && existingPayments.length > 0) {
+      if (pendingPayment.status === 'success') {
         console.log('[WEBHOOK] Bu ödeme zaten işlenmiş:', paymentId);
-        return NextResponse.json({ status: 'already_processed' });
+
+        // FIXED: Verify credits were actually added by checking credit_transactions
+        const { data: creditTx } = await supabase
+          .from('credit_transactions')
+          .select('id')
+          .eq('payment_id', paymentId)
+          .limit(1);
+
+        if (!creditTx || creditTx.length === 0) {
+          // Payment marked success but credits not added - need to add credits
+          console.warn('[WEBHOOK] Ödeme başarılı işaretli ama kredi eksik, tekrar deneniyor...');
+        } else {
+          return NextResponse.json({ status: 'already_processed' });
+        }
       }
 
       // Kredi ekle (RPC fonksiyonu ile)

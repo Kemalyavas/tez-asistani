@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import {
   ArrowLeft,
   FileText,
@@ -41,6 +42,7 @@ export default function AnalysesContent() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -117,6 +119,44 @@ export default function AnalysesContent() {
       case 'standard': return 'Standard';
       case 'comprehensive': return 'Comprehensive';
       default: return type;
+    }
+  };
+
+  const isStuckProcessing = (analysis: ThesisAnalysis) => {
+    if (analysis.status !== 'processing') return false;
+    const ageMs = Date.now() - new Date(analysis.created_at).getTime();
+    return ageMs > 15 * 60 * 1000; // 15 minutes
+  };
+
+  const handleMarkFailed = async (analysisId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      setActionLoadingId(analysisId);
+      const response = await fetch('/api/analyze/mark-failed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ documentId: analysisId })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update status');
+      }
+
+      setAnalyses(prev => prev.map(a =>
+        a.id === analysisId ? { ...a, status: 'failed' } : a
+      ));
+
+      toast.success(data.refunded ? 'Marked failed and credits refunded.' : 'Marked failed.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to mark analysis as failed.');
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -335,9 +375,20 @@ export default function AnalysesContent() {
 
                   <div className="flex items-center gap-4">
                     {analysis.status === 'processing' ? (
-                      <div className="flex items-center text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                        <span className="font-medium">Processing...</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          <span className="font-medium">Processing...</span>
+                        </div>
+                        {isStuckProcessing(analysis) && (
+                          <button
+                            onClick={(e) => handleMarkFailed(analysis.id, e)}
+                            className="text-xs px-3 py-2 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 transition"
+                            disabled={actionLoadingId === analysis.id}
+                          >
+                            {actionLoadingId === analysis.id ? 'Updating...' : 'Mark failed'}
+                          </button>
+                        )}
                       </div>
                     ) : analysis.status === 'failed' ? (
                       <div className="flex items-center text-red-600 bg-red-50 px-4 py-2 rounded-lg">
