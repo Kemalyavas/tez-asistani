@@ -26,6 +26,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import PremiumResultDisplay from '@/app/components/PremiumResultDisplay';
 
 interface CategoryScore {
   score: number;
@@ -60,6 +61,10 @@ interface AnalysisResult {
     sections_found: string[];
     missing_sections: string[];
   };
+  // Premium format properties
+  sections?: any;
+  yokCompliance?: any;
+  priorityActions?: any;
 }
 
 interface ThesisDocument {
@@ -208,6 +213,9 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
   const result = analysis.analysis_result;
 
+  // Premium format kontrolü (sections veya yokCompliance varsa yeni format)
+  const isPremiumFormat = result && (result.sections || result.yokCompliance || result.priorityActions);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
@@ -219,7 +227,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
               className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span>Back to Analyses</span>
+              <span>Analizlere Dön</span>
             </Link>
             <h1 className="text-xl font-bold text-gray-900 truncate max-w-md">{analysis.filename}</h1>
             <div className="w-32"></div>
@@ -246,14 +254,22 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
             <div className="flex items-center">
               <XCircle className="h-8 w-8 text-red-600 mr-4" />
               <div>
-                <h3 className="font-semibold text-red-800">Analysis Failed</h3>
-                <p className="text-red-600">There was an error analyzing your thesis. Your credits have been refunded.</p>
+                <h3 className="font-semibold text-red-800">Analiz Başarısız</h3>
+                <p className="text-red-600">Teziniz analiz edilirken bir hata oluştu. Kredileriniz iade edildi.</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Analysis Overview */}
+        {/* Premium Format - Yeni gelişmiş sonuç gösterimi */}
+        {isPremiumFormat && result && (
+          <PremiumResultDisplay result={result as any} />
+        )}
+
+        {/* Eski format için mevcut gösterim */}
+        {!isPremiumFormat && result && (
+          <>
+            {/* Analysis Overview */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex-1">
@@ -504,6 +520,8 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                 </div>
               </div>
             )}
+          </>
+        )}
           </>
         )}
       </div>

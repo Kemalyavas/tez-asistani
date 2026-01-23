@@ -80,14 +80,13 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
             const basketId = result.basketId;
             // basketId format: basket_<userId8>_<packageId>_<timestamp>
             const basketParts = basketId.split('_');
-            const userIdPartial = basketParts[1];
             const packageId = basketParts[2];
 
             console.log('[VERIFY-PAYMENT] Bilgiler:', {
-              userIdPartial,
               packageId,
               basketId,
-              paymentId: result.paymentId
+              paymentId: result.paymentId,
+              conversationId: result.conversationId
             });
 
             // Kredi paketi kontrolü
@@ -103,43 +102,50 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
 
             const supabase = getSupabaseAdmin();
 
-            // Kullanıcıyı bul
-            const { data: profiles, error: profileError } = await supabase
-              .from('profiles')
-              .select('id')
-              .ilike('id', `${userIdPartial}%`)
-              .limit(1);
+            // FIXED: Get user_id directly from payment_history (stored during checkout)
+            // This avoids UUID collision risk from parsing basketId
+            const { data: pendingPayment, error: pendingError } = await supabase
+              .from('payment_history')
+              .select('id, user_id, status, payment_id')
+              .or(`payment_id.eq.${token},conversation_id.eq.${result.conversationId}`)
+              .limit(1)
+              .single();
 
-            if (profileError || !profiles || profiles.length === 0) {
-              console.error('[VERIFY-PAYMENT] Kullanıcı bulunamadı:', userIdPartial);
+            if (pendingError || !pendingPayment) {
+              console.error('[VERIFY-PAYMENT] Ödeme kaydı bulunamadı:', { token, conversationId: result.conversationId });
               const failureUrl = new URL('/payment/status', siteUrl);
               failureUrl.searchParams.set('status', 'failure');
-              failureUrl.searchParams.set('error', 'Kullanıcı bulunamadı.');
+              failureUrl.searchParams.set('error', 'Ödeme kaydı bulunamadı.');
               resolve(NextResponse.redirect(failureUrl, { status: 303 }));
               return;
             }
 
-            const fullUserId = profiles[0].id;
+            const fullUserId = pendingPayment.user_id;
 
             // Daha önce işlenmiş mi kontrol et (idempotency)
-            // Both paymentId and conversationId should be checked
-            const { data: existingPayments } = await supabase
-              .from('payment_history')
-              .select('id, status, payment_id')
-              .or(`payment_id.eq.${result.paymentId},conversation_id.eq.${result.conversationId}`)
-              .eq('status', 'success')
-              .limit(1);
-
-            if (existingPayments && existingPayments.length > 0) {
+            if (pendingPayment.status === 'success') {
               console.log('[VERIFY-PAYMENT] Bu ödeme zaten işlenmiş:', result.paymentId);
-              // Zaten işlenmişse başarı sayfasına yönlendir
-              const successUrl = new URL('/payment/status', siteUrl);
-              successUrl.searchParams.set('status', 'success');
-              successUrl.searchParams.set('package', creditPackage.name);
-              successUrl.searchParams.set('credits', creditPackage.totalCredits.toString());
-              successUrl.searchParams.set('already_processed', 'true');
-              resolve(NextResponse.redirect(successUrl, { status: 303 }));
-              return;
+
+              // FIXED: Verify credits were actually added by checking credit_transactions
+              const { data: creditTx } = await supabase
+                .from('credit_transactions')
+                .select('id')
+                .eq('payment_id', result.paymentId)
+                .limit(1);
+
+              if (!creditTx || creditTx.length === 0) {
+                // Payment marked success but credits not added - need to add credits
+                console.warn('[VERIFY-PAYMENT] Ödeme başarılı işaretli ama kredi eksik, tekrar deneniyor...');
+              } else {
+                // Zaten işlenmişse başarı sayfasına yönlendir
+                const successUrl = new URL('/payment/status', siteUrl);
+                successUrl.searchParams.set('status', 'success');
+                successUrl.searchParams.set('package', creditPackage.name);
+                successUrl.searchParams.set('credits', creditPackage.totalCredits.toString());
+                successUrl.searchParams.set('already_processed', 'true');
+                resolve(NextResponse.redirect(successUrl, { status: 303 }));
+                return;
+              }
             }
 
             // Kredi ekle (RPC fonksiyonu ile)

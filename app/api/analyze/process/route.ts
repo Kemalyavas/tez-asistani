@@ -1,7 +1,9 @@
 // app/api/analyze/process/route.ts
 // ============================================================================
-// Process Analysis - Does the actual AI analysis in background
-// Updates thesis_documents record when complete
+// Process Analysis - Premium AI analysis with Gemini Pro
+// - Full document analysis (up to 500K characters)
+// - Page-specific feedback
+// - YÖK standards compliance check
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,15 +11,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { extractPdfText } from '../../../lib/fileUtils';
 import { isAdmin } from '../../../lib/adminUtils';
-import {
-  chunkThesisText,
-  getChunkEmbeddings,
-} from '../../../lib/thesis/chunkingService';
-import {
-  analyzeThesis,
-  quickAnalysis,
-  AnalysisResult
-} from '../../../lib/thesis/analysisService';
+import { analyzePremium, PremiumAnalysisResult } from '../../../lib/thesis/premiumAnalysisService';
 
 // Extend timeout for this route (Vercel Pro: up to 300s)
 export const maxDuration = 300; // 5 minutes
@@ -145,12 +139,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract text
-    const isDocx = fileName.endsWith('.docx');
-    const isPdf = fileName.endsWith('.pdf');
+    // Dosya türü ve buffer
+    const isDocx = fileName.toLowerCase().endsWith('.docx');
+    const isPdf = fileName.toLowerCase().endsWith('.pdf');
     const bytes = await fileData.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // PDF için: Doğrudan Gemini'ye gönderilecek (multimodal - görseller dahil)
+    // DOCX için: Metin çıkarılacak
     let text = '';
+    let useDirectPdf = false;
 
     try {
       if (isDocx) {
@@ -158,7 +156,27 @@ export async function POST(request: NextRequest) {
         const result = await mammoth.extractRawText({ buffer });
         text = result.value;
       } else if (isPdf) {
-        text = await extractPdfText(buffer);
+        // PDF boyutu kontrol et (50MB altındaysa doğrudan gönder)
+        const pdfSizeMB = buffer.length / 1024 / 1024;
+
+        if (pdfSizeMB <= 50) {
+          // PDF'i doğrudan Gemini'ye gönder - görseller, tablolar, grafikler dahil
+          useDirectPdf = true;
+          console.log(`[ANALYZE/PROCESS] PDF Direct Mode enabled - ${pdfSizeMB.toFixed(2)} MB (images will be analyzed)`);
+
+          // İstatistikler için yine metin çıkar (opsiyonel)
+          try {
+            text = await extractPdfText(buffer);
+          } catch {
+            // Metin çıkarılamasa bile devam et - Gemini okuyacak
+            text = '[PDF içeriği Gemini tarafından doğrudan okunacak]';
+            console.log(`[ANALYZE/PROCESS] Text extraction failed, but PDF will be sent directly to Gemini`);
+          }
+        } else {
+          // Çok büyük PDF - sadece metin modu
+          console.log(`[ANALYZE/PROCESS] PDF too large for direct mode (${pdfSizeMB.toFixed(2)} MB), using text extraction`);
+          text = await extractPdfText(buffer);
+        }
       }
     } catch (parseError) {
       console.error('Parse error:', parseError);
@@ -169,7 +187,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!text || text.length < 1000) {
+    // PDF direct mode'da metin kontrolü atla
+    if (!useDirectPdf && (!text || text.length < 1000)) {
       await markAsFailed(supabase, documentId, user.id, doc.credits_used);
       return NextResponse.json(
         { error: 'Document too short' },
@@ -177,11 +196,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pageCount = estimatePageCount(text);
-    const wordCount = getWordCount(text);
+    const pageCount = useDirectPdf ? Math.ceil(buffer.length / 50000) : estimatePageCount(text); // PDF için tahmini
+    const wordCount = useDirectPdf ? 0 : getWordCount(text);
     const analysisTier = doc.analysis_type;
 
-    console.log(`[ANALYZE/PROCESS] Pages: ${pageCount}, Words: ${wordCount}, Tier: ${analysisTier}`);
+    console.log(`[ANALYZE/PROCESS] Mode: ${useDirectPdf ? 'PDF Direct (with images)' : 'Text'}, Pages: ~${pageCount}, Words: ${wordCount}, Tier: ${analysisTier}`);
 
     // Check timeout before heavy analysis
     if (timeoutOccurred) {
@@ -193,92 +212,92 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Perform analysis
-    let analysisResult: AnalysisResult;
+    // Perform Premium Analysis with Gemini Pro
+    let analysisResult: PremiumAnalysisResult;
 
     try {
-      if (analysisTier === 'basic') {
-        // Basic: Quick single-pass analysis
-        analysisResult = await quickAnalysis(text, pageCount);
+      console.log(`[ANALYZE/PROCESS] Starting Premium Analysis with Gemini ${useDirectPdf ? '(PDF Direct - images included)' : '(Text mode)'}...`);
 
-      } else {
-        // Standard/Comprehensive: Full RAG-based analysis
-
-        // 1. Chunk the text
-        const chunks = chunkThesisText(text, {
-          maxTokensPerChunk: analysisTier === 'comprehensive' ? 2000 : 1500,
-          overlapTokens: 150,
-          preserveSections: true
+      if (useDirectPdf) {
+        // PDF DIRECT MODE: Buffer'ı doğrudan gönder
+        // Gemini tüm görselleri, tabloları, grafikleri görecek
+        analysisResult = await analyzePremium(buffer, {
+          fileName,
+          isPdf: true,
+          includeImages: true,
         });
+      } else {
+        // TEXT MODE: Sadece metin gönder
+        // Gemini Pro 1M token işleyebilir - 500K karakter güvenli limit
+        const maxChars = 500000;
+        const analysisText = text.length > maxChars
+          ? text.substring(0, maxChars) + '\n\n[...Dökümanın geri kalanı boyut sınırı nedeniyle kesildi...]'
+          : text;
 
-        console.log(`[ANALYZE/PROCESS] Created ${chunks.length} chunks`);
-
-        // 2. Store chunks in database
-        const chunkInserts = chunks.map(chunk => ({
-          thesis_id: documentId,
-          user_id: user.id,
-          chunk_index: chunk.index,
-          content: chunk.content,
-          token_count: chunk.tokenCount,
-          section_type: chunk.sectionType,
-          metadata: chunk.metadata
-        }));
-
-        // Insert chunks in batches
-        const batchSize = 50;
-        for (let i = 0; i < chunkInserts.length; i += batchSize) {
-          const batch = chunkInserts.slice(i, i + batchSize);
-          await supabase.from('thesis_chunks').insert(batch);
+        if (text.length > maxChars) {
+          console.log(`[ANALYZE/PROCESS] Text truncated: ${text.length} -> ${maxChars} chars`);
         }
 
-        // 3. Generate embeddings for comprehensive analysis
-        if (analysisTier === 'comprehensive' && chunks.length > 0) {
-          try {
-            const embeddings = await getChunkEmbeddings(chunks.slice(0, 50));
-
-            for (const [index, embedding] of embeddings) {
-              await supabase
-                .from('thesis_chunks')
-                .update({ embedding: embedding })
-                .eq('thesis_id', documentId)
-                .eq('chunk_index', index);
-            }
-          } catch (embeddingError) {
-            console.warn('Embedding generation failed, continuing without:', embeddingError);
-          }
-        }
-
-        // 4. Run multi-pass analysis
-        analysisResult = await analyzeThesis(chunks, analysisTier as 'standard' | 'comprehensive');
+        // Premium analiz yap (Gemini Pro ile)
+        analysisResult = await analyzePremium(analysisText, {
+          fileName,
+          isPdf: false,
+        });
       }
 
-      // Update thesis document with results
+      // Update thesis document with Premium results
       const updateData = {
         status: 'analyzed',
         analysis_result: {
-          overall_score: analysisResult.overallScore,
+          // Yeni Premium format
           overallScore: analysisResult.overallScore,
-          grade_category: analysisResult.gradeCategory,
-          gradeCategory: analysisResult.gradeCategory,
-          summary: analysisResult.summary,
-          category_scores: {
-            structure: analysisResult.categoryScores.structure,
-            methodology: analysisResult.categoryScores.methodology,
-            writing_quality: analysisResult.categoryScores.writingQuality,
-            references: analysisResult.categoryScores.references
+          overall_score: analysisResult.overallScore,
+          grade: analysisResult.grade,
+          gradeCategory: analysisResult.grade.label,
+          grade_category: analysisResult.grade.label,
+          summary: analysisResult.executiveSummary,
+          executiveSummary: analysisResult.executiveSummary,
+
+          // Bölüm skorları (hem yeni hem eski format)
+          sections: analysisResult.sections,
+          categoryScores: {
+            structure: analysisResult.sections.structure,
+            methodology: analysisResult.sections.methodology,
+            writingQuality: analysisResult.sections.writingQuality,
+            references: analysisResult.sections.references,
+            literature: analysisResult.sections.literature,
+            formatting: analysisResult.sections.formatting,
           },
-          categoryScores: analysisResult.categoryScores,
-          critical_issues: analysisResult.criticalIssues,
-          criticalIssues: analysisResult.criticalIssues,
-          major_issues: analysisResult.majorIssues,
-          majorIssues: analysisResult.majorIssues,
-          minor_issues: analysisResult.minorIssues,
-          minorIssues: analysisResult.minorIssues,
+          category_scores: {
+            structure: analysisResult.sections.structure,
+            methodology: analysisResult.sections.methodology,
+            writing_quality: analysisResult.sections.writingQuality,
+            references: analysisResult.sections.references,
+          },
+
+          // Sorunlar (sayfa numaralı)
+          issues: analysisResult.issues,
+          criticalIssues: analysisResult.issues.critical,
+          critical_issues: analysisResult.issues.critical,
+          majorIssues: analysisResult.issues.major,
+          major_issues: analysisResult.issues.major,
+          minorIssues: analysisResult.issues.minor,
+          minor_issues: analysisResult.issues.minor,
+          formattingIssues: analysisResult.issues.formatting,
+
+          // Güçlü yönler ve öneriler
           strengths: analysisResult.strengths,
-          immediate_actions: analysisResult.immediateActions,
-          immediateActions: analysisResult.immediateActions,
-          recommendations: analysisResult.recommendations,
-          metadata: analysisResult.metadata
+          priorityActions: analysisResult.priorityActions,
+          immediateActions: analysisResult.priorityActions.map(a => a.action),
+          immediate_actions: analysisResult.priorityActions.map(a => a.action),
+          recommendations: analysisResult.priorityActions.map(a => `${a.action}: ${a.reason}`),
+
+          // YÖK uyumluluk
+          yokCompliance: analysisResult.yokCompliance,
+
+          // İstatistikler
+          statistics: analysisResult.statistics,
+          metadata: analysisResult.metadata,
         },
         overall_score: analysisResult.overallScore,
         analyzed_at: new Date().toISOString()
@@ -305,10 +324,19 @@ export async function POST(request: NextRequest) {
       // Clean up timer
       if (timeoutTimer) clearTimeout(timeoutTimer);
 
-      // Clean up: Delete file from storage
-      await supabase.storage
-        .from('thesis-files')
-        .remove([filePath]);
+      // Clean up: Delete file from storage with error handling
+      try {
+        const { error: deleteError } = await supabase.storage
+          .from('thesis-files')
+          .remove([filePath]);
+
+        if (deleteError) {
+          console.error('[ANALYZE/PROCESS] File deletion failed:', deleteError);
+          // Log but don't fail the request - analysis was successful
+        }
+      } catch (deleteErr) {
+        console.error('[ANALYZE/PROCESS] File deletion error:', deleteErr);
+      }
 
       return NextResponse.json({
         success: true,
@@ -322,10 +350,18 @@ export async function POST(request: NextRequest) {
       // Clean up timer
       if (timeoutTimer) clearTimeout(timeoutTimer);
 
-      // Clean up file
-      await supabase.storage
-        .from('thesis-files')
-        .remove([filePath]);
+      // Clean up file with error handling
+      try {
+        const { error: deleteError } = await supabase.storage
+          .from('thesis-files')
+          .remove([filePath]);
+
+        if (deleteError) {
+          console.error('[ANALYZE/PROCESS] File deletion failed on error:', deleteError);
+        }
+      } catch (deleteErr) {
+        console.error('[ANALYZE/PROCESS] File deletion error on error:', deleteErr);
+      }
 
       // Mark as failed and refund
       await markAsFailed(supabase, documentId, user.id, doc.credits_used);
@@ -356,24 +392,38 @@ async function markAsFailed(
   userId: string,
   creditsUsed: number
 ) {
-  // Update document status
-  await supabase
-    .from('thesis_documents')
-    .update({ status: 'failed' })
-    .eq('id', documentId)
-    .eq('status', 'processing');
+  try {
+    // Update document status
+    const { error: updateError } = await supabase
+      .from('thesis_documents')
+      .update({ status: 'failed' })
+      .eq('id', documentId)
+      .eq('status', 'processing');
 
-  // Refund credits (skip for admin)
-  const userIsAdmin = isAdmin(userId);
-  if (!userIsAdmin && creditsUsed > 0) {
-    await supabase.rpc('add_credits', {
-      p_user_id: userId,
-      p_amount: creditsUsed,
-      p_bonus: 0,
-      p_payment_id: null,
-      p_package_id: null
-    });
-    console.log(`[ANALYZE/PROCESS] Refunded ${creditsUsed} credits to user ${userId}`);
+    if (updateError) {
+      console.error('[ANALYZE/PROCESS] Failed to update document status:', updateError);
+    }
+
+    // Refund credits (skip for admin)
+    const userIsAdmin = isAdmin(userId);
+    if (!userIsAdmin && creditsUsed > 0) {
+      const { error: refundError } = await supabase.rpc('add_credits', {
+        p_user_id: userId,
+        p_amount: creditsUsed,
+        p_bonus: 0,
+        p_payment_id: null,
+        p_package_id: null
+      });
+
+      if (refundError) {
+        console.error(`[CRITICAL] Credit refund failed for user ${userId}:`, refundError);
+        console.error(`[CRITICAL] User may have lost ${creditsUsed} credits`);
+      } else {
+        console.log(`[ANALYZE/PROCESS] Refunded ${creditsUsed} credits to user ${userId}`);
+      }
+    }
+  } catch (error) {
+    console.error('[CRITICAL] markAsFailed exception:', error);
   }
 }
 
@@ -385,29 +435,43 @@ async function markAsFailedWithTimeout(
   creditsUsed: number
 ) {
   console.error(`[ANALYZE/PROCESS] TIMEOUT - Marking document ${documentId} as failed`);
-  
-  // Update document status with timeout error
-  await supabase
-    .from('thesis_documents')
-    .update({ 
-      status: 'failed',
-      analysis_result: {
-        error: 'Analysis timeout - document too large for processing. Please try with a smaller file or contact support.'
-      }
-    })
-    .eq('id', documentId)
-    .eq('status', 'processing');
 
-  // Refund credits (skip for admin)
-  const userIsAdmin = isAdmin(userId);
-  if (!userIsAdmin && creditsUsed > 0) {
-    await supabase.rpc('add_credits', {
-      p_user_id: userId,
-      p_amount: creditsUsed,
-      p_bonus: 0,
-      p_payment_id: null,
-      p_package_id: null
-    });
-    console.log(`[ANALYZE/PROCESS] TIMEOUT REFUND - ${creditsUsed} credits to user ${userId}`);
+  try {
+    // Update document status with timeout error
+    const { error: updateError } = await supabase
+      .from('thesis_documents')
+      .update({
+        status: 'failed',
+        analysis_result: {
+          error: 'Analysis timeout - document too large for processing. Please try with a smaller file or contact support.'
+        }
+      })
+      .eq('id', documentId)
+      .eq('status', 'processing');
+
+    if (updateError) {
+      console.error('[ANALYZE/PROCESS] Failed to update document status on timeout:', updateError);
+    }
+
+    // Refund credits (skip for admin)
+    const userIsAdmin = isAdmin(userId);
+    if (!userIsAdmin && creditsUsed > 0) {
+      const { error: refundError } = await supabase.rpc('add_credits', {
+        p_user_id: userId,
+        p_amount: creditsUsed,
+        p_bonus: 0,
+        p_payment_id: null,
+        p_package_id: null
+      });
+
+      if (refundError) {
+        console.error(`[CRITICAL] Timeout credit refund failed for user ${userId}:`, refundError);
+        console.error(`[CRITICAL] User may have lost ${creditsUsed} credits`);
+      } else {
+        console.log(`[ANALYZE/PROCESS] TIMEOUT REFUND - ${creditsUsed} credits to user ${userId}`);
+      }
+    }
+  } catch (error) {
+    console.error('[CRITICAL] markAsFailedWithTimeout exception:', error);
   }
 }

@@ -218,11 +218,12 @@ export default function PrivacyPolicy() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">6. Third-Party Services</h2>
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">OpenAI (ChatGPT API)</h3>
-                  <p className="text-sm text-gray-600 mb-2">Used for AI analysis. OpenAI's data policy:</p>
+                  <h3 className="font-semibold mb-2">Google Gemini API</h3>
+                  <p className="text-sm text-gray-600 mb-2">Used for AI-powered thesis analysis. Google's data policy:</p>
                   <ul className="text-sm text-gray-600 list-disc pl-4 space-y-1">
                     <li>Data sent via API is not used for model training</li>
                     <li>Compliant with GDPR and data protection standards</li>
+                    <li>Enterprise-grade security and privacy controls</li>
                   </ul>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">

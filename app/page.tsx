@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import FileUploader from './components/FileUploader';
-import ResultDisplay from './components/ResultDisplay';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
 import TestimonialsCarousel from './components/TestimonialsCarousel';
@@ -13,7 +12,6 @@ import toast from 'react-hot-toast';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('upload');
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -332,7 +330,7 @@ export default function Home() {
               <div className="p-8">
                 {activeTab === 'upload' && (
                   <div className="animate-fade-in">
-                    <FileUploader onAnalysisComplete={setAnalysisResult} />
+                    <FileUploader />
                   </div>
                 )}
                 {activeTab === 'citation' && (
@@ -347,13 +345,6 @@ export default function Home() {
                 )}
               </div>
             </div>
-            
-            {/* Result Display */}
-            {analysisResult && activeTab === 'upload' && (
-              <div className="mt-8 animate-fade-in">
-                <ResultDisplay result={analysisResult} />
-              </div>
-            )}
           </div>
         </div>
       </section>

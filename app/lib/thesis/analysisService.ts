@@ -1,11 +1,50 @@
 // app/lib/thesis/analysisService.ts
 // ============================================================================
 // Thesis Analysis Service - Multi-Pass RAG-Based Analysis
+// Updated: Gemini as primary model, Claude/GPT as fallback
 // ============================================================================
 
-import anthropic from '../anthropic';
-import openai from '../openai';
 import { ThesisChunk, SectionType, analyzeThesisStructure } from './chunkingService';
+
+// Dynamic imports for optional APIs
+let anthropic: any = null;
+let openai: any = null;
+let gemini: any = null;
+
+// Initialize Gemini (primary model - Gemini 2.0 Flash for speed)
+async function getGemini() {
+  if (!gemini && process.env.GOOGLE_AI_API_KEY) {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+    gemini = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: {
+        temperature: 0.3,
+        topP: 0.95,
+        maxOutputTokens: 8192,
+      },
+    });
+  }
+  return gemini;
+}
+
+// Initialize Anthropic (fallback)
+async function getAnthropic() {
+  if (!anthropic && process.env.ANTHROPIC_API_KEY) {
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return anthropic;
+}
+
+// Initialize OpenAI (fallback)
+async function getOpenAI() {
+  if (!openai && process.env.OPENAI_API_KEY) {
+    const OpenAI = (await import('openai')).default;
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+}
 
 // ============================================================================
 // Types
@@ -267,15 +306,61 @@ function buildContext(chunks: ThesisChunk[], maxTokens: number = 8000): string {
 }
 
 /**
- * Call Claude for analysis (primary model for complex analysis)
+ * Call Gemini for analysis (PRIMARY - fastest and most cost-effective)
+ */
+async function callGemini(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<any> {
+  const model = await getGemini();
+  if (!model) {
+    throw new Error('Gemini API not configured');
+  }
+
+  try {
+    const chat = model.startChat({
+      history: [
+        {
+          role: 'user',
+          parts: [{ text: `SYSTEM: ${systemPrompt}\n\nRespond ONLY with valid JSON.` }],
+        },
+        {
+          role: 'model',
+          parts: [{ text: 'Anladım, sadece JSON formatında yanıt vereceğim.' }],
+        },
+      ],
+    });
+
+    const result = await chat.sendMessage(userPrompt);
+    const response = result.response.text();
+
+    // Extract JSON from response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('No valid JSON in response');
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Call Claude for analysis (FALLBACK 1)
  */
 async function callClaude(
   systemPrompt: string,
   userPrompt: string,
   maxTokens: number = 2000
 ): Promise<any> {
+  const client = await getAnthropic();
+  if (!client) {
+    throw new Error('Anthropic API not configured');
+  }
+
   try {
-    const response = await anthropic.messages.create({
+    const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: maxTokens,
       messages: [
@@ -286,7 +371,6 @@ async function callClaude(
 
     const content = response.content[0];
     if (content.type === 'text') {
-      // Extract JSON from response
       const jsonMatch = content.text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
@@ -300,15 +384,20 @@ async function callClaude(
 }
 
 /**
- * Call GPT-4 for analysis (fallback/secondary)
+ * Call GPT-4 for analysis (FALLBACK 2)
  */
 async function callGPT4(
   systemPrompt: string,
   userPrompt: string,
   maxTokens: number = 2000
 ): Promise<any> {
+  const client = await getOpenAI();
+  if (!client) {
+    throw new Error('OpenAI API not configured');
+  }
+
   try {
-    const response = await openai.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: 'gpt-4o',
       max_tokens: maxTokens,
       response_format: { type: 'json_object' },
@@ -328,6 +417,40 @@ async function callGPT4(
     console.error('GPT-4 API error:', error);
     throw error;
   }
+}
+
+/**
+ * Smart AI call - tries Gemini first, then Claude, then GPT-4
+ */
+async function callAI(
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens: number = 2000
+): Promise<any> {
+  // Try Gemini first (fastest, cheapest, largest context)
+  if (process.env.GOOGLE_AI_API_KEY) {
+    try {
+      return await callGemini(systemPrompt, userPrompt);
+    } catch (error) {
+      console.warn('Gemini failed, trying fallback:', error);
+    }
+  }
+
+  // Try Claude second
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      return await callClaude(systemPrompt, userPrompt, maxTokens);
+    } catch (error) {
+      console.warn('Claude failed, trying GPT-4:', error);
+    }
+  }
+
+  // Try GPT-4 last
+  if (process.env.OPENAI_API_KEY) {
+    return await callGPT4(systemPrompt, userPrompt, maxTokens);
+  }
+
+  throw new Error('No AI API configured. Please add GOOGLE_AI_API_KEY to .env.local');
 }
 
 /**
@@ -369,9 +492,9 @@ async function analyzeCategory(
   const userPrompt = `${prompts[category]}\n\nThesis Content:\n${context}`;
 
   try {
-    // Try Claude first (better for nuanced academic analysis)
-    const result = await callClaude(SYSTEM_PROMPT, userPrompt);
-    
+    // Use smart AI call (tries Gemini -> Claude -> GPT-4)
+    const result = await callAI(SYSTEM_PROMPT, userPrompt);
+
     return {
       score: result.score || 0,
       maxScore: 25,
@@ -385,36 +508,16 @@ async function analyzeCategory(
       strengths: result.strengths || []
     };
   } catch (error) {
-    // Fallback to GPT-4
-    console.warn(`Claude failed for ${category}, trying GPT-4`);
-    
-    try {
-      const result = await callGPT4(SYSTEM_PROMPT, userPrompt);
-      
-      return {
-        score: result.score || 0,
-        maxScore: 25,
-        percentage: ((result.score || 0) / 25) * 100,
-        feedback: result.feedback || 'Analysis completed',
-        details: result.details || [],
-        issues: (result.issues || []).map((i: any) => ({
-          ...i,
-          section: category as any
-        })),
-        strengths: result.strengths || []
-      };
-    } catch (fallbackError) {
-      console.error(`Both APIs failed for ${category}`);
-      return {
-        score: 0,
-        maxScore: 25,
-        percentage: 0,
-        feedback: 'Analysis could not be completed',
-        details: [],
-        issues: [],
-        strengths: []
-      };
-    }
+    console.error(`AI analysis failed for ${category}:`, error);
+    return {
+      score: 0,
+      maxScore: 25,
+      percentage: 0,
+      feedback: 'Analysis could not be completed',
+      details: [],
+      issues: [],
+      strengths: []
+    };
   }
 }
 
@@ -470,7 +573,7 @@ export async function analyzeThesis(
 
   let synthesis;
   try {
-    synthesis = await callClaude(
+    synthesis = await callAI(
       SYSTEM_PROMPT,
       SYNTHESIS_PROMPT.replace('{categoryAnalyses}', categoryAnalyses)
     );
@@ -580,9 +683,9 @@ Provide JSON response with:
 }`;
 
   const startTime = Date.now();
-  
+
   try {
-    const result = await callGPT4(SYSTEM_PROMPT, quickPrompt, 2500);
+    const result = await callAI(SYSTEM_PROMPT, quickPrompt, 2500);
     
     return {
       overallScore: result.overallScore || 50,

@@ -9,7 +9,7 @@ import { useCredits } from '../hooks/useCredits';
 import { CREDIT_COSTS, getAnalysisTier } from '../lib/pricing';
 
 interface FileUploaderProps {
-  onAnalysisComplete: (result: any) => void;
+  onAnalysisComplete?: (result: any) => void;
 }
 
 type AnalysisStep = 'idle' | 'uploading' | 'processing' | 'analyzing' | 'finalizing' | 'complete' | 'error';
@@ -31,6 +31,8 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
   const [user, setUser] = useState<any>(null);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingStartTime = useRef<number | null>(null);
+  const MAX_POLLING_TIME_MS = 5 * 60 * 1000; // 5 dakika maksimum bekleme
   
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -48,11 +50,43 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
     if (acceptedFiles.length > 0) {
       const uploadedFile = acceptedFiles[0];
       setFile(uploadedFile);
-      
-      // Estimate page count from file size (rough: 50KB per page for PDF)
-      const estimatedPagesFromSize = Math.ceil(uploadedFile.size / 50000);
+
+      // PDF için gerçek sayfa sayısını almaya çalış
+      let estimatedPagesFromSize = 0;
+
+      if (uploadedFile.type === 'application/pdf') {
+        try {
+          // PDF'in ilk kısmını oku ve sayfa sayısını bul
+          const arrayBuffer = await uploadedFile.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          const text = new TextDecoder('latin1').decode(uint8Array);
+
+          // PDF'teki /Count değerini bul (sayfa sayısı)
+          const countMatch = text.match(/\/Count\s+(\d+)/g);
+          if (countMatch && countMatch.length > 0) {
+            // En büyük Count değerini al (genellikle toplam sayfa sayısı)
+            const counts = countMatch.map(m => parseInt(m.match(/\d+/)?.[0] || '0'));
+            estimatedPagesFromSize = Math.max(...counts);
+          }
+
+          // Eğer bulunamadıysa boyuttan tahmin et
+          if (estimatedPagesFromSize === 0) {
+            // PDF: ortalama 25KB per sayfa (görsel içeriğe göre değişir)
+            estimatedPagesFromSize = Math.ceil(uploadedFile.size / 25000);
+          }
+        } catch (e) {
+          // Hata durumunda boyuttan tahmin et
+          estimatedPagesFromSize = Math.ceil(uploadedFile.size / 25000);
+        }
+      } else {
+        // DOCX: ortalama 10KB per sayfa
+        estimatedPagesFromSize = Math.ceil(uploadedFile.size / 10000);
+      }
+
+      // Minimum 1, maksimum 500 sayfa
+      estimatedPagesFromSize = Math.max(1, Math.min(500, estimatedPagesFromSize));
       setEstimatedPages(estimatedPagesFromSize);
-      
+
       // Get estimated credits based on tier
       const tier = getAnalysisTier(estimatedPagesFromSize);
       const actionType = `thesis_${tier.id}` as keyof typeof CREDIT_COSTS;
@@ -82,6 +116,19 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
   // Poll for analysis status
   const pollAnalysisStatus = async (docId: string) => {
     try {
+      // Timeout kontrolü - 5 dakikadan fazla bekleme
+      if (pollingStartTime.current && Date.now() - pollingStartTime.current > MAX_POLLING_TIME_MS) {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        setCurrentStep('error');
+        setStatusMessage('Analysis timed out. Please try again or contact support.');
+        toast.error('Analysis timed out. Your credits will be refunded if the analysis failed.');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('thesis_documents')
         .select('status, analysis_result, overall_score')
@@ -104,30 +151,13 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         setStatusMessage('Analysis completed!');
         await refreshCredits();
 
-        // Transform the result to match expected format
-        const result = data.analysis_result;
-        onAnalysisComplete({
-          success: true,
-          overall_score: result.overall_score || result.overallScore,
-          grade_category: result.grade_category || result.gradeCategory,
-          summary: result.summary,
-          category_scores: result.category_scores || {
-            structure: result.categoryScores?.structure,
-            methodology: result.categoryScores?.methodology,
-            writing_quality: result.categoryScores?.writingQuality,
-            references: result.categoryScores?.references
-          },
-          critical_issues: result.critical_issues || result.criticalIssues || [],
-          major_issues: result.major_issues || result.majorIssues || [],
-          minor_issues: result.minor_issues || result.minorIssues || [],
-          strengths: result.strengths || [],
-          immediate_actions: result.immediate_actions || result.immediateActions || [],
-          recommendations: result.recommendations || [],
-          metadata: result.metadata || {}
-        });
-
-        toast.success('Analysis complete!');
+        toast.success('Analysis complete! Redirecting to report...');
         setLoading(false);
+
+        // Otomatik yönlendirme - 1.5 saniye sonra rapora git
+        setTimeout(() => {
+          router.push(`/analyses/${docId}`);
+        }, 1500);
 
       } else if (data.status === 'failed') {
         if (pollingRef.current) {
@@ -226,10 +256,11 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       setCurrentStep('analyzing');
       setStatusMessage('AI is analyzing your thesis...');
 
-      // Start polling for status updates
+      // Start polling for status updates (5 second interval to reduce DB load)
+      pollingStartTime.current = Date.now(); // Polling başlangıç zamanını kaydet
       pollingRef.current = setInterval(() => {
         pollAnalysisStatus(docId);
-      }, 3000); // Poll every 3 seconds
+      }, 5000); // Poll every 5 seconds (max 5 minutes)
 
       // Also trigger the actual analysis in background
       fetch('/api/analyze/process', {
@@ -440,6 +471,24 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
               >
                 Try again with a different file
               </button>
+            </div>
+          )}
+
+          {/* Success state - Show button to go to report */}
+          {currentStep === 'complete' && analysisId && (
+            <div className="mt-4 p-6 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-center">
+                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-green-800 mb-2">Analiz Tamamlandı!</h3>
+                <p className="text-green-700 mb-4">Teziniz başarıyla analiz edildi. Detaylı raporu görüntülemek için aşağıdaki butona tıklayın.</p>
+                <button
+                  onClick={() => router.push(`/analyses/${analysisId}`)}
+                  className="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition"
+                >
+                  <BarChart3 className="h-5 w-5 mr-2" />
+                  Analiz Raporunu Görüntüle
+                </button>
+              </div>
             </div>
           )}
         </div>

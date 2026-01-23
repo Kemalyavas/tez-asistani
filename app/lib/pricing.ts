@@ -1,6 +1,7 @@
 // app/lib/pricing.ts
 // ============================================================================
-// TezAI Credit-Based Pricing System v2.0
+// TezAI Credit-Based Pricing System v3.0
+// Multi-Agent Architecture & New Pricing Model
 // ============================================================================
 
 // Currency constants
@@ -120,31 +121,49 @@ export const CREDIT_COSTS: Record<string, CreditCost> = {
   citation_format: {
     actionType: 'citation_format',
     creditsRequired: 1,
-    description: 'Format a citation (APA, MLA, Chicago, IEEE)',
+    description: 'Atıf biçimlendirme (APA, MLA, Chicago, IEEE)',
     category: 'citation'
   },
   abstract_generate: {
     actionType: 'abstract_generate',
     creditsRequired: 3,
-    description: 'Generate thesis abstract (TR/EN/Both)',
+    description: 'Özet üretimi (TR/EN/Her ikisi)',
     category: 'abstract'
   },
   thesis_basic: {
     actionType: 'thesis_basic',
     creditsRequired: 10,
-    description: 'Basic thesis analysis (< 30 pages)',
+    description: 'Temel analiz (< 50 sayfa) - Yapı ve kaynak kontrolü',
     category: 'thesis'
   },
   thesis_standard: {
     actionType: 'thesis_standard',
     creditsRequired: 25,
-    description: 'Standard thesis analysis (30-60 pages)',
+    description: 'Standart analiz (50-150 sayfa) - Multi-Agent detaylı analiz',
     category: 'thesis'
   },
   thesis_comprehensive: {
     actionType: 'thesis_comprehensive',
     creditsRequired: 50,
-    description: 'Comprehensive thesis analysis (60-100+ pages)',
+    description: 'Kapsamlı analiz (150+ sayfa) - Çapraz doğrulama dahil',
+    category: 'thesis'
+  },
+  pdf_report: {
+    actionType: 'pdf_report',
+    creditsRequired: 5,
+    description: 'PDF rapor indirme',
+    category: 'thesis'
+  },
+  comparative_analysis: {
+    actionType: 'comparative_analysis',
+    creditsRequired: 10,
+    description: 'Önceki versiyon ile karşılaştırma',
+    category: 'thesis'
+  },
+  revision_tracking: {
+    actionType: 'revision_tracking',
+    creditsRequired: 15,
+    description: 'Revizyon takibi ve öneriler',
     category: 'thesis'
   }
 };
@@ -164,44 +183,49 @@ export interface AnalysisTier {
 export const ANALYSIS_TIERS: AnalysisTier[] = [
   {
     id: 'basic',
-    name: 'Basic Analysis',
+    name: 'Temel Analiz',
     minPages: 1,
-    maxPages: 30,
+    maxPages: 50,
     credits: 10,
     features: [
-      'Structure analysis',
-      'Writing quality check',
-      'Basic formatting review',
-      'Citation spot-check'
+      'Yapı ve organizasyon kontrolü',
+      'Temel yazım kalitesi analizi',
+      'Kaynak formatı kontrolü',
+      'Hızlı AI değerlendirmesi (Gemini Flash)',
+      'Temel skor ve öneriler'
     ]
   },
   {
     id: 'standard',
-    name: 'Standard Analysis',
-    minPages: 31,
-    maxPages: 60,
+    name: 'Standart Analiz',
+    minPages: 51,
+    maxPages: 150,
     credits: 25,
     features: [
-      'Everything in Basic',
-      'Methodology evaluation',
-      'Literature review assessment',
-      'Full citation verification',
-      'Section-by-section feedback'
+      'Temel Analizin tüm özellikleri',
+      'Multi-Agent derinlemesine analiz',
+      'Metodoloji değerlendirmesi',
+      'Literatür tutarlılığı kontrolü',
+      'Argümantasyon analizi',
+      'Detaylı kategori puanları',
+      'Bölüm bazlı geri bildirim'
     ]
   },
   {
     id: 'comprehensive',
-    name: 'Comprehensive Analysis',
-    minPages: 61,
+    name: 'Kapsamlı Analiz',
+    minPages: 151,
     maxPages: 999,
     credits: 50,
     features: [
-      'Everything in Standard',
-      'Deep RAG-based analysis',
-      'Multi-pass evaluation',
-      'Detailed chapter reviews',
-      'Plagiarism indicators',
-      'Publication readiness score'
+      'Standart Analizin tüm özellikleri',
+      'Claude ile çapraz doğrulama',
+      'Gemini + Claude hibrit değerlendirme',
+      'Özgünlük ve katkı analizi',
+      'Profesör düzeyinde geri bildirim',
+      'Yayın hazırlığı değerlendirmesi',
+      'Kalibre edilmiş skorlar',
+      'Öncelikli işleme'
     ]
   }
 ];

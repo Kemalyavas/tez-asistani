@@ -29,14 +29,24 @@ export default function MesafeliSatisSozlesmesi() {
           <section>
             <h2 className="text-xl font-semibold mb-3">3. SERVICE INFORMATION</h2>
             <div className="text-gray-700">
-              <p><strong>Service Types:</strong></p>
+              <p><strong>Credit-Based System:</strong></p>
+              <p className="mt-2 mb-3">TezAI operates on a credit-based system. Users purchase credit packages and use credits for various services:</p>
               <ul className="list-disc pl-6 mt-2">
-                <li>Free Plan: 1 thesis analysis credit</li>
-                <li>Pro Plan: 30 thesis analyses per month - $9/month</li>
-                <li>Expert Plan: Unlimited thesis analyses - $25/month</li>
+                <li>Starter Pack: 50 credits - $5</li>
+                <li>Standard Pack: 240 credits (200 + 40 bonus) - $15</li>
+                <li>Pro Pack: 600 credits (500 + 100 bonus) - $35</li>
+                <li>Ultimate Pack: 1500 credits (1200 + 300 bonus) - $75</li>
+              </ul>
+              <p className="mt-3"><strong>Credit Usage:</strong></p>
+              <ul className="list-disc pl-6 mt-2">
+                <li>Citation Formatting: 1 credit</li>
+                <li>Abstract Generation: 3 credits</li>
+                <li>Thesis Analysis (Short): 10 credits</li>
+                <li>Thesis Analysis (Medium): 25 credits</li>
+                <li>Thesis Analysis (Long): 50 credits</li>
               </ul>
               <p className="mt-3">
-                Services are provided digitally and are activated immediately after purchase.
+                Credits are delivered digitally and are activated immediately after purchase. Credits never expire.
               </p>
             </div>
           </section>

@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';
-import anthropic from "../../lib/anthropic";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { CREDIT_COSTS } from '../../lib/pricing';
 import { isAdmin } from '../../lib/adminUtils';
+
+// Gemini API client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
+
+// Safety settings for academic content
+const safetySettings = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+];
 
 const ACTION_TYPE = 'abstract_generate';
 const CREDITS_REQUIRED = CREDIT_COSTS[ACTION_TYPE].creditsRequired;
@@ -139,25 +150,27 @@ ABSTRACT:
 [English abstract covering: Purpose, Methodology, Findings, Conclusions]`;
     }
 
-    const response = await anthropic.messages.create({
-      model: "claude-haiku-4-20250514",
-      max_tokens: 2000,
-      system: `You are an expert academic abstract writer.
+    // Gemini 2.0 Flash model - fast and economical
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      safetySettings,
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 2000,
+      },
+    });
+
+    const systemPrompt = `You are an expert academic abstract writer.
 - Follow YÖK (Turkish Higher Education) and international academic standards
 - Maintain the specified word count range
 - Use precise academic language without unnecessary repetition
 - Organize the abstract in a structured manner
-- Maintain scientific objectivity`,
-      messages: [
-        {
-          role: "user",
-          content: `${prompt}\n\nThesis Content:\n${text.substring(0, 12000)}`
-        }
-      ]
-    });
+- Maintain scientific objectivity`;
 
-    const content = response.content[0];
-    const abstractText = content.type === 'text' ? content.text : '';
+    const fullPrompt = `${systemPrompt}\n\n${prompt}\n\nThesis Content:\n${text.substring(0, 15000)}`;
+
+    const result = await model.generateContent(fullPrompt);
+    const abstractText = result.response.text();
 
     return NextResponse.json({
       abstract: abstractText,
