@@ -7,8 +7,8 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 export const GEMINI_MODELS = {
   // Hızlı ve ekonomik model - yapı kontrolü, basit analizler (1M context)
   FLASH: 'gemini-2.5-flash',
-  // En güçlü model - Gemini 3 Pro (1M context, gelişmiş reasoning)
-  PRO: 'gemini-2.5-flash',
+  // En güçlü model - Gemini 3 Pro Preview (1M context, gelişmiş reasoning)
+  PRO: 'gemini-3-pro-preview',
 } as const;
 
 // Güvenlik ayarları - akademik içerik için optimize
