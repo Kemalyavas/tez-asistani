@@ -1,6 +1,17 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization - only create client when needed (not at build time)
+let resendClient: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendClient) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is not configured');
+    }
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 interface EmailOptions {
   to: string;
@@ -12,7 +23,14 @@ interface EmailOptions {
 export async function sendEmail(options: EmailOptions) {
   const { to, subject, html, from = 'TezAI <noreply@tezai.app>' } = options;
 
+  // Skip email if RESEND_API_KEY is not configured
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[Email] RESEND_API_KEY not configured, skipping email to:', to);
+    return { success: true, skipped: true };
+  }
+
   try {
+    const resend = getResendClient();
     const result = await resend.emails.send({
       from,
       to,
