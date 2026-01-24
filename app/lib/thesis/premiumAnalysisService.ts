@@ -83,6 +83,7 @@ export interface PremiumAnalysisResult {
     processingTimeMs: number;
     modelUsed: string;
     analysisVersion: string;
+    reportLanguage?: 'tr' | 'en' | 'auto';
   };
 }
 
@@ -162,6 +163,132 @@ const YOK_STANDARDS = {
 };
 
 // ============================================================================
+// International Academic Standards (for non-Turkish theses)
+// ============================================================================
+
+const INTERNATIONAL_STANDARDS = {
+  structure: [
+    'Title page (University name, department, thesis title, author, advisor, date)',
+    'Approval/signature page',
+    'Declaration of originality',
+    'Abstract (150-300 words)',
+    'Table of contents',
+    'List of tables (if applicable)',
+    'List of figures (if applicable)',
+    'List of abbreviations (if applicable)',
+    'Introduction chapter',
+    'Literature review / Theoretical framework',
+    'Methodology chapter',
+    'Results/Findings chapter',
+    'Discussion and conclusion chapter',
+    'References/Bibliography',
+    'Appendices (if applicable)',
+  ],
+  formatting: [
+    'A4 or Letter paper size',
+    'Left margin: 1.5 inches (for binding)',
+    'Right margin: 1 inch',
+    'Top margin: 1 inch',
+    'Bottom margin: 1 inch',
+    'Times New Roman or similar serif font',
+    'Body text: 12 point',
+    'Line spacing: 1.5 or double',
+    'Paragraph indent: 0.5 inch',
+    'Page numbers: bottom center or right',
+    'Consistent heading format',
+  ],
+  references: [
+    'Consistent citation style (APA 7, MLA, Chicago, IEEE, etc.)',
+    'In-text citations match reference list',
+    'Recent sources (last 5-10 years preferred)',
+    'Primary source usage',
+    'Balance of sources',
+  ],
+};
+
+// ============================================================================
+// Language-specific prompt templates
+// ============================================================================
+
+const getLanguagePrompt = (lang: 'tr' | 'en', isPdf: boolean) => {
+  if (lang === 'tr') {
+    return {
+      role: `Sen Türkiye'deki üniversitelerde 20+ yıl deneyimli bir tez danışmanısın. YÖK (Yükseköğretim Kurulu) standartlarını çok iyi biliyorsun.`,
+      instruction: `Bu tezi kapsamlı şekilde analiz et ve aşağıdaki JSON formatında yanıt ver.`,
+      rules: [
+        'Her sorunu SAYFA NUMARASI ile belirt (örn: "Sayfa 45\'te...")',
+        'Somut ve uygulanabilir öneriler ver',
+        'Türkçe akademik yazım kurallarına dikkat et',
+        'YÖK tez yazım kılavuzuna göre değerlendir',
+        'Övgüden çok yapıcı eleştiri yap - öğrenci gelişsin',
+      ],
+      pdfRules: isPdf ? [
+        'PDF\'teki GÖRSELLERİ, TABLOLARI ve GRAFİKLERİ de analiz et',
+        'Görsel kalitesi yeterli mi?',
+        'Başlık/açıklama var mı ve uygun mu?',
+        'Metin ile tutarlı mı?',
+        'Numaralandırma doğru mu?',
+      ] : [],
+      standards: YOK_STANDARDS,
+      standardsLabel: 'YÖK STANDARTLARI',
+      gradeLabels: {
+        excellent: 'Mükemmel',
+        veryGood: 'Çok İyi',
+        good: 'İyi',
+        aboveAverage: 'Ortanın Üstü',
+        average: 'Orta',
+        acceptable: 'Kabul Edilebilir',
+        weak: 'Zayıf',
+        insufficient: 'Yetersiz',
+        fail: 'Başarısız',
+      },
+      statisticsNote: `ÖNEMLİ:
+- referenceCount: Kaynakça/References bölümündeki TÜM kaynakları tek tek say. Her bir kaynak girişini say.
+- figureCount: Tezdeki TÜM şekilleri say (Şekil 1, Figure 1, vs.)
+- tableCount: Tezdeki TÜM tabloları say (Tablo 1, Table 1, vs.)
+- Bu sayıları TAHMİN ETME, gerçekten say!`,
+    };
+  } else {
+    return {
+      role: `You are an experienced thesis advisor with 20+ years of experience at international universities. You are well-versed in academic standards and thesis writing guidelines.`,
+      instruction: `Analyze this thesis comprehensively and respond in the following JSON format.`,
+      rules: [
+        'Specify each issue with PAGE NUMBER (e.g., "On page 45...")',
+        'Provide concrete and actionable suggestions',
+        'Pay attention to academic writing conventions',
+        'Evaluate according to international thesis standards',
+        'Focus on constructive criticism rather than praise - help the student improve',
+      ],
+      pdfRules: isPdf ? [
+        'Also analyze IMAGES, TABLES, and CHARTS in the PDF',
+        'Is the visual quality sufficient?',
+        'Are there appropriate titles/captions?',
+        'Is it consistent with the text?',
+        'Is the numbering correct?',
+      ] : [],
+      standards: INTERNATIONAL_STANDARDS,
+      standardsLabel: 'ACADEMIC STANDARDS',
+      gradeLabels: {
+        excellent: 'Excellent',
+        veryGood: 'Very Good',
+        good: 'Good',
+        aboveAverage: 'Above Average',
+        average: 'Average',
+        acceptable: 'Acceptable',
+        weak: 'Weak',
+        insufficient: 'Insufficient',
+        fail: 'Fail',
+      },
+      statisticsNote: `IMPORTANT:
+- referenceCount: Count ALL references in the Bibliography/References section. Count each reference entry.
+- figureCount: Count ALL figures in the thesis (Figure 1, Figure 2, etc.)
+- tableCount: Count ALL tables in the thesis (Table 1, Table 2, etc.)
+- Do NOT estimate these numbers, actually count them!`,
+    };
+  }
+};
+
+// ============================================================================
 // Ana Analiz Fonksiyonu
 // ============================================================================
 
@@ -175,6 +302,7 @@ export async function analyzePremium(
       pageCount: number;
       wordCount: number;
     };
+    reportLanguage?: 'tr' | 'en' | 'auto';
   }
 ): Promise<PremiumAnalysisResult> {
   const startTime = Date.now();
@@ -223,95 +351,79 @@ export async function analyzePremium(
   // Sayfa işaretleyicileri ekle (sadece metin modu için)
   const textWithPages = isPdf ? '' : addPageMarkers(text);
 
-  console.log(`[PREMIUM ANALYSIS] Starting analysis: ${isPdf ? 'PDF Direct Mode' : `${stats.pageCount} pages, ${stats.wordCount} words`}`);
+  // Rapor dili belirleme
+  const reportLang = options.reportLanguage || 'auto';
+
+  console.log(`[PREMIUM ANALYSIS] Starting analysis: ${isPdf ? 'PDF Direct Mode' : `${stats.pageCount} pages, ${stats.wordCount} words`}, Report language: ${reportLang}`);
 
   // ============================================
-  // ANA ANALİZ PROMPT'U
+  // DİNAMİK ANALİZ PROMPT'U
   // ============================================
 
-  const analysisPrompt = `Sen Türkiye'deki üniversitelerde 20+ yıl deneyimli bir tez danışmanısın. YÖK (Yükseköğretim Kurulu) standartlarını çok iyi biliyorsun.
+  // Dil şablonunu al (auto için önce TR kullan, Gemini tespit edecek)
+  const langForPrompt = reportLang === 'auto' ? 'tr' : reportLang;
+  const langPrompt = getLanguagePrompt(langForPrompt, isPdf);
 
-Bu tezi kapsamlı şekilde analiz et ve aşağıdaki JSON formatında yanıt ver.
+  // Auto mod için ek talimat
+  const autoLangInstruction = reportLang === 'auto'
+    ? (langForPrompt === 'tr'
+        ? '\n\nÖNEMLİ: Tezin dilini tespit et. Eğer tez İngilizce yazılmışsa, TÜM yanıtını İngilizce ver. Eğer Türkçe yazılmışsa, Türkçe yanıt ver.'
+        : '\n\nIMPORTANT: Detect the thesis language. If the thesis is in Turkish, provide your ENTIRE response in Turkish. If in English, respond in English.')
+    : '';
 
-ÖNEMLİ KURALLAR:
-1. Her sorunu SAYFA NUMARASI ile belirt (örn: "Sayfa 45'te...")
-2. Somut ve uygulanabilir öneriler ver
-3. Türkçe akademik yazım kurallarına dikkat et
-4. YÖK tez yazım kılavuzuna göre değerlendir
-5. Övgüden çok yapıcı eleştiri yap - öğrenci gelişsin
-${isPdf ? `6. PDF'teki GÖRSELLERİ, TABLOLARI ve GRAFİKLERİ de analiz et:
-   - Görsel kalitesi yeterli mi?
-   - Başlık/açıklama var mı ve uygun mu?
-   - Metin ile tutarlı mı?
-   - Numaralandırma doğru mu?` : ''}
+  const analysisPrompt = `${langPrompt.role}
 
-YÖK STANDARTLARI:
-${JSON.stringify(YOK_STANDARDS, null, 2)}
+${langPrompt.instruction}${autoLangInstruction}
 
-${isPdf ? 'PDF DOSYASI EKLİ - Tüm sayfaları, görselleri, tabloları ve grafikleri analiz et.' : `TEZ METNİ (${stats.pageCount} sayfa, ${stats.wordCount} kelime):
-===
-${textWithPages}
-===`}
+${langForPrompt === 'tr' ? 'ÖNEMLİ KURALLAR' : 'IMPORTANT RULES'}:
+${langPrompt.rules.map((rule, i) => `${i + 1}. ${rule}`).join('\n')}
+${langPrompt.pdfRules.length > 0 ? `${langPrompt.rules.length + 1}. ${langPrompt.pdfRules[0]}:\n${langPrompt.pdfRules.slice(1).map(r => `   - ${r}`).join('\n')}` : ''}
 
-JSON FORMATI:
+${langPrompt.standardsLabel}:
+${JSON.stringify(langPrompt.standards, null, 2)}
+
+${isPdf
+  ? (langForPrompt === 'tr'
+      ? 'PDF DOSYASI EKLİ - Tüm sayfaları, görselleri, tabloları ve grafikleri analiz et.'
+      : 'PDF FILE ATTACHED - Analyze all pages, images, tables, and charts.')
+  : (langForPrompt === 'tr'
+      ? `TEZ METNİ (${stats.pageCount} sayfa, ${stats.wordCount} kelime):\n===\n${textWithPages}\n===`
+      : `THESIS TEXT (${stats.pageCount} pages, ${stats.wordCount} words):\n===\n${textWithPages}\n===`)}
+
+JSON FORMAT:
 {
-  "overallScore": <0-100 puan>,
+  "overallScore": <0-100>,
   "grade": {
     "letter": "<A+/A/A-/B+/B/B-/C+/C/F>",
-    "label": "<Mükemmel/Çok İyi/İyi/Orta/Zayıf/Yetersiz>",
-    "color": "<hex renk kodu>"
+    "label": "<${Object.values(langPrompt.gradeLabels).join('/')}>",
+    "color": "<hex color code>"
   },
-  "executiveSummary": "<3-4 cümlelik genel değerlendirme>",
+  "executiveSummary": "<${langForPrompt === 'tr' ? '3-4 cümlelik genel değerlendirme' : '3-4 sentence executive summary'}>",
 
   "sections": {
     "structure": {
       "score": <0-100>,
-      "feedback": "<2-3 cümle>",
-      "strengths": ["<güçlü yön 1>", "<güçlü yön 2>"],
-      "improvements": ["<iyileştirme önerisi 1>", "<iyileştirme önerisi 2>"]
+      "feedback": "<${langForPrompt === 'tr' ? '2-3 cümle' : '2-3 sentences'}>",
+      "strengths": ["<${langForPrompt === 'tr' ? 'güçlü yön' : 'strength'} 1>", "<${langForPrompt === 'tr' ? 'güçlü yön' : 'strength'} 2>"],
+      "improvements": ["<${langForPrompt === 'tr' ? 'iyileştirme önerisi' : 'improvement suggestion'} 1>", "<${langForPrompt === 'tr' ? 'iyileştirme önerisi' : 'improvement suggestion'} 2>"]
     },
-    "methodology": {
-      "score": <0-100>,
-      "feedback": "<2-3 cümle>",
-      "strengths": [],
-      "improvements": []
-    },
-    "literature": {
-      "score": <0-100>,
-      "feedback": "<2-3 cümle>",
-      "strengths": [],
-      "improvements": []
-    },
-    "writingQuality": {
-      "score": <0-100>,
-      "feedback": "<2-3 cümle>",
-      "strengths": [],
-      "improvements": []
-    },
-    "references": {
-      "score": <0-100>,
-      "feedback": "<2-3 cümle>",
-      "strengths": [],
-      "improvements": []
-    },
-    "formatting": {
-      "score": <0-100>,
-      "feedback": "<2-3 cümle>",
-      "strengths": [],
-      "improvements": []
-    }
+    "methodology": { "score": <0-100>, "feedback": "<...>", "strengths": [], "improvements": [] },
+    "literature": { "score": <0-100>, "feedback": "<...>", "strengths": [], "improvements": [] },
+    "writingQuality": { "score": <0-100>, "feedback": "<...>", "strengths": [], "improvements": [] },
+    "references": { "score": <0-100>, "feedback": "<...>", "strengths": [], "improvements": [] },
+    "formatting": { "score": <0-100>, "feedback": "<...>", "strengths": [], "improvements": [] }
   },
 
   "issues": {
     "critical": [
       {
-        "title": "<kısa başlık>",
-        "description": "<detaylı açıklama>",
-        "pageNumber": <sayfa no>,
-        "location": "<bölüm/paragraf>",
-        "originalText": "<sorunlu metin örneği>",
-        "suggestion": "<düzeltme önerisi>",
-        "impact": "<bu sorun neden kritik>"
+        "title": "<${langForPrompt === 'tr' ? 'kısa başlık' : 'short title'}>",
+        "description": "<${langForPrompt === 'tr' ? 'detaylı açıklama' : 'detailed description'}>",
+        "pageNumber": <page number>,
+        "location": "<${langForPrompt === 'tr' ? 'bölüm/paragraf' : 'section/paragraph'}>",
+        "originalText": "<${langForPrompt === 'tr' ? 'sorunlu metin örneği' : 'problematic text sample'}>",
+        "suggestion": "<${langForPrompt === 'tr' ? 'düzeltme önerisi' : 'correction suggestion'}>",
+        "impact": "<${langForPrompt === 'tr' ? 'bu sorun neden kritik' : 'why this issue is critical'}>"
       }
     ],
     "major": [],
@@ -319,47 +431,40 @@ JSON FORMATI:
     "formatting": []
   },
 
-  "strengths": [
-    "<tezin güçlü yönü 1>",
-    "<tezin güçlü yönü 2>"
-  ],
+  "strengths": ["<${langForPrompt === 'tr' ? 'tezin güçlü yönü' : 'thesis strength'} 1>", "<${langForPrompt === 'tr' ? 'tezin güçlü yönü' : 'thesis strength'} 2>"],
 
   "priorityActions": [
     {
       "order": 1,
-      "action": "<yapılması gereken>",
-      "reason": "<neden önemli>",
+      "action": "<${langForPrompt === 'tr' ? 'yapılması gereken' : 'action needed'}>",
+      "reason": "<${langForPrompt === 'tr' ? 'neden önemli' : 'why important'}>",
       "estimatedImpact": "high|medium|low"
     }
   ],
 
-  "yokCompliance": {
+  "${langForPrompt === 'tr' ? 'yokCompliance' : 'academicCompliance'}": {
     "score": <0-100>,
-    "compliant": ["<uyulan standart 1>", "<uyulan standart 2>"],
-    "nonCompliant": ["<uyulmayan standart 1>", "<uyulmayan standart 2>"]
+    "compliant": ["<${langForPrompt === 'tr' ? 'uyulan standart' : 'compliant standard'} 1>"],
+    "nonCompliant": ["<${langForPrompt === 'tr' ? 'uyulmayan standart' : 'non-compliant standard'} 1>"]
   },
 
   "detectedInfo": {
-    "thesisType": "<yüksek lisans|doktora|lisans>",
-    "field": "<alan adı>",
+    "thesisType": "<${langForPrompt === 'tr' ? 'yüksek lisans|doktora|lisans' : 'master|doctoral|bachelor'}>",
+    "field": "<${langForPrompt === 'tr' ? 'alan adı' : 'field name'}>",
     "language": "<tr|en>",
-    "citationStyle": "<APA|IEEE|Chicago|Karma|Belirsiz>"
+    "citationStyle": "<APA|IEEE|Chicago|MLA|${langForPrompt === 'tr' ? 'Karma|Belirsiz' : 'Mixed|Unknown'}>"
   },
 
   "statistics": {
-    "referenceCount": <kaynakça bölümündeki kaynak sayısı - TEK TEK DİKKATLİCE SAY>,
-    "figureCount": <şekil sayısı - "Şekil 1", "Şekil 2", "Figure 1" vb. say>,
-    "tableCount": <tablo sayısı - "Tablo 1", "Tablo 2", "Table 1" vb. say>
+    "referenceCount": <${langForPrompt === 'tr' ? 'kaynakça bölümündeki kaynak sayısı - TEK TEK DİKKATLİCE SAY' : 'reference count - COUNT EACH ONE CAREFULLY'}>,
+    "figureCount": <${langForPrompt === 'tr' ? 'şekil sayısı' : 'figure count'}>,
+    "tableCount": <${langForPrompt === 'tr' ? 'tablo sayısı' : 'table count'}>
   }
 }
 
-ÖNEMLİ:
-- referenceCount: Kaynakça/References bölümündeki TÜM kaynakları tek tek say. Her bir kaynak girişini say.
-- figureCount: Tezdeki TÜM şekilleri say (Şekil 1, Figure 1, vs.)
-- tableCount: Tezdeki TÜM tabloları say (Tablo 1, Table 1, vs.)
-- Bu sayıları TAHMİN ETME, gerçekten say!
+${langPrompt.statisticsNote}
 
-SADECE JSON yanıt ver, başka açıklama ekleme.`;
+${langForPrompt === 'tr' ? 'SADECE JSON yanıt ver, başka açıklama ekleme.' : 'Respond ONLY with JSON, no additional explanation.'}`;
 
   try {
     let result;
@@ -438,9 +543,10 @@ SADECE JSON yanıt ver, başka açıklama ekleme.`;
       priorityActions: formatPriorityActions(analysis.priorityActions),
 
       yokCompliance: {
-        score: analysis.yokCompliance?.score || 0,
-        compliant: analysis.yokCompliance?.compliant || [],
-        nonCompliant: analysis.yokCompliance?.nonCompliant || [],
+        // Handle both yokCompliance (Turkish) and academicCompliance (English) keys
+        score: analysis.yokCompliance?.score || analysis.academicCompliance?.score || 0,
+        compliant: analysis.yokCompliance?.compliant || analysis.academicCompliance?.compliant || [],
+        nonCompliant: analysis.yokCompliance?.nonCompliant || analysis.academicCompliance?.nonCompliant || [],
       },
 
       statistics: {
@@ -463,6 +569,7 @@ SADECE JSON yanıt ver, başka açıklama ekleme.`;
         processingTimeMs: Date.now() - startTime,
         modelUsed: 'gemini-3-pro',
         analysisVersion: '2.0',
+        reportLanguage: reportLang,
       },
     };
 

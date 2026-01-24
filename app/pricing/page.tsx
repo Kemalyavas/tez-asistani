@@ -22,20 +22,20 @@ const CREDIT_ACTIONS = [
     credits: CREDIT_COSTS.abstract_generate.creditsRequired, 
     description: 'TR, EN or Both' 
   },
-  { 
-    name: 'Thesis Analysis (Short)', 
-    credits: CREDIT_COSTS.thesis_basic.creditsRequired, 
-    description: 'Up to 30 pages' 
+  {
+    name: 'Thesis Analysis (Basic)',
+    credits: CREDIT_COSTS.thesis_basic.creditsRequired,
+    description: '1-50 pages'
   },
-  { 
-    name: 'Thesis Analysis (Medium)', 
-    credits: CREDIT_COSTS.thesis_standard.creditsRequired, 
-    description: '31-70 pages' 
+  {
+    name: 'Thesis Analysis (Standard)',
+    credits: CREDIT_COSTS.thesis_standard.creditsRequired,
+    description: '51-100 pages'
   },
-  { 
-    name: 'Thesis Analysis (Long)', 
-    credits: CREDIT_COSTS.thesis_comprehensive.creditsRequired, 
-    description: '71+ pages with RAG' 
+  {
+    name: 'Thesis Analysis (Comprehensive)',
+    credits: CREDIT_COSTS.thesis_comprehensive.creditsRequired,
+    description: '100+ pages'
   },
 ]
 

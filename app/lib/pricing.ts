@@ -199,7 +199,7 @@ export const ANALYSIS_TIERS: AnalysisTier[] = [
     id: 'standard',
     name: 'Standart Analiz',
     minPages: 51,
-    maxPages: 150,
+    maxPages: 100,
     credits: 25,
     features: [
       'Temel Analizin tüm özellikleri',
@@ -214,7 +214,7 @@ export const ANALYSIS_TIERS: AnalysisTier[] = [
   {
     id: 'comprehensive',
     name: 'Kapsamlı Analiz',
-    minPages: 151,
+    minPages: 101,
     maxPages: 999,
     credits: 50,
     features: [

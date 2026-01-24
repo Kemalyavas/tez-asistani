@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     // Get parameters
     const body = await request.json();
-    const { documentId, filePath, fileName } = body;
+    const { documentId, filePath, fileName, reportLanguage = 'auto' } = body;
 
     if (!documentId || !filePath || !fileName) {
       if (timeoutTimer) clearTimeout(timeoutTimer);
@@ -229,6 +229,8 @@ export async function POST(request: NextRequest) {
           includeImages: true,
           // Metin çıkarılabildiyse hesaplanmış istatistikleri geç
           preCalculatedStats: hasExtractedText ? { pageCount, wordCount } : undefined,
+          // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
+          reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
         });
       } else {
         // TEXT MODE: Sadece metin gönder
@@ -246,6 +248,8 @@ export async function POST(request: NextRequest) {
         analysisResult = await analyzePremium(analysisText, {
           fileName,
           isPdf: false,
+          // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
+          reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
         });
       }
 

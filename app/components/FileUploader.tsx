@@ -1,12 +1,21 @@
 'use client';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, Loader2, AlertCircle, Coins, Zap, CheckCircle, FileText, Brain, BarChart3 } from 'lucide-react';
+import { Upload, File, X, Loader2, AlertCircle, Coins, Zap, CheckCircle, FileText, Brain, BarChart3, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useCredits } from '../hooks/useCredits';
 import { CREDIT_COSTS, getAnalysisTier } from '../lib/pricing';
+
+// Report language options
+export type ReportLanguage = 'tr' | 'en' | 'auto';
+
+const LANGUAGE_OPTIONS: { value: ReportLanguage; label: string; flag: string; description: string }[] = [
+  { value: 'auto', label: 'Auto-Detect', flag: '🔄', description: 'Match thesis language' },
+  { value: 'tr', label: 'Türkçe', flag: '🇹🇷', description: 'Turkish report' },
+  { value: 'en', label: 'English', flag: '🇬🇧', description: 'English report' },
+];
 
 interface FileUploaderProps {
   onAnalysisComplete?: (result: any) => void;
@@ -30,6 +39,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
   const [estimatedCredits, setEstimatedCredits] = useState<number>(10);
   const [user, setUser] = useState<any>(null);
   const [statusMessage, setStatusMessage] = useState<string>('');
+  const [reportLanguage, setReportLanguage] = useState<ReportLanguage>('auto');
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTime = useRef<number | null>(null);
   const MAX_POLLING_TIME_MS = 5 * 60 * 1000; // 5 dakika maksimum bekleme
@@ -225,7 +235,8 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         },
         body: JSON.stringify({
           filePath: uploadData.path,
-          fileName: file.name
+          fileName: file.name,
+          reportLanguage: reportLanguage, // 'tr', 'en', or 'auto'
         }),
       });
 
@@ -271,7 +282,8 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         body: JSON.stringify({
           documentId: docId,
           filePath: uploadData.path,
-          fileName: file.name
+          fileName: file.name,
+          reportLanguage: reportLanguage, // 'tr', 'en', or 'auto'
         }),
       }).catch(err => {
         console.error('Background analysis error:', err);
@@ -380,22 +392,62 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       </div>
 
       {file && (
-        <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <File className="h-8 w-8 text-blue-600" />
-            <div>
-              <p className="font-medium">{file.name}</p>
-              <p className="text-sm text-gray-500">
-                {(file.size / 1024 / 1024).toFixed(2)} MB
-              </p>
+        <div className="space-y-4">
+          {/* Selected File */}
+          <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <File className="h-8 w-8 text-blue-600" />
+              <div>
+                <p className="font-medium">{file.name}</p>
+                <p className="text-sm text-gray-500">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
             </div>
+            <button
+              onClick={removeFile}
+              className="text-red-500 hover:text-red-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <button
-            onClick={removeFile}
-            className="text-red-500 hover:text-red-700"
-          >
-            <X className="h-5 w-5" />
-          </button>
+
+          {/* Report Language Selector */}
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-4">
+            <div className="flex items-center mb-3">
+              <Globe className="h-5 w-5 text-indigo-600 mr-2" />
+              <span className="font-medium text-indigo-900">Report Language</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {LANGUAGE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setReportLanguage(option.value)}
+                  disabled={loading}
+                  className={`p-3 rounded-lg border-2 transition-all text-left ${
+                    reportLanguage === option.value
+                      ? 'border-indigo-500 bg-white shadow-sm'
+                      : 'border-transparent bg-white/50 hover:bg-white hover:border-indigo-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg">{option.flag}</span>
+                    <div>
+                      <p className={`font-medium text-sm ${
+                        reportLanguage === option.value ? 'text-indigo-700' : 'text-gray-700'
+                      }`}>
+                        {option.label}
+                      </p>
+                      <p className="text-xs text-gray-500">{option.description}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-indigo-600/70">
+              💡 Auto-detect will analyze your thesis and generate the report in the same language
+            </p>
+          </div>
         </div>
       )}
 
