@@ -64,11 +64,11 @@ export async function POST(request: NextRequest) {
 
     // Admin bypass - skip credit deduction
     const userIsAdmin = isAdmin(user.id);
-    let result: any = null;
+    let creditInfo: any = null;
 
     if (userIsAdmin) {
       console.log('[ADMIN] Credit check bypassed for user:', user.id);
-      result = { success: true, new_balance: 999999 };
+      creditInfo = { success: true, new_balance: 999999 };
     } else {
       // Deduct credits using the database function
       const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
@@ -86,13 +86,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      result = creditResult?.[0];
-      if (!result?.success) {
+      creditInfo = creditResult?.[0];
+      if (!creditInfo?.success) {
         return NextResponse.json(
           {
-            error: result?.error_message || 'Insufficient credits',
+            error: creditInfo?.error_message || 'Insufficient credits',
             creditsRequired: CREDITS_REQUIRED,
-            currentCredits: result?.new_balance || 0
+            currentCredits: creditInfo?.new_balance || 0
           },
           { status: 402 } // Payment Required
         );
@@ -169,13 +169,13 @@ ABSTRACT:
 
     const fullPrompt = `${systemPrompt}\n\n${prompt}\n\nThesis Content:\n${text.substring(0, 15000)}`;
 
-    const result = await model.generateContent(fullPrompt);
-    const abstractText = result.response.text();
+    const geminiResult = await model.generateContent(fullPrompt);
+    const abstractText = geminiResult.response.text();
 
     return NextResponse.json({
       abstract: abstractText,
       creditsUsed: CREDITS_REQUIRED,
-      remainingCredits: result.new_balance
+      remainingCredits: creditInfo?.new_balance || 0
     });
     
   } catch (error) {
