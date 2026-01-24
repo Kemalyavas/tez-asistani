@@ -171,6 +171,10 @@ export async function analyzePremium(
     fileName: string;
     isPdf?: boolean;
     includeImages?: boolean;
+    preCalculatedStats?: {
+      pageCount: number;
+      wordCount: number;
+    };
   }
 ): Promise<PremiumAnalysisResult> {
   const startTime = Date.now();
@@ -202,10 +206,19 @@ export async function analyzePremium(
     text = textOrBuffer.toString();
   }
 
-  // Metin istatistikleri hesapla (PDF için tahmini)
-  const stats = isPdf
-    ? { pageCount: 0, wordCount: 0, characterCount: 0, averageSentenceLength: 0, readabilityScore: 50, referenceCount: 0, figureCount: 0, tableCount: 0 }
-    : calculateStatistics(text);
+  // Metin istatistikleri hesapla
+  // PDF mode'da önceden hesaplanmış istatistikleri kullan (metin çıkarılmışsa)
+  const calculatedStats = isPdf ? null : calculateStatistics(text);
+  const stats = {
+    pageCount: options.preCalculatedStats?.pageCount || calculatedStats?.pageCount || 0,
+    wordCount: options.preCalculatedStats?.wordCount || calculatedStats?.wordCount || 0,
+    characterCount: calculatedStats?.characterCount || 0,
+    averageSentenceLength: calculatedStats?.averageSentenceLength || 0,
+    readabilityScore: calculatedStats?.readabilityScore || 50,
+    referenceCount: calculatedStats?.referenceCount || 0,
+    figureCount: calculatedStats?.figureCount || 0,
+    tableCount: calculatedStats?.tableCount || 0,
+  };
 
   // Sayfa işaretleyicileri ekle (sadece metin modu için)
   const textWithPages = isPdf ? '' : addPageMarkers(text);
@@ -334,15 +347,17 @@ JSON FORMATI:
   },
 
   "statistics": {
-    "pageCount": <tezin toplam sayfa sayısı - PDF'ten say>,
-    "wordCount": <tahmini kelime sayısı>,
-    "referenceCount": <kaynakça bölümündeki kaynak sayısı - tek tek say>,
-    "figureCount": <şekil sayısı - Şekil 1, Şekil 2 vb. say>,
-    "tableCount": <tablo sayısı - Tablo 1, Tablo 2 vb. say>
+    "referenceCount": <kaynakça bölümündeki kaynak sayısı - TEK TEK DİKKATLİCE SAY>,
+    "figureCount": <şekil sayısı - "Şekil 1", "Şekil 2", "Figure 1" vb. say>,
+    "tableCount": <tablo sayısı - "Tablo 1", "Tablo 2", "Table 1" vb. say>
   }
 }
 
-ÖNEMLİ: statistics alanındaki değerleri MUTLAKA doldur. PDF'teki sayfa sayısını, kaynakça bölümündeki referansları, şekil ve tabloları dikkatlice say.
+ÖNEMLİ:
+- referenceCount: Kaynakça/References bölümündeki TÜM kaynakları tek tek say. Her bir kaynak girişini say.
+- figureCount: Tezdeki TÜM şekilleri say (Şekil 1, Figure 1, vs.)
+- tableCount: Tezdeki TÜM tabloları say (Tablo 1, Table 1, vs.)
+- Bu sayıları TAHMİN ETME, gerçekten say!
 
 SADECE JSON yanıt ver, başka açıklama ekleme.`;
 
@@ -429,10 +444,13 @@ SADECE JSON yanıt ver, başka açıklama ekleme.`;
       },
 
       statistics: {
-        // Gemini'nin döndürdüğü istatistikleri öncelikli kullan (özellikle PDF mode için)
-        pageCount: analysis.statistics?.pageCount || stats.pageCount || 0,
-        wordCount: analysis.statistics?.wordCount || stats.wordCount || 0,
+        // pageCount ve wordCount için önceden hesaplanmış değerleri kullan (daha doğru)
+        // Gemini'nin tahmini yanlış olabiliyor
+        pageCount: stats.pageCount || analysis.statistics?.pageCount || 0,
+        wordCount: stats.wordCount || analysis.statistics?.wordCount || 0,
         characterCount: stats.characterCount || 0,
+        // referenceCount, figureCount, tableCount için Gemini'nin saydığı değerleri kullan
+        // (PDF'deki görselleri görebildiği için daha doğru)
         referenceCount: analysis.statistics?.referenceCount || countReferences(text) || 0,
         figureCount: analysis.statistics?.figureCount || countFigures(text) || 0,
         tableCount: analysis.statistics?.tableCount || countTables(text) || 0,

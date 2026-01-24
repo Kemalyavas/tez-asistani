@@ -196,8 +196,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pageCount = useDirectPdf ? Math.ceil(buffer.length / 50000) : estimatePageCount(text); // PDF için tahmini
-    const wordCount = useDirectPdf ? 0 : getWordCount(text);
+    // İstatistikler için metin varsa kullan, yoksa buffer boyutundan tahmin et
+    const hasExtractedText = text && text.length > 100 && !text.includes('[PDF içeriği Gemini');
+    const pageCount = hasExtractedText ? estimatePageCount(text) : Math.ceil(buffer.length / 50000);
+    const wordCount = hasExtractedText ? getWordCount(text) : 0;
     const analysisTier = doc.analysis_type;
 
     console.log(`[ANALYZE/PROCESS] Mode: ${useDirectPdf ? 'PDF Direct (with images)' : 'Text'}, Pages: ~${pageCount}, Words: ${wordCount}, Tier: ${analysisTier}`);
@@ -225,6 +227,8 @@ export async function POST(request: NextRequest) {
           fileName,
           isPdf: true,
           includeImages: true,
+          // Metin çıkarılabildiyse hesaplanmış istatistikleri geç
+          preCalculatedStats: hasExtractedText ? { pageCount, wordCount } : undefined,
         });
       } else {
         // TEXT MODE: Sadece metin gönder
