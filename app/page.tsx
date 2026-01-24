@@ -58,9 +58,9 @@ export default function Home() {
   const creditCostInfo = [
     { action: 'Citation Formatting', credits: CREDIT_COSTS.citation_format.creditsRequired, note: 'APA, MLA, Chicago, IEEE' },
     { action: 'Abstract Generation', credits: CREDIT_COSTS.abstract_generate.creditsRequired, note: 'Turkish, English or Both' },
-    { action: 'Thesis Analysis (1-30 pages)', credits: CREDIT_COSTS.thesis_basic.creditsRequired, note: '' },
-    { action: 'Thesis Analysis (31-70 pages)', credits: CREDIT_COSTS.thesis_standard.creditsRequired, note: '' },
-    { action: 'Thesis Analysis (71+ pages)', credits: CREDIT_COSTS.thesis_comprehensive.creditsRequired, note: 'RAG-powered' },
+    { action: 'Thesis Analysis (1-50 pages)', credits: CREDIT_COSTS.thesis_basic.creditsRequired, note: 'Basic' },
+    { action: 'Thesis Analysis (51-100 pages)', credits: CREDIT_COSTS.thesis_standard.creditsRequired, note: 'Standard' },
+    { action: 'Thesis Analysis (100+ pages)', credits: CREDIT_COSTS.thesis_comprehensive.creditsRequired, note: 'Comprehensive' },
   ];
 
   const handleSelectPackage = async (packageId: string) => {
