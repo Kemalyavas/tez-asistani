@@ -146,7 +146,7 @@ export function useCredits() {
 
       if (profileError) {
         console.error('Profile fetch error:', profileError);
-        setError('Could not load profile');
+        setError('Profil yüklenemedi');
         setLoading(false);
         return;
       }
@@ -176,7 +176,7 @@ export function useCredits() {
       setError(null);
     } catch (err) {
       console.error('Error fetching credits:', err);
-      setError('Failed to load credits');
+      setError('Krediler yüklenemedi');
     } finally {
       setLoading(false);
     }
@@ -221,7 +221,7 @@ export function useCredits() {
         currentCredits: 0,
         requiredCredits: required,
         shortfall: required,
-        reason: 'Please sign in to continue'
+        reason: 'Devam etmek için lütfen giriş yapın'
       };
     }
 
@@ -284,13 +284,13 @@ export function useCredits() {
 
       if (rpcError) {
         console.error('Credit deduction error:', rpcError);
-        return { success: false, error: 'Failed to process credits' };
+        return { success: false, error: 'Krediler işlenemedi' };
       }
 
       const result = data?.[0];
 
       if (!result?.success) {
-        return { success: false, error: result?.error_message || 'Credit deduction failed' };
+        return { success: false, error: result?.error_message || 'Kredi düşme işlemi başarısız' };
       }
 
       // Update local state
@@ -323,7 +323,7 @@ export function useCredits() {
       return { success: true, newBalance: result.new_balance };
     } catch (err) {
       console.error('Error using credits:', err);
-      return { success: false, error: 'An error occurred' };
+      return { success: false, error: 'Bir hata oluştu' };
     }
   }, [user, credits, checkCredits, supabase]);
 

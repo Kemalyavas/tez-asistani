@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Please sign in to continue' },
+        { error: 'Devam etmek için lütfen giriş yapın' },
         { status: 401 }
       );
     }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       if (creditError) {
         console.error('Credit deduction error:', creditError);
         return NextResponse.json(
-          { error: 'Failed to process credits' },
+          { error: 'Krediler işlenemedi' },
           { status: 500 }
         );
       }
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       if (!result?.success) {
         return NextResponse.json(
           {
-            error: result?.error_message || 'Insufficient credits',
+            error: result?.error_message || 'Yetersiz kredi',
             creditsRequired: CREDITS_REQUIRED,
             currentCredits: result?.new_balance || 0
           },
@@ -123,7 +123,7 @@ Return ONLY the formatted citation, no explanations.`
   } catch (error) {
     console.error('Citation format error:', error);
     return NextResponse.json(
-      { error: 'Failed to format citation' },
+      { error: 'Kaynak formatlanamadı' },
       { status: 500 }
     );
   }

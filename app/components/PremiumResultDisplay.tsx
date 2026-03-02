@@ -174,28 +174,28 @@ export default function PremiumResultDisplay({ result }: PremiumResultDisplayPro
         <div className="bg-white rounded-lg p-4 shadow">
           <div className="flex items-center text-gray-500 mb-1">
             <FileText className="h-4 w-4 mr-2" />
-            <span className="text-sm">Pages</span>
+            <span className="text-sm">Sayfa</span>
           </div>
           <p className="text-2xl font-bold">{stats.pageCount != null ? stats.pageCount : '-'}</p>
         </div>
         <div className="bg-white rounded-lg p-4 shadow">
           <div className="flex items-center text-gray-500 mb-1">
             <PenTool className="h-4 w-4 mr-2" />
-            <span className="text-sm">Words</span>
+            <span className="text-sm">Kelime</span>
           </div>
           <p className="text-2xl font-bold">{stats.wordCount != null ? stats.wordCount.toLocaleString() : '-'}</p>
         </div>
         <div className="bg-white rounded-lg p-4 shadow">
           <div className="flex items-center text-gray-500 mb-1">
             <Quote className="h-4 w-4 mr-2" />
-            <span className="text-sm">References</span>
+            <span className="text-sm">Kaynakça</span>
           </div>
           <p className="text-2xl font-bold">{stats.referenceCount != null ? stats.referenceCount : '-'}</p>
         </div>
         <div className="bg-white rounded-lg p-4 shadow">
           <div className="flex items-center text-gray-500 mb-1">
             <BarChart3 className="h-4 w-4 mr-2" />
-            <span className="text-sm">Figures/Tables</span>
+            <span className="text-sm">Şekil/Tablo</span>
           </div>
           <p className="text-2xl font-bold">{(stats.figureCount ?? 0) + (stats.tableCount ?? 0)}</p>
         </div>
@@ -535,9 +535,9 @@ export default function PremiumResultDisplay({ result }: PremiumResultDisplayPro
 
       {/* Meta bilgi */}
       <div className="text-center text-xs text-gray-400 mt-4">
-        Analyzed: {new Date(result.metadata?.analyzedAt || Date.now()).toLocaleString('en-US')}
+        Analiz Tarihi: {new Date(result.metadata?.analyzedAt || Date.now()).toLocaleString('tr-TR')}
         {' • '}
-        Duration: {((result.metadata?.processingTimeMs || 0) / 1000).toFixed(1)}s
+        Süre: {((result.metadata?.processingTimeMs || 0) / 1000).toFixed(1)}s
       </div>
     </div>
   );

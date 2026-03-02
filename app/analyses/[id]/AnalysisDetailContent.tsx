@@ -113,9 +113,9 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
         if (fetchError) {
           if (fetchError.code === 'PGRST116') {
-            setError('Analysis not found');
+            setError('Analiz bulunamadı');
           } else {
-            setError('Failed to load analysis');
+            setError('Analiz yüklenemedi');
           }
           return;
         }
@@ -123,7 +123,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
         setAnalysis(data as ThesisDocument);
       } catch (err) {
         console.error('Error:', err);
-        setError('An error occurred');
+        setError('Bir hata oluştu');
       } finally {
         setLoading(false);
       }
@@ -173,10 +173,10 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'structure': return 'Structure';
-      case 'methodology': return 'Methodology';
-      case 'writing_quality': return 'Writing Quality';
-      case 'references': return 'References';
+      case 'structure': return 'Yapı';
+      case 'methodology': return 'Yöntem';
+      case 'writing_quality': return 'Yazım Kalitesi';
+      case 'references': return 'Kaynakça';
       default: return category;
     }
   };
@@ -186,7 +186,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading analysis...</p>
+          <p className="text-gray-600">Analiz yükleniyor...</p>
         </div>
       </div>
     );
@@ -197,14 +197,14 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">{error || 'Analysis not found'}</h2>
-          <p className="text-gray-500 mb-6">The analysis you're looking for doesn't exist or you don't have access to it.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">{error || 'Analiz bulunamadı'}</h2>
+          <p className="text-gray-500 mb-6">Aradığınız analiz mevcut değil veya erişim yetkiniz yok.</p>
           <Link
             href="/analyses"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Analyses
+            Analizlere Dön
           </Link>
         </div>
       </div>
@@ -242,8 +242,8 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
             <div className="flex items-center">
               <Loader2 className="h-8 w-8 animate-spin text-amber-600 mr-4" />
               <div>
-                <h3 className="font-semibold text-amber-800">Analysis in Progress</h3>
-                <p className="text-amber-600">Your thesis is being analyzed. This page will update automatically when complete.</p>
+                <h3 className="font-semibold text-amber-800">Analiz Devam Ediyor</h3>
+                <p className="text-amber-600">Teziniz analiz ediliyor. Tamamlandığında bu sayfa otomatik olarak güncellenecektir.</p>
               </div>
             </div>
           </div>
@@ -277,23 +277,23 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                 <span className="flex items-center">
                   <FileText className="h-4 w-4 mr-1" />
-                  {analysis.page_count} pages
+                  {analysis.page_count} sayfa
                 </span>
                 <span className="flex items-center">
                   <BookOpen className="h-4 w-4 mr-1" />
-                  {analysis.word_count?.toLocaleString()} words
+                  {analysis.word_count?.toLocaleString()} kelime
                 </span>
                 <span className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
-                  {new Date(analysis.created_at).toLocaleDateString('en-US', {
+                  {new Date(analysis.created_at).toLocaleDateString('tr-TR', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
                   })}
                 </span>
                 <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                  {analysis.analysis_type === 'basic' ? 'Basic' :
-                   analysis.analysis_type === 'standard' ? 'Standard' : 'Comprehensive'} Analysis
+                  {analysis.analysis_type === 'basic' ? 'Temel' :
+                   analysis.analysis_type === 'standard' ? 'Standart' : 'Kapsamlı'} Analiz
                 </span>
               </div>
             </div>
@@ -304,10 +304,10 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                   <div className={`text-4xl font-bold ${getScoreColor(result.overall_score)}`}>
                     {result.overall_score}
                   </div>
-                  <div className="text-sm text-gray-600">out of 100</div>
+                  <div className="text-sm text-gray-600">/ 100</div>
                 </div>
                 <div className={`px-4 py-2 rounded-lg font-semibold ${getGradeColor(result.grade_category)}`}>
-                  Grade: {result.grade_category}
+                  Not: {result.grade_category}
                 </div>
               </div>
             )}
@@ -315,7 +315,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
           {result && (
             <div className="mt-6 pt-6 border-t">
-              <h3 className="font-semibold text-gray-900 mb-2">Summary</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Özet</h3>
               <p className="text-gray-600">{result.summary}</p>
             </div>
           )}
@@ -325,7 +325,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
           <>
             {/* Category Scores */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Category Scores</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Kategori Puanları</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.entries(result.category_scores).map(([category, data]) => {
                   const Icon = getCategoryIcon(category);
@@ -359,14 +359,14 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
             {/* Issues Section */}
             {(result.critical_issues.length > 0 || result.major_issues.length > 0 || result.minor_issues.length > 0) && (
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Issues Found</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Bulunan Sorunlar</h3>
 
                 {/* Critical Issues */}
                 {result.critical_issues.length > 0 && (
                   <div className="mb-6">
                     <div className="flex items-center mb-4">
                       <XCircle className="h-5 w-5 text-red-600 mr-2" />
-                      <h4 className="font-semibold text-red-600">Critical Issues ({result.critical_issues.length})</h4>
+                      <h4 className="font-semibold text-red-600">Kritik Sorunlar ({result.critical_issues.length})</h4>
                     </div>
                     <div className="space-y-3">
                       {result.critical_issues.map((issue, index) => (
@@ -387,7 +387,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                   <div className="mb-6">
                     <div className="flex items-center mb-4">
                       <AlertTriangle className="h-5 w-5 text-orange-600 mr-2" />
-                      <h4 className="font-semibold text-orange-600">Major Issues ({result.major_issues.length})</h4>
+                      <h4 className="font-semibold text-orange-600">Önemli Sorunlar ({result.major_issues.length})</h4>
                     </div>
                     <div className="space-y-3">
                       {result.major_issues.map((issue, index) => (
@@ -408,7 +408,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                   <div>
                     <div className="flex items-center mb-4">
                       <Info className="h-5 w-5 text-blue-600 mr-2" />
-                      <h4 className="font-semibold text-blue-600">Minor Issues ({result.minor_issues.length})</h4>
+                      <h4 className="font-semibold text-blue-600">Küçük Sorunlar ({result.minor_issues.length})</h4>
                     </div>
                     <div className="space-y-3">
                       {result.minor_issues.map((issue, index) => (
@@ -431,7 +431,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
                 <div className="flex items-center mb-4">
                   <Star className="h-5 w-5 text-green-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">Strengths</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Güçlü Yönler</h3>
                 </div>
                 <ul className="space-y-2">
                   {result.strengths.map((strength, index) => (
@@ -449,7 +449,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
                 <div className="flex items-center mb-4">
                   <Zap className="h-5 w-5 text-amber-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">Immediate Actions</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Acil Eylemler</h3>
                 </div>
                 <ul className="space-y-2">
                   {result.immediate_actions.map((action, index) => (
@@ -469,7 +469,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
                 <div className="flex items-center mb-4">
                   <Lightbulb className="h-5 w-5 text-purple-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">Recommendations</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Öneriler</h3>
                 </div>
                 <ul className="space-y-2">
                   {result.recommendations.map((rec, index) => (
@@ -485,13 +485,13 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
             {/* Sections Found */}
             {result.metadata && (
               <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Document Structure</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Belge Yapısı</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {result.metadata.sections_found?.length > 0 && (
                     <div>
                       <h4 className="font-medium text-gray-700 mb-2 flex items-center">
                         <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                        Sections Found
+                        Bulunan Bölümler
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {result.metadata.sections_found.map((section, index) => (
@@ -506,7 +506,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                     <div>
                       <h4 className="font-medium text-gray-700 mb-2 flex items-center">
                         <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
-                        Missing Sections
+                        Eksik Bölümler
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {result.metadata.missing_sections.map((section, index) => (
@@ -561,20 +561,20 @@ function IssueCard({
       {isExpanded && (
         <div className="px-4 pb-4 space-y-3">
           <div>
-            <p className="text-sm font-medium text-gray-700">Description:</p>
+            <p className="text-sm font-medium text-gray-700">Açıklama:</p>
             <p className="text-sm text-gray-600">{issue.description}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-700">Impact:</p>
+            <p className="text-sm font-medium text-gray-700">Etki:</p>
             <p className="text-sm text-gray-600">{issue.impact}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-700">Solution:</p>
+            <p className="text-sm font-medium text-gray-700">Çözüm:</p>
             <p className="text-sm text-gray-600">{issue.solution}</p>
           </div>
           {issue.example && (
             <div>
-              <p className="text-sm font-medium text-gray-700">Example:</p>
+              <p className="text-sm font-medium text-gray-700">Örnek:</p>
               <p className="text-sm text-gray-600 bg-white/50 p-2 rounded">{issue.example}</p>
             </div>
           )}

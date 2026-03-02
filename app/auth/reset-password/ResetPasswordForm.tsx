@@ -51,7 +51,7 @@ export default function ResetPasswordForm() {
         // Session varsa, bu bir başarılı password reset callback'i
         if (data.session && data.session.user) {
           console.log('Valid session found:', data.session.user.email);
-          toast.success('You can now set your new password');
+          toast.success('Artık yeni şifrenizi belirleyebilirsiniz');
           return;
         }
 
@@ -95,14 +95,14 @@ export default function ResetPasswordForm() {
           }
 
           console.log('Session set successfully:', sessionData);
-          toast.success('You can now set your new password');
+          toast.success('Artık yeni şifrenizi belirleyebilirsiniz');
           
           // Clean tokens from URL (for security)
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
           // No valid tokens found
           console.log('No valid tokens found');
-          toast.error('Invalid password reset link');
+          toast.error('Geçersiz şifre sıfırlama bağlantısı');
           router.push('/auth');
         }
       } catch (error) {
@@ -124,17 +124,17 @@ export default function ResetPasswordForm() {
 
   const validateForm = () => {
     if (!formData.password || !formData.confirmPassword) {
-      toast.error('Please fill in all fields');
+      toast.error('Lütfen tüm alanları doldurun');
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error('Şifreler eşleşmiyor');
       return false;
     }
 
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error('Şifre en az 6 karakter olmalıdır');
       return false;
     }
 
@@ -153,7 +153,7 @@ export default function ResetPasswordForm() {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !sessionData.session) {
-        toast.error('Invalid session. Please use the password reset link again.');
+        toast.error('Geçersiz oturum. Lütfen şifre sıfırlama bağlantısını tekrar kullanın.');
         router.push('/auth');
         return;
       }
@@ -171,14 +171,14 @@ export default function ResetPasswordForm() {
       }
 
   console.log('Password updated successfully:', data);
-  toast.success('Your password has been updated! You can now sign in with your new password.');
+  toast.success('Şifreniz güncellendi! Artık yeni şifrenizle giriş yapabilirsiniz.');
       
       // Session'ı temizle ve giriş sayfasına yönlendir
       await supabase.auth.signOut();
       router.push('/auth');
     } catch (error: any) {
       console.error('Password reset error:', error);
-      toast.error('An error occurred while updating the password. Please try again.');
+      toast.error('Şifre güncellenirken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setLoading(false);
     }
@@ -192,13 +192,13 @@ export default function ResetPasswordForm() {
             href="/auth" 
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
-            ← Back to Sign In
+            ← Giriş Sayfasına Dön
           </Link>
           <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Set a New Password
+            Yeni Şifre Belirle
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Choose a secure password and confirm it
+            Güvenli bir şifre seçin ve onaylayın
           </p>
           
           {/* Debug Info - sadece development için */}
@@ -214,7 +214,7 @@ export default function ResetPasswordForm() {
           {/* New Password */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
+              Yeni Şifre
             </label>
             <div className="relative">
               <input
@@ -240,14 +240,14 @@ export default function ResetPasswordForm() {
               </button>
             </div>
             <p className="mt-1 text-xs text-gray-500">
-              Must be at least 6 characters
+              En az 6 karakter olmalıdır
             </p>
           </div>
 
           {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
+              Şifre Tekrar
             </label>
             <div className="relative">
               <input
@@ -280,12 +280,12 @@ export default function ResetPasswordForm() {
             disabled={loading}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Updating...' : 'Update Password'}
+            {loading ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
           </button>
         </form>
 
         <div className="text-center text-sm text-gray-500">
-          <p>After updating, you can sign in with your new password.</p>
+          <p>Güncelleme sonrasında yeni şifrenizle giriş yapabilirsiniz.</p>
         </div>
       </div>
     </div>

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Please sign in to analyze your thesis' },
+        { error: 'Tezinizi analiz etmek için lütfen giriş yapın' },
         { status: 401 }
       );
     }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     if (isPdf && !isPdfMagic) {
       console.error('[ANALYZE/START] Invalid PDF magic bytes:', magicBytes.toString('hex'));
       return NextResponse.json(
-        { error: 'Invalid PDF file. The file content does not match PDF format.' },
+        { error: 'Geçersiz PDF dosyası. Dosya içeriği PDF formatıyla uyuşmuyor.' },
         { status: 400 }
       );
     }
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     if (isDocx && !isZipMagic) {
       console.error('[ANALYZE/START] Invalid DOCX magic bytes:', magicBytes.toString('hex'));
       return NextResponse.json(
-        { error: 'Invalid DOCX file. The file content does not match DOCX format.' },
+        { error: 'Geçersiz DOCX dosyası. Dosya içeriği DOCX formatıyla uyuşmuyor.' },
         { status: 400 }
       );
     }
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
       if (creditError) {
         console.error('Credit deduction error:', creditError);
         return NextResponse.json(
-          { error: 'Failed to process credits. Please try again.' },
+          { error: 'Krediler işlenemedi. Lütfen tekrar deneyin.' },
           { status: 500 }
         );
       }
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
       if (!creditInfo?.success) {
         return NextResponse.json(
           {
-            error: creditInfo?.error_message || 'Insufficient credits',
+            error: creditInfo?.error_message || 'Yetersiz kredi',
             creditsRequired,
             currentCredits: creditInfo?.new_balance || 0,
             analysisTier: analysisTier.name
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json(
-        { error: 'Failed to create document record. If credits were deducted, they will be refunded.' },
+        { error: 'Belge kaydı oluşturulamadı. Kredi düşüldüyse iade edilecektir.' },
         { status: 500 }
       );
     }

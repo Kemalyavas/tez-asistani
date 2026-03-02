@@ -161,7 +161,7 @@ export default function ProfileContent() {
 
       } catch (error) {
         console.error('Error fetching profile:', error);
-  toast.error('Could not retrieve profile information');
+  toast.error('Profil bilgileri alınamadı');
       } finally {
         setLoading(false);
       }
@@ -195,10 +195,10 @@ export default function ProfileContent() {
       });
 
       setEditing(false);
-  toast.success('Profile updated successfully!');
+  toast.success('Profil başarıyla güncellendi!');
     } catch (error: any) {
       console.error('Profile update error:', error);
-  toast.error('Error updating profile: ' + error.message);
+  toast.error('Profil güncelleme hatası: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -206,12 +206,12 @@ export default function ProfileContent() {
 
   const handleChangePassword = async () => {
     if (passwordForm.new_password !== passwordForm.confirm_password) {
-  toast.error('New passwords do not match');
+  toast.error('Yeni şifreler eşleşmiyor');
       return;
     }
 
     if (passwordForm.new_password.length < 6) {
-  toast.error('New password must be at least 6 characters');
+  toast.error('Yeni şifre en az 6 karakter olmalıdır');
       return;
     }
 
@@ -231,10 +231,10 @@ export default function ProfileContent() {
         confirm_password: ''
       });
 
-  toast.success('Password changed successfully!');
+  toast.success('Şifre başarıyla değiştirildi!');
     } catch (error: any) {
       console.error('Password change error:', error);
-  toast.error('Error changing password: ' + error.message);
+  toast.error('Şifre değiştirme hatası: ' + error.message);
     } finally {
       setChangingPassword(false);
     }
@@ -254,9 +254,9 @@ export default function ProfileContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile not found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Profil bulunamadı</h1>
           <Link href="/" className="text-blue-600 hover:text-blue-800">
-            Return to Home
+            Ana Sayfaya Dön
           </Link>
         </div>
       </div>
@@ -274,9 +274,9 @@ export default function ProfileContent() {
               className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span>Return to Home</span>
+              <span>Ana Sayfaya Dön</span>
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Profil</h1>
             <div className="w-32"></div> {/* Spacer */}
           </div>
         </div>
@@ -302,16 +302,16 @@ export default function ProfileContent() {
                     <Coins className="h-6 w-6 text-blue-600" />
                     <span className="text-3xl font-bold text-blue-600">{displayCredits}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Available Credits</p>
+                  <p className="text-sm text-gray-600 mt-1">Mevcut Kredi</p>
                   {isAdminUser && (
-                    <p className="text-xs text-blue-500 mt-1">Admin unlimited</p>
+                    <p className="text-xs text-blue-500 mt-1">Admin sınırsız</p>
                   )}
                   <Link
                     href="/pricing"
                     className="mt-3 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
                   >
                     <Zap className="h-4 w-4 mr-1" />
-                    Buy More Credits
+                    Daha Fazla Kredi Al
                   </Link>
                 </div>
               </div>
@@ -319,26 +319,26 @@ export default function ProfileContent() {
 
             {/* Usage Statistics */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Usage Statistics</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Kullanım İstatistikleri</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm text-gray-600">Theses Analyzed</span>
+                    <span className="text-sm text-gray-600">Analiz Edilen Tezler</span>
                   </div>
                   <span className="font-semibold text-gray-900">{profile.thesis_analyses_count}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Award className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm text-gray-600">Abstracts Generated</span>
+                    <span className="text-sm text-gray-600">Oluşturulan Özetler</span>
                   </div>
                   <span className="font-semibold text-gray-900">{profile.abstracts_count}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-gray-600">Citations Formatted</span>
+                    <span className="text-sm text-gray-600">Formatlanan Kaynaklar</span>
                   </div>
                   <span className="font-semibold text-gray-900">{profile.citations_count}</span>
                 </div>
@@ -346,14 +346,14 @@ export default function ProfileContent() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Coins className="h-4 w-4 text-amber-600" />
-                      <span className="text-sm text-gray-600">Credits Purchased</span>
+                      <span className="text-sm text-gray-600">Satın Alınan Krediler</span>
                     </div>
                     <span className="font-semibold text-gray-900">{profile.total_credits_purchased}</span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center space-x-2">
                       <Coins className="h-4 w-4 text-red-500" />
-                      <span className="text-sm text-gray-600">Credits Used</span>
+                      <span className="text-sm text-gray-600">Kullanılan Krediler</span>
                     </div>
                     <span className="font-semibold text-gray-900">{profile.total_credits_used}</span>
                   </div>
@@ -362,10 +362,10 @@ export default function ProfileContent() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">Member Since</span>
+                      <span className="text-sm text-gray-600">Üyelik Tarihi</span>
                     </div>
                     <span className="font-semibold text-gray-900">
-                      {new Date(profile.created_at).toLocaleDateString('en-US')}
+                      {new Date(profile.created_at).toLocaleDateString('tr-TR')}
                     </span>
                   </div>
                 </div>
@@ -379,14 +379,14 @@ export default function ProfileContent() {
             {/* Profile Information */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Profil Bilgileri</h3>
                 {!editing ? (
                   <button
                     onClick={() => setEditing(true)}
                     className="flex items-center space-x-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   >
                     <Edit3 className="h-4 w-4" />
-                    <span>Edit</span>
+                    <span>Düzenle</span>
                   </button>
                 ) : (
                   <div className="flex space-x-2">
@@ -396,7 +396,7 @@ export default function ProfileContent() {
                       className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                     >
                       <Save className="h-4 w-4" />
-                      <span>{saving ? 'Saving...' : 'Save'}</span>
+                      <span>{saving ? 'Kaydediliyor...' : 'Kaydet'}</span>
                     </button>
                     <button
                       onClick={() => {
@@ -409,7 +409,7 @@ export default function ProfileContent() {
                       className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <X className="h-4 w-4" />
-                      <span>Cancel</span>
+                      <span>İptal</span>
                     </button>
                   </div>
                 )}
@@ -418,7 +418,7 @@ export default function ProfileContent() {
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Username
+                    Kullanıcı Adı
                   </label>
                   {editing ? (
                     <input
@@ -434,7 +434,7 @@ export default function ProfileContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
+                    Ad Soyad
                   </label>
                   {editing ? (
                     <input
@@ -444,13 +444,13 @@ export default function ProfileContent() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   ) : (
-                    <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.full_name || 'Not provided'}</p>
+                    <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.full_name || 'Belirtilmemiş'}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+                    E-posta
                   </label>
                   <p className="px-3 py-2 bg-gray-50 rounded-lg text-gray-600">{profile.email}</p>
                 </div>
@@ -459,11 +459,11 @@ export default function ProfileContent() {
 
             {/* Change Password */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Change Password</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Şifre Değiştir</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Password
+                    Yeni Şifre
                   </label>
                   <div className="relative">
                     <input
@@ -471,7 +471,7 @@ export default function ProfileContent() {
                       value={passwordForm.new_password}
                       onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter your new password"
+                      placeholder="Yeni şifrenizi girin"
                     />
                     <button
                       type="button"
@@ -485,7 +485,7 @@ export default function ProfileContent() {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Password (Repeat)
+                    Yeni Şifre (Tekrar)
                   </label>
                   <div className="relative">
                     <input
@@ -493,7 +493,7 @@ export default function ProfileContent() {
                       value={passwordForm.confirm_password}
                       onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Re-enter your new password"
+                      placeholder="Yeni şifrenizi tekrar girin"
                     />
                     <button
                       type="button"
@@ -511,7 +511,7 @@ export default function ProfileContent() {
                     disabled={changingPassword || !passwordForm.new_password || !passwordForm.confirm_password}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {changingPassword ? 'Changing...' : 'Change Password'}
+                    {changingPassword ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
                   </button>
                 </div>
               </div>
@@ -519,14 +519,14 @@ export default function ProfileContent() {
 
             {/* Credit Purchase History Link */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Credits</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Krediler</h3>
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-blue-600">{displayCredits} credits</p>
-                    <p className="text-sm text-gray-600">Available balance</p>
+                    <p className="text-2xl font-bold text-blue-600">{displayCredits} kredi</p>
+                    <p className="text-sm text-gray-600">Mevcut bakiye</p>
                     {isAdminUser && (
-                      <p className="text-xs text-blue-500 mt-1">Admin unlimited</p>
+                      <p className="text-xs text-blue-500 mt-1">Admin sınırsız</p>
                     )}
                   </div>
                   <Link
@@ -534,25 +534,25 @@ export default function ProfileContent() {
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center"
                   >
                     <Zap className="h-4 w-4 mr-2" />
-                    Buy Credits
+                    Kredi Satın Al
                   </Link>
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-4">
-                Credits never expire. Use them whenever you need to analyze theses, generate abstracts, or format citations.
+                Kredilerin süresi asla dolmaz. Tez analizi, özet oluşturma veya kaynak formatlama ihtiyacınız olduğunda kullanın.
               </p>
             </div>
 
             {/* Recent Analyses */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Recent Analyses</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Son Analizler</h3>
                 {recentAnalyses.length > 0 && (
                   <Link
                     href="/analyses"
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
                   >
-                    View All
+                    Tümünü Gör
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
                 )}
@@ -565,13 +565,13 @@ export default function ProfileContent() {
               ) : recentAnalyses.length === 0 ? (
                 <div className="text-center py-8">
                   <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">No analyses yet</p>
+                  <p className="text-gray-500 mb-4">Henüz analiz yok</p>
                   <Link
                     href="/"
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Analyze Your First Thesis
+                    İlk Tezinizi Analiz Edin
                   </Link>
                 </div>
               ) : (
@@ -588,21 +588,21 @@ export default function ProfileContent() {
                             {analysis.filename}
                           </p>
                           <div className="flex items-center space-x-3 mt-1 text-sm text-gray-500">
-                            <span>{analysis.page_count} pages</span>
+                            <span>{analysis.page_count} sayfa</span>
                             <span>•</span>
-                            <span>{new Date(analysis.created_at).toLocaleDateString('en-US')}</span>
+                            <span>{new Date(analysis.created_at).toLocaleDateString('tr-TR')}</span>
                           </div>
                         </div>
                         <div className="ml-4 flex-shrink-0">
                           {analysis.status === 'processing' ? (
                             <div className="flex items-center text-amber-600">
                               <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                              <span className="text-sm">Processing</span>
+                              <span className="text-sm">İşleniyor</span>
                             </div>
                           ) : analysis.status === 'failed' ? (
                             <div className="flex items-center text-red-600">
                               <AlertCircle className="h-4 w-4 mr-1" />
-                              <span className="text-sm">Failed</span>
+                              <span className="text-sm">Başarısız</span>
                             </div>
                           ) : analysis.overall_score !== null ? (
                             <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -614,7 +614,7 @@ export default function ProfileContent() {
                               {analysis.overall_score}/100
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-400">No score</span>
+                            <span className="text-sm text-gray-400">Puan yok</span>
                           )}
                         </div>
                       </div>

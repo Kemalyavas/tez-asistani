@@ -12,9 +12,9 @@ import { CREDIT_COSTS, getAnalysisTier } from '../lib/pricing';
 export type ReportLanguage = 'tr' | 'en' | 'auto';
 
 const LANGUAGE_OPTIONS: { value: ReportLanguage; label: string; flag: string; description: string }[] = [
-  { value: 'auto', label: 'Auto-Detect', flag: '🔄', description: 'Match thesis language' },
-  { value: 'tr', label: 'Türkçe', flag: '🇹🇷', description: 'Turkish report' },
-  { value: 'en', label: 'English', flag: '🇬🇧', description: 'English report' },
+  { value: 'auto', label: 'Otomatik Algıla', flag: '🔄', description: 'Tez diliyle eşleştir' },
+  { value: 'tr', label: 'Türkçe', flag: '🇹🇷', description: 'Türkçe rapor' },
+  { value: 'en', label: 'English', flag: '🇬🇧', description: 'İngilizce rapor' },
 ];
 
 interface FileUploaderProps {
@@ -24,10 +24,10 @@ interface FileUploaderProps {
 type AnalysisStep = 'idle' | 'uploading' | 'processing' | 'analyzing' | 'finalizing' | 'complete' | 'error';
 
 const ANALYSIS_STEPS = [
-  { id: 'uploading', label: 'Uploading file', icon: Upload },
-  { id: 'processing', label: 'Processing document', icon: FileText },
-  { id: 'analyzing', label: 'AI Analysis', icon: Brain },
-  { id: 'finalizing', label: 'Generating report', icon: BarChart3 },
+  { id: 'uploading', label: 'Dosya yükleniyor', icon: Upload },
+  { id: 'processing', label: 'Belge işleniyor', icon: FileText },
+  { id: 'analyzing', label: 'Yapay Zeka Analizi', icon: Brain },
+  { id: 'finalizing', label: 'Rapor oluşturuluyor', icon: BarChart3 },
 ];
 
 export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) {
@@ -133,8 +133,8 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           pollingRef.current = null;
         }
         setCurrentStep('error');
-        setStatusMessage('Analysis timed out. Please try again or contact support.');
-        toast.error('Analysis timed out. Your credits will be refunded if the analysis failed.');
+        setStatusMessage('Analiz zaman aşımına uğradı. Lütfen tekrar deneyin veya destek ile iletişime geçin.');
+        toast.error('Analiz zaman aşımına uğradı. Analiz başarısız olduysa kredileriniz iade edilecektir.');
         setLoading(false);
         return;
       }
@@ -158,10 +158,10 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         }
 
         setCurrentStep('complete');
-        setStatusMessage('Analysis completed!');
+        setStatusMessage('Analiz tamamlandı!');
         await refreshCredits();
 
-        toast.success('Analysis complete! Redirecting to report...');
+        toast.success('Analiz tamamlandı! Rapora yönlendiriliyorsunuz...');
         setLoading(false);
 
         // Otomatik yönlendirme - 1.5 saniye sonra rapora git
@@ -176,8 +176,8 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         }
 
         setCurrentStep('error');
-        setStatusMessage('Analysis failed. Your credits have been refunded.');
-        toast.error('Analysis failed. Please try again.');
+        setStatusMessage('Analiz başarısız oldu. Kredileriniz iade edildi.');
+        toast.error('Analiz başarısız oldu. Lütfen tekrar deneyin.');
         setLoading(false);
       }
       // If still processing, continue polling
@@ -192,21 +192,21 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
 
     // Login check
     if (!user) {
-      toast.error('Please login first');
+      toast.error('Lütfen önce giriş yapın');
       router.push('/auth');
       return;
     }
 
     // Credit check
     if (currentCredits < estimatedCredits) {
-      toast.error(`Insufficient credits. You need ${estimatedCredits} credits for this analysis.`);
+      toast.error(`Yetersiz kredi. Bu analiz için ${estimatedCredits} krediye ihtiyacınız var.`);
       router.push('/pricing');
       return;
     }
 
     setLoading(true);
     setCurrentStep('uploading');
-    setStatusMessage('Uploading your file...');
+    setStatusMessage('Dosyanız yükleniyor...');
 
     try {
       // Step 1: Upload file to Supabase Storage
@@ -225,7 +225,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       }
 
       setCurrentStep('processing');
-      setStatusMessage('Processing document...');
+      setStatusMessage('Belge işleniyor...');
 
       // Step 2: Start analysis (returns immediately with document ID)
       const response = await fetch('/api/analyze/start', {
@@ -252,7 +252,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
 
       if (!response.ok) {
         if (response.status === 402) {
-          toast.error(`Insufficient credits. Need ${data.creditsRequired} credits.`);
+          toast.error(`Yetersiz kredi. ${data.creditsRequired} kredi gerekli.`);
           router.push('/pricing');
           setLoading(false);
           setCurrentStep('idle');
@@ -265,7 +265,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       const docId = data.documentId;
       setAnalysisId(docId);
       setCurrentStep('analyzing');
-      setStatusMessage('AI is analyzing your thesis...');
+      setStatusMessage('Yapay zeka tezinizi analiz ediyor...');
 
       // Start polling for status updates (5 second interval to reduce DB load)
       pollingStartTime.current = Date.now(); // Polling başlangıç zamanını kaydet
@@ -292,8 +292,8 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
 
     } catch (error: any) {
       setCurrentStep('error');
-      setStatusMessage(error.message || 'An error occurred');
-      toast.error(error.message || 'An error occurred. Please try again.');
+      setStatusMessage(error.message || 'Bir hata oluştu');
+      toast.error(error.message || 'Bir hata oluştu. Lütfen tekrar deneyin.');
       console.error(error);
       setLoading(false);
     }
@@ -333,7 +333,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
             <div className="flex items-center">
               <Coins className="h-5 w-5 text-blue-600 mr-2" />
               <span className="text-sm text-blue-800">
-                Your Credits: <strong className="text-lg">{creditsLoading ? '...' : currentCredits}</strong>
+                Kredileriniz: <strong className="text-lg">{creditsLoading ? '...' : currentCredits}</strong>
               </span>
             </div>
             <button
@@ -341,17 +341,17 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
               className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition flex items-center"
             >
               <Zap className="h-4 w-4 mr-1" />
-              Buy Credits
+              Kredi Satın Al
             </button>
           </div>
           {file && (
             <div className="mt-3 pt-3 border-t border-blue-200">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-blue-700">
-                  Estimated: ~{estimatedPages} pages → <strong>{estimatedCredits} credits</strong>
+                  Tahmini: ~{estimatedPages} sayfa → <strong>{estimatedCredits} kredi</strong>
                 </span>
                 <span className={`font-medium ${currentCredits >= estimatedCredits ? 'text-green-600' : 'text-red-600'}`}>
-                  {currentCredits >= estimatedCredits ? '✓ Sufficient' : '✗ Need more credits'}
+                  {currentCredits >= estimatedCredits ? '✓ Yeterli' : '✗ Daha fazla kredi gerekli'}
                 </span>
               </div>
             </div>
@@ -365,7 +365,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           <div className="flex items-center">
             <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
             <span className="text-sm text-yellow-800">
-              You need to <button onClick={() => router.push('/auth')} className="font-bold underline">login</button> to analyze your thesis.
+              Tezinizi analiz etmek için <button onClick={() => router.push('/auth')} className="font-bold underline">giriş yapmanız</button> gerekiyor.
             </span>
           </div>
         </div>
@@ -380,13 +380,13 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         <input {...getInputProps()} />
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
         {isDragActive ? (
-          <p className="text-blue-600">Drop your file here...</p>
+          <p className="text-blue-600">Dosyanızı buraya bırakın...</p>
         ) : (
           <div>
             <p className="text-gray-700 mb-2">
-              Drag and drop your thesis file or click to select
+              Tez dosyanızı sürükleyip bırakın veya seçmek için tıklayın
             </p>
-            <p className="text-sm text-gray-500">PDF or DOCX (Max. 10MB)</p>
+            <p className="text-sm text-gray-500">PDF veya DOCX (Maks. 10MB)</p>
           </div>
         )}
       </div>
@@ -416,7 +416,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-4">
             <div className="flex items-center mb-3">
               <Globe className="h-5 w-5 text-indigo-600 mr-2" />
-              <span className="font-medium text-indigo-900">Report Language</span>
+              <span className="font-medium text-indigo-900">Rapor Dili</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {LANGUAGE_OPTIONS.map((option) => (
@@ -445,7 +445,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
               ))}
             </div>
             <p className="mt-2 text-xs text-indigo-600/70">
-              💡 Auto-detect will analyze your thesis and generate the report in the same language
+              💡 Otomatik algılama tezinizi analiz edip aynı dilde rapor oluşturur
             </p>
           </div>
         </div>
@@ -501,8 +501,8 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-500">
                 {currentStep === 'analyzing'
-                  ? 'AI analysis may take 1-3 minutes depending on document size'
-                  : 'Please wait...'}
+                  ? 'Yapay zeka analizi belge boyutuna göre 1-3 dakika sürebilir'
+                  : 'Lütfen bekleyin...'}
               </span>
               {analysisId && (
                 <span className="text-gray-400 text-xs">ID: {analysisId.slice(0, 8)}...</span>
@@ -521,7 +521,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
                 onClick={removeFile}
                 className="mt-3 text-sm text-red-600 hover:text-red-800 underline"
               >
-                Try again with a different file
+                Farklı bir dosya ile tekrar deneyin
               </button>
             </div>
           )}
@@ -554,14 +554,14 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
         {loading ? (
           <>
             <Loader2 className="animate-spin h-5 w-5 mr-2" />
-            {currentStep === 'uploading' ? 'Uploading...' :
-             currentStep === 'processing' ? 'Processing...' :
-             currentStep === 'analyzing' ? 'Analyzing...' :
-             currentStep === 'finalizing' ? 'Finalizing...' :
-             'Please wait...'}
+            {currentStep === 'uploading' ? 'Yükleniyor...' :
+             currentStep === 'processing' ? 'İşleniyor...' :
+             currentStep === 'analyzing' ? 'Analiz ediliyor...' :
+             currentStep === 'finalizing' ? 'Tamamlanıyor...' :
+             'Lütfen bekleyin...'}
           </>
         ) : (
-          'Analyze Thesis'
+          'Tezi Analiz Et'
         )}
       </button>
     </div>

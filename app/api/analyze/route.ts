@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Please sign in to analyze your thesis' },
+        { error: 'Tezinizi analiz etmek için lütfen giriş yapın' },
         { status: 401 }
       );
     }
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
       if (creditError) {
         console.error('Credit deduction error:', creditError);
         return NextResponse.json(
-          { error: 'Failed to process credits. Please try again.' },
+          { error: 'Krediler işlenemedi. Lütfen tekrar deneyin.' },
           { status: 500 }
         );
       }
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
       if (!creditInfo?.success) {
         return NextResponse.json(
           {
-            error: creditInfo?.error_message || 'Insufficient credits',
+            error: creditInfo?.error_message || 'Yetersiz kredi',
             creditsRequired,
             currentCredits: creditInfo?.new_balance || 0,
             analysisTier: analysisTier.name

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !session?.user) {
       return NextResponse.json(
-        { error: 'Please sign in to purchase credits.' },
+        { error: 'Kredi satın almak için lütfen giriş yapın.' },
         { status: 401 }
       );
     }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const creditPackage = getPackageById(packageId);
     if (!creditPackage) {
       return NextResponse.json(
-        { error: 'Invalid credit package selected.' },
+        { error: 'Geçersiz kredi paketi seçildi.' },
         { status: 400 }
       );
     }

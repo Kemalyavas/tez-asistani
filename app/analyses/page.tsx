@@ -1,8 +1,8 @@
 import AnalysesContent from './AnalysesContent';
 
 export const metadata = {
-  title: 'My Analyses - TezAI',
-  description: 'View all your thesis analyses'
+  title: 'Analizlerim - TezAI',
+  description: 'Tüm tez analizlerinizi görüntüleyin'
 };
 
 export default function AnalysesPage() {

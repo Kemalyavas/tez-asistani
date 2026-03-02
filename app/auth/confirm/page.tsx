@@ -8,7 +8,7 @@ export default function ConfirmEmailPage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState<string>("Confirming your email…");
+  const [message, setMessage] = useState<string>("E-postanız doğrulanıyor…");
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -30,8 +30,8 @@ export default function ConfirmEmailPage() {
           // Clean the query from the URL
           window.history.replaceState({}, document.title, window.location.pathname);
           setStatus("success");
-          setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-          toast.success("Email confirmed! Welcome.");
+          setMessage("E-posta doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+          toast.success("E-posta doğrulandı! Hoş geldiniz.");
           timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
           return;
         }
@@ -71,8 +71,8 @@ export default function ConfirmEmailPage() {
             // Clean the hash from the URL
             window.history.replaceState({}, document.title, window.location.pathname);
             setStatus("success");
-            setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-            toast.success("Email confirmed! Welcome.");
+            setMessage("E-posta doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+            toast.success("E-posta doğrulandı! Hoş geldiniz.");
             timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
             return;
           }
@@ -92,8 +92,8 @@ export default function ConfirmEmailPage() {
             }
             window.history.replaceState({}, document.title, window.location.pathname);
             setStatus("success");
-            setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-            toast.success("Email confirmed! Welcome.");
+            setMessage("E-posta doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+            toast.success("E-posta doğrulandı! Hoş geldiniz.");
             timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
             return;
           }
@@ -102,21 +102,21 @@ export default function ConfirmEmailPage() {
         // If we already have a session, great
         if (data.session) {
           setStatus("success");
-          setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-          toast.success("Email confirmed! Welcome.");
+          setMessage("E-posta doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+          toast.success("E-posta doğrulandı! Hoş geldiniz.");
           timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
           return;
         }
 
         // Fallback
         setStatus("error");
-        setMessage("Invalid confirmation link. Please sign in.");
-        toast.error("Invalid confirmation link. Please sign in.");
+        setMessage("Geçersiz doğrulama bağlantısı. Lütfen giriş yapın.");
+        toast.error("Geçersiz doğrulama bağlantısı. Lütfen giriş yapın.");
         router.replace("/auth");
       } catch (e: any) {
         setStatus("error");
-        setMessage("Unexpected error during confirmation.");
-        toast.error("Unexpected error during confirmation.");
+        setMessage("Doğrulama sırasında beklenmeyen bir hata oluştu.");
+        toast.error("Doğrulama sırasında beklenmeyen bir hata oluştu.");
         router.replace("/auth");
       }
     };
@@ -136,7 +136,7 @@ export default function ConfirmEmailPage() {
         <p className="text-sm text-gray-600">{message}</p>
         {status === "success" && (
           <p className="mt-2 text-xs text-gray-500">
-            If you are not redirected, <a className="text-blue-600 hover:underline" href="/">click here</a>.
+            Yönlendirilmediyseniz, <a className="text-blue-600 hover:underline" href="/">buraya tıklayın</a>.
           </p>
         )}
       </div>

@@ -14,8 +14,8 @@ export default function DeliveryReturns() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             structuredData.generateBreadcrumb([
-              { name: 'Home', url: 'https://www.tezai.com.tr' },
-              { name: 'Delivery & Refunds', url: 'https://www.tezai.com.tr/delivery-returns' },
+              { name: 'Ana Sayfa', url: 'https://www.tezai.com.tr' },
+              { name: 'Teslimat ve İade', url: 'https://www.tezai.com.tr/delivery-returns' },
             ])
           ),
         }}
@@ -29,9 +29,9 @@ export default function DeliveryReturns() {
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            Ana Sayfaya Dön
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Delivery & Refund Policy</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Teslimat ve İade Politikası</h1>
         </div>
       </div>
 
@@ -41,27 +41,27 @@ export default function DeliveryReturns() {
 
           {/* Quick Summary */}
           <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-blue-800 mb-6">Quick Summary</h2>
+            <h2 className="text-2xl font-bold text-blue-800 mb-6">Kısa Özet</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="flex items-start space-x-3">
                 <Zap className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-gray-800">Instant Delivery</h3>
-                  <p className="text-gray-600 text-sm">Credits are added to your account immediately after payment</p>
+                  <h3 className="font-semibold text-gray-800">Anında Teslimat</h3>
+                  <p className="text-gray-600 text-sm">Ödeme sonrası krediler hesabınıza anında eklenir</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <RefreshCw className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-gray-800">Auto Refund on Failure</h3>
-                  <p className="text-gray-600 text-sm">Credits are automatically refunded if analysis fails</p>
+                  <h3 className="font-semibold text-gray-800">Hata Durumunda Otomatik İade</h3>
+                  <p className="text-gray-600 text-sm">Analiz başarısız olursa krediler otomatik olarak iade edilir</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <Clock className="h-6 w-6 text-purple-600 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-gray-800">Never Expires</h3>
-                  <p className="text-gray-600 text-sm">Your credits never expire - use them anytime</p>
+                  <h3 className="font-semibold text-gray-800">Süresiz Kullanım</h3>
+                  <p className="text-gray-600 text-sm">Kredilerinizin kullanım süresi yoktur - istediğiniz zaman kullanın</p>
                 </div>
               </div>
             </div>
@@ -74,24 +74,24 @@ export default function DeliveryReturns() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <Zap className="h-5 w-5 mr-2 text-blue-600" />
-                1. Delivery
+                1. Teslimat
               </h2>
               <div className="prose max-w-none text-gray-700">
                 <p className="mb-4">
-                  TezAI is a digital service. There is no physical delivery involved.
+                  TezAI dijital bir hizmettir. Fiziksel teslimat bulunmamaktadır.
                 </p>
 
-                <h3 className="text-lg font-semibold mb-2">How It Works:</h3>
+                <h3 className="text-lg font-semibold mb-2">Nasıl Çalışır:</h3>
                 <ul className="list-disc pl-6 mb-4 space-y-2">
-                  <li>After successful payment, credits are <strong>instantly added</strong> to your account</li>
-                  <li>You will receive a confirmation email with your receipt</li>
-                  <li>Credits are immediately available for use</li>
-                  <li>Our service is available 24/7</li>
+                  <li>Başarılı ödeme sonrası krediler hesabınıza <strong>anında eklenir</strong></li>
+                  <li>Makbuzunuzu içeren bir onay e-postası alırsınız</li>
+                  <li>Krediler hemen kullanıma hazırdır</li>
+                  <li>Hizmetimiz 7/24 kullanılabilir</li>
                 </ul>
 
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
                   <p className="text-blue-800 text-sm">
-                    <strong>Note:</strong> If credits do not appear within 5 minutes after payment, please contact us at kemalyavaas@outlook.com
+                    <strong>Not:</strong> Ödemeden sonra 5 dakika içinde krediler görünmezse lütfen kemalyavaas@outlook.com adresinden bizimle iletişime geçin
                   </p>
                 </div>
               </div>
@@ -101,47 +101,47 @@ export default function DeliveryReturns() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <CreditCard className="h-5 w-5 mr-2 text-green-600" />
-                2. Credit System
+                2. Kredi Sistemi
               </h2>
               <div className="prose max-w-none text-gray-700">
                 <p className="mb-4">
-                  TezAI uses a credit-based system. You purchase credits and use them for various services:
+                  TezAI kredi tabanlı bir sistem kullanmaktadır. Kredi satın alır ve çeşitli hizmetler için kullanırsınız:
                 </p>
 
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-2">Service</th>
-                        <th className="text-right py-2">Credits</th>
+                        <th className="text-left py-2">Hizmet</th>
+                        <th className="text-right py-2">Kredi</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b">
-                        <td className="py-2">Citation Formatting</td>
-                        <td className="text-right">1 credit</td>
+                        <td className="py-2">Kaynak Formatlama</td>
+                        <td className="text-right">1 kredi</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2">Abstract Generation</td>
-                        <td className="text-right">3 credits</td>
+                        <td className="py-2">Özet Oluşturma</td>
+                        <td className="text-right">3 kredi</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2">Thesis Analysis (Short)</td>
-                        <td className="text-right">10 credits</td>
+                        <td className="py-2">Tez Analizi (Kısa)</td>
+                        <td className="text-right">10 kredi</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2">Thesis Analysis (Medium)</td>
-                        <td className="text-right">25 credits</td>
+                        <td className="py-2">Tez Analizi (Orta)</td>
+                        <td className="text-right">25 kredi</td>
                       </tr>
                       <tr>
-                        <td className="py-2">Thesis Analysis (Long)</td>
-                        <td className="text-right">50 credits</td>
+                        <td className="py-2">Tez Analizi (Uzun)</td>
+                        <td className="text-right">50 kredi</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
-                <p><strong>Credits never expire.</strong> Use them whenever you need.</p>
+                <p><strong>Kredilerin kullanım süresi yoktur.</strong> İhtiyacınız olduğunda istediğiniz zaman kullanabilirsiniz.</p>
               </div>
             </section>
 
@@ -149,45 +149,45 @@ export default function DeliveryReturns() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <RefreshCw className="h-5 w-5 mr-2 text-purple-600" />
-                3. Refund Policy
+                3. İade Politikası
               </h2>
               <div className="prose max-w-none text-gray-700">
 
                 <h3 className="text-lg font-semibold mb-3 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  Automatic Credit Refunds
+                  Otomatik Kredi İadesi
                 </h3>
                 <p className="mb-4">
-                  If an analysis fails due to a technical issue on our end, credits are <strong>automatically refunded</strong> to your account. No action required from you.
+                  Tarafımızdan kaynaklanan teknik bir sorun nedeniyle analiz başarısız olursa, krediler hesabınıza <strong>otomatik olarak iade edilir</strong>. Sizin herhangi bir işlem yapmanıza gerek yoktur.
                 </p>
 
                 <h3 className="text-lg font-semibold mb-3 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  When Monetary Refunds Are Available
+                  Para İadesi Yapılabilecek Durumlar
                 </h3>
                 <ul className="list-disc pl-6 mb-4 space-y-2">
-                  <li>Credits have <strong>not been used</strong> at all</li>
-                  <li>Request is made within <strong>14 days</strong> of purchase</li>
-                  <li>Technical issues prevent you from using the service</li>
+                  <li>Krediler hiç <strong>kullanılmamış</strong> olmalıdır</li>
+                  <li>Talep, satın alma tarihinden itibaren <strong>14 gün</strong> içinde yapılmalıdır</li>
+                  <li>Teknik sorunlar hizmeti kullanmanızı engellemiş olmalıdır</li>
                 </ul>
 
                 <h3 className="text-lg font-semibold mb-3 flex items-center">
                   <XCircle className="h-5 w-5 mr-2 text-red-500" />
-                  When Refunds Are Not Available
+                  İade Yapılamayacak Durumlar
                 </h3>
                 <ul className="list-disc pl-6 mb-4 space-y-2">
-                  <li>Credits have been partially or fully used</li>
-                  <li>More than 14 days have passed since purchase</li>
-                  <li>Issues caused by user error (wrong file format, etc.)</li>
+                  <li>Krediler kısmen veya tamamen kullanılmışsa</li>
+                  <li>Satın alma tarihinden itibaren 14 günden fazla süre geçmişse</li>
+                  <li>Kullanıcı hatasından kaynaklanan sorunlar (yanlış dosya formatı vb.)</li>
                 </ul>
 
-                <h3 className="text-lg font-semibold mb-3">How to Request a Refund</h3>
+                <h3 className="text-lg font-semibold mb-3">İade Talebi Nasıl Yapılır</h3>
                 <ol className="list-decimal pl-6 space-y-2">
-                  <li>Email us at <strong>kemalyavaas@outlook.com</strong></li>
-                  <li>Include your registered email and payment date</li>
-                  <li>Describe the reason for your refund request</li>
-                  <li>We will respond within <strong>3 business days</strong></li>
-                  <li>Approved refunds are processed within <strong>7-10 business days</strong></li>
+                  <li><strong>kemalyavaas@outlook.com</strong> adresine e-posta gönderin</li>
+                  <li>Kayıtlı e-posta adresinizi ve ödeme tarihini belirtin</li>
+                  <li>İade talebinizin nedenini açıklayın</li>
+                  <li><strong>3 iş günü</strong> içinde yanıt vereceğiz</li>
+                  <li>Onaylanan iadeler <strong>7-10 iş günü</strong> içinde işleme alınır</li>
                 </ol>
               </div>
             </section>
@@ -196,15 +196,15 @@ export default function DeliveryReturns() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <Mail className="h-5 w-5 mr-2 text-blue-600" />
-                4. Contact Us
+                4. Bize Ulaşın
               </h2>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <p className="text-gray-700 mb-4">
-                  For questions about delivery, credits, or refunds:
+                  Teslimat, kredi veya iade hakkında sorularınız için:
                 </p>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>Email:</strong> kemalyavaas@outlook.com</p>
-                  <p><strong>Response Time:</strong> Within 24-48 hours</p>
+                  <p><strong>E-posta:</strong> kemalyavaas@outlook.com</p>
+                  <p><strong>Yanıt Süresi:</strong> 24-48 saat içinde</p>
                 </div>
               </div>
             </section>
@@ -218,7 +218,7 @@ export default function DeliveryReturns() {
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
+              Ana Sayfaya Dön
             </Link>
           </div>
         </div>

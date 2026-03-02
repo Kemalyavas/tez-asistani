@@ -1,8 +1,8 @@
 import AnalysisDetailContent from './AnalysisDetailContent';
 
 export const metadata = {
-  title: 'Analysis Details - TezAI',
-  description: 'View your thesis analysis details'
+  title: 'Analiz Detayları - TezAI',
+  description: 'Tez analiz detaylarınızı görüntüleyin'
 };
 
 export default function AnalysisDetailPage({ params }: { params: { id: string } }) {
