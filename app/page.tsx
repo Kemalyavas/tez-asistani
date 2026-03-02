@@ -5,7 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import FileUploader from './components/FileUploader';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
-import TestimonialsCarousel from './components/TestimonialsCarousel';
+
 import { Zap, CheckCircle, BookOpen, FileSearch, Check, Coins, Gift, Sparkles } from 'lucide-react';
 import { CREDIT_PACKAGES, CREDIT_COSTS } from './lib/pricing';
 import toast from 'react-hot-toast';
@@ -137,19 +137,19 @@ export default function Home() {
               </button>
             </div>
             
-            {/* Stats */}
+            {/* Value Props */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-12 animate-fade-in">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">10K+</div>
-                <div className="text-gray-600">Theses Analyzed</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">AI-Powered</div>
+                <div className="text-gray-600">Thesis Analysis</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">98%</div>
-                <div className="text-gray-600">Accuracy Rate</div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">10 Free</div>
+                <div className="text-gray-600">Credits to Start</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">2 Minutes</div>
-                <div className="text-gray-600">Average Time</div>
+                <div className="text-3xl font-bold text-green-600 mb-2">Fast</div>
+                <div className="text-gray-600">Results in Minutes</div>
               </div>
             </div>
             
@@ -453,14 +453,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Early Access CTA */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            What Our Users Say
-          </h2>
-          
-          <TestimonialsCarousel />
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
+              Early Access
+            </div>
+            <h2 className="text-3xl font-bold mb-4">
+              Be Among Our First Users
+            </h2>
+            <p className="text-gray-600 text-lg mb-8">
+              TezAI is in early access. Sign up now and get <strong>10 free credits</strong> to
+              try AI-powered thesis analysis. Your feedback helps us build a better tool.
+            </p>
+            <button
+              onClick={() => router.push('/auth')}
+              className="btn-primary text-lg px-8 py-4"
+            >
+              Get Started Free
+            </button>
+          </div>
         </div>
       </section>
 
