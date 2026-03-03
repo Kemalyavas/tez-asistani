@@ -149,21 +149,16 @@ export async function POST(request: NextRequest) {
     const pageCount = estimatePageCount(text);
     const wordCount = getWordCount(text);
 
-    console.log(`[ANALYZE] File: ${fileName}, Pages: ~${pageCount}, Words: ${wordCount}`);
-
     // Determine analysis tier and credit cost
     const analysisTier = getAnalysisTier(pageCount);
     const actionType = `thesis_${analysisTier.id}` as keyof typeof CREDIT_COSTS;
     const creditsRequired = CREDIT_COSTS[actionType]?.creditsRequired || 10;
-
-    console.log(`[ANALYZE] Tier: ${analysisTier.id}, Credits: ${creditsRequired}`);
 
     // Admin bypass - skip credit deduction
     const userIsAdmin = isAdmin(user.id);
     let creditInfo: any = null;
 
     if (userIsAdmin) {
-      console.log('[ADMIN] Credit check bypassed for user:', user.id);
       creditInfo = { success: true, new_balance: 999999 };
     } else {
       // Deduct credits for non-admin users
@@ -233,7 +228,6 @@ export async function POST(request: NextRequest) {
           preserveSections: true
         });
 
-        console.log(`[ANALYZE] Created ${chunks.length} chunks`);
 
         // 2. Store chunks in database (for potential future queries)
         if (thesisId) {
@@ -292,9 +286,6 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', thesisId);
       }
-
-      const processingTime = Date.now() - startTime;
-      console.log(`[ANALYZE] Completed in ${processingTime}ms`);
 
       // Clean up: Delete file from storage after successful analysis
       await supabase.storage
@@ -368,7 +359,7 @@ export async function POST(request: NextRequest) {
           word_count: wordCount,
           sections_found: analysisResult.metadata.sectionsFound,
           missing_sections: analysisResult.metadata.missingEssentialSections,
-          processing_time_ms: processingTime
+          processing_time_ms: Date.now() - startTime
         },
         
         // Credit info

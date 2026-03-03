@@ -269,7 +269,6 @@ export function useCredits() {
 
     // Admin bypass - don't deduct credits
     if (isAdmin(user.id) || isAdminEmail(user.email)) {
-      console.log('[ADMIN] Credit check bypassed for:', actionType);
       return { success: true, newBalance: 999999 };
     }
 

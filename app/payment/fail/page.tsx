@@ -9,47 +9,46 @@ function PaymentFailContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error') || 'unknown_error';
 
-  // Error messages mapping
   const errorMessages: Record<string, { title: string; description: string; suggestion: string }> = {
     missing_token: {
-      title: 'Payment Session Expired',
-      description: 'The payment session has expired or the token is missing.',
-      suggestion: 'Please start a new purchase from the pricing page.'
+      title: 'Ödeme Oturumu Sona Erdi',
+      description: 'Ödeme oturumunun süresi doldu veya token eksik.',
+      suggestion: 'Lütfen fiyatlandırma sayfasından yeni bir satın alma başlatın.'
     },
     payment_failed: {
-      title: 'Payment Failed',
-      description: 'Your payment could not be processed.',
-      suggestion: 'Please check your card details and try again.'
+      title: 'Ödeme Başarısız',
+      description: 'Ödemeniz işleme alınamadı.',
+      suggestion: 'Lütfen kart bilgilerinizi kontrol edip tekrar deneyin.'
     },
     invalid_package: {
-      title: 'Invalid Package',
-      description: 'The selected credit package is not valid.',
-      suggestion: 'Please select a valid package from the pricing page.'
+      title: 'Geçersiz Paket',
+      description: 'Seçilen kredi paketi geçerli değil.',
+      suggestion: 'Lütfen fiyatlandırma sayfasından geçerli bir paket seçin.'
     },
     user_not_found: {
-      title: 'User Not Found',
-      description: 'We could not find your account.',
-      suggestion: 'Please make sure you are logged in and try again.'
+      title: 'Kullanıcı Bulunamadı',
+      description: 'Hesabınız bulunamadı.',
+      suggestion: 'Lütfen giriş yaptığınızdan emin olun ve tekrar deneyin.'
     },
     credit_add_failed: {
-      title: 'Credit Addition Failed',
-      description: 'Payment was successful but credits could not be added.',
-      suggestion: 'Please contact support with your payment details.'
+      title: 'Kredi Eklenemedi',
+      description: 'Ödeme başarılı ancak krediler hesabınıza eklenemedi.',
+      suggestion: 'Lütfen ödeme bilgilerinizle destek ekibimize ulaşın.'
     },
     verification_failed: {
-      title: 'Verification Failed',
-      description: 'We could not verify your payment with the payment provider.',
-      suggestion: 'If you were charged, please contact support.'
+      title: 'Doğrulama Başarısız',
+      description: 'Ödeme sağlayıcısıyla ödemeniz doğrulanamadı.',
+      suggestion: 'Ücretlendirildiyseniz lütfen destek ekibimizle iletişime geçin.'
     },
     server_error: {
-      title: 'Server Error',
-      description: 'An unexpected error occurred on our servers.',
-      suggestion: 'Please try again later or contact support.'
+      title: 'Sunucu Hatası',
+      description: 'Sunucularımızda beklenmedik bir hata oluştu.',
+      suggestion: 'Lütfen daha sonra tekrar deneyin veya destek ekibimize ulaşın.'
     },
     unknown_error: {
-      title: 'Something Went Wrong',
-      description: 'An unexpected error occurred during payment.',
-      suggestion: 'Please try again or contact support if the problem persists.'
+      title: 'Bir Şeyler Ters Gitti',
+      description: 'Ödeme sırasında beklenmedik bir hata oluştu.',
+      suggestion: 'Lütfen tekrar deneyin. Sorun devam ederse destek ekibimize ulaşın.'
     }
   };
 
@@ -89,7 +88,7 @@ function PaymentFailContent() {
           {/* Error Code (for support) */}
           <div className="bg-gray-50 rounded-lg p-3 mb-6">
             <p className="text-xs text-gray-500">
-              Error Code: <code className="font-mono text-gray-700">{error}</code>
+              Hata Kodu: <code className="font-mono text-gray-700">{error}</code>
             </p>
           </div>
 
@@ -100,7 +99,7 @@ function PaymentFailContent() {
               className="w-full btn-primary flex items-center justify-center"
             >
               <RefreshCw className="h-5 w-5 mr-2" />
-              Try Again
+              Tekrar Dene
             </Link>
 
             <Link
@@ -108,22 +107,22 @@ function PaymentFailContent() {
               className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition flex items-center justify-center"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Home
+              Ana Sayfaya Dön
             </Link>
 
             <a
-              href="mailto:support@tezai.com"
+              href="mailto:kemalyavaas@outlook.com"
               className="w-full text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center py-2"
             >
               <HelpCircle className="h-4 w-4 mr-2" />
-              Contact Support
+              Destek Ekibine Ulaş
             </a>
           </div>
         </div>
 
         {/* Help Text */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          If you believe this is an error, please contact our support team with the error code above.
+          Bu bir hata olduğunu düşünüyorsanız yukarıdaki hata koduyla destek ekibimizle iletişime geçin.
         </p>
       </div>
     </div>

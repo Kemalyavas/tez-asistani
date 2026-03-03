@@ -34,17 +34,17 @@ function PaymentStatusContent() {
 
           {/* Status Title */}
           <h1 className={`text-2xl font-bold mb-2 ${isSuccess ? 'text-green-800' : 'text-red-800'}`}>
-            {isSuccess ? 'Payment Successful!' : 'Payment Failed'}
+            {isSuccess ? 'Ödeme Başarılı!' : 'Ödeme Başarısız'}
           </h1>
 
           {/* Status Description */}
           {isSuccess ? (
             <p className="text-gray-600 mb-6">
-              Your credits have been added to your account.
+              Kredileriniz hesabınıza eklendi.
             </p>
           ) : (
             <p className="text-gray-600 mb-4">
-              {error || 'Your payment could not be processed.'}
+              {error || 'Ödemeniz işleme alınamadı.'}
             </p>
           )}
 
@@ -58,12 +58,12 @@ function PaymentStatusContent() {
                     <Coins className="h-8 w-8 text-blue-600" />
                     <div>
                       <span className="text-3xl font-bold text-blue-700">+{credits}</span>
-                      <span className="text-blue-600 ml-2">credits</span>
+                      <span className="text-blue-600 ml-2">kredi</span>
                     </div>
                   </div>
                   {packageName && (
                     <p className="text-sm text-blue-600 mt-2">
-                      {packageName} Package
+                      {packageName} Paketi
                     </p>
                   )}
                 </div>
@@ -73,7 +73,7 @@ function PaymentStatusContent() {
               {balance && (
                 <div className="bg-gray-50 rounded-lg p-3">
                   <p className="text-sm text-gray-600">
-                    New Balance: <strong className="text-gray-900">{balance} credits</strong>
+                    Yeni Bakiye: <strong className="text-gray-900">{balance} kredi</strong>
                   </p>
                 </div>
               )}
@@ -100,7 +100,7 @@ function PaymentStatusContent() {
                   href="/"
                   className="w-full btn-primary flex items-center justify-center"
                 >
-                  Start Analyzing
+                  Analiz Etmeye Başla
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </Link>
 
@@ -108,7 +108,7 @@ function PaymentStatusContent() {
                   href="/profile"
                   className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition flex items-center justify-center"
                 >
-                  View Profile
+                  Profilimi Görüntüle
                 </Link>
               </>
             ) : (
@@ -118,7 +118,7 @@ function PaymentStatusContent() {
                   className="w-full btn-primary flex items-center justify-center"
                 >
                   <RefreshCw className="h-5 w-5 mr-2" />
-                  Try Again
+                  Tekrar Dene
                 </Link>
 
                 <Link
@@ -126,7 +126,7 @@ function PaymentStatusContent() {
                   className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition flex items-center justify-center"
                 >
                   <Home className="h-5 w-5 mr-2" />
-                  Back to Home
+                  Ana Sayfaya Dön
                 </Link>
               </>
             )}
@@ -136,10 +136,11 @@ function PaymentStatusContent() {
         {/* Help Text */}
         {!isSuccess && (
           <p className="text-center text-sm text-gray-500 mt-6">
-            If you were charged but did not receive credits, please contact{' '}
-            <a href="mailto:support@tezai.com" className="text-blue-600 hover:underline">
-              support@tezai.com
-            </a>
+            Ücretlendirildiyseniz ancak kredi almadıysanız lütfen{' '}
+            <a href="mailto:kemalyavaas@outlook.com" className="text-blue-600 hover:underline">
+              kemalyavaas@outlook.com
+            </a>{' '}
+            ile iletişime geçin.
           </p>
         )}
       </div>

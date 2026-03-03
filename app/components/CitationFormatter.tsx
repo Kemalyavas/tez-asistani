@@ -18,14 +18,14 @@ export default function CitationFormatter() {
 
   const handleFormat = async () => {
     if (!source) {
-      toast.error('Please enter source information');
+      toast.error('Lütfen kaynak bilgisi girin');
       return;
     }
 
     // Kredi kontrolü
     const creditCheck = checkCredits('citation_format');
     if (!creditCheck.allowed) {
-      toast.error(creditCheck.reason || 'Insufficient credits');
+      toast.error(creditCheck.reason || 'Yetersiz kredi');
       return;
     }
 
@@ -40,7 +40,7 @@ export default function CitationFormatter() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Formatting failed');
+        throw new Error(data.error || 'Formatlama başarısız');
       }
 
       setResult(data.formatted);
@@ -48,9 +48,9 @@ export default function CitationFormatter() {
       // Kredi bakiyesini güncelle (API zaten kredi kesti)
       await refresh();
 
-      toast.success(`Citation formatted! (${creditCost} credit used)`);
+      toast.success(`Kaynak formatlandı! (${creditCost} kredi kullanıldı)`);
     } catch (error: any) {
-      toast.error(error.message || 'Formatting failed');
+      toast.error(error.message || 'Formatlama başarısız');
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ export default function CitationFormatter() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(result);
     setCopied(true);
-  toast.success('Copied to clipboard!');
+  toast.success('Panoya kopyalandı!');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -68,7 +68,7 @@ export default function CitationFormatter() {
       {/* Source Type */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Source Type
+          Kaynak Türü
         </label>
         <div className="grid grid-cols-3 gap-3">
           {['book', 'article', 'website'].map((t) => (
@@ -81,7 +81,7 @@ export default function CitationFormatter() {
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
-              {t === 'book' ? 'Book' : t === 'article' ? 'Article' : 'Website'}
+              {t === 'book' ? 'Kitap' : t === 'article' ? 'Makale' : 'Web Sitesi'}
             </button>
           ))}
         </div>
@@ -90,7 +90,7 @@ export default function CitationFormatter() {
       {/* Format Style */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Format Style
+          Format Stili
         </label>
         <select
           value={format}
@@ -107,17 +107,17 @@ export default function CitationFormatter() {
       {/* Source Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Source Information
+          Kaynak Bilgisi
         </label>
         <textarea
           value={source}
           onChange={(e) => setSource(e.target.value)}
           placeholder={
             type === 'website'
-              ? 'Enter URL or website title...'
+              ? 'URL veya web sitesi başlığı girin...'
               : type === 'book'
-              ? 'Author name, book title, publisher, year...'
-              : 'Article title, journal name, volume, issue...'
+              ? 'Yazar adı, kitap başlığı, yayınevi, yıl...'
+              : 'Makale başlığı, dergi adı, cilt, sayı...'
           }
           className="input-modern"
           rows={3}
@@ -136,7 +136,7 @@ export default function CitationFormatter() {
               <div className="flex items-center space-x-2">
                 <Coins className="h-5 w-5 text-blue-600" />
                 <span className="text-sm text-blue-800">
-                  You have <strong>{credits.credits}</strong> credits • This action costs <strong>{creditCost}</strong> credit
+                  <strong>{credits.credits}</strong> krediniz var • Bu işlem <strong>{creditCost}</strong> kredi harcar
                 </span>
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function CitationFormatter() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-700">
-                    You need <strong>{creditCost}</strong> credit but have <strong>{credits.credits}</strong>
+                    Bu işlem için <strong>{creditCost}</strong> kredi gerekiyor, mevcut krediniz: <strong>{credits.credits}</strong>
                   </p>
                 </div>
               </div>
@@ -156,7 +156,7 @@ export default function CitationFormatter() {
                 onClick={() => window.location.href = '/#pricing'}
                 className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                Buy Credits
+                Kredi Satın Al
               </button>
             </div>
           )}
@@ -171,20 +171,20 @@ export default function CitationFormatter() {
         {loading ? (
           <div className="flex items-center justify-center space-x-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            <span>Formatting...</span>
+            <span>Formatlanıyor...</span>
           </div>
         ) : !user ? (
           <div className="flex items-center justify-center space-x-2">
             <Lock className="h-4 w-4" />
-            <span>Sign In</span>
+            <span>Giriş Yap</span>
           </div>
         ) : !checkCredits('citation_format').allowed ? (
           <div className="flex items-center justify-center space-x-2">
             <Coins className="h-4 w-4" />
-            <span>Insufficient Credits</span>
+            <span>Yetersiz Kredi</span>
           </div>
         ) : (
-          `Format (${creditCost} credit)`
+          `Formatla (${creditCost} kredi)`
         )}
       </button>
 
@@ -193,7 +193,7 @@ export default function CitationFormatter() {
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex justify-between items-start mb-2">
             <label className="text-sm font-medium text-gray-700">
-              Formatted Citation
+              Formatlanan Kaynak
             </label>
             <button
               onClick={copyToClipboard}

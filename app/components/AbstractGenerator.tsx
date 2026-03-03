@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { FileText, Loader2, Languages, Lock, AlertCircle, Coins } from 'lucide-react';
+import { Loader2, Languages, Lock, AlertCircle, Coins } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCredits } from '../hooks/useCredits';
 import { CREDIT_COSTS } from '../lib/pricing';
@@ -17,14 +17,14 @@ export default function AbstractGenerator() {
 
   const generateAbstract = async () => {
     if (!text) {
-      toast.error('Please enter thesis content');
+      toast.error('Lütfen tez içeriği girin');
       return;
     }
 
     // Kredi kontrolü
     const creditCheck = checkCredits('abstract_generate');
     if (!creditCheck.allowed) {
-      toast.error(creditCheck.reason || 'Insufficient credits');
+      toast.error(creditCheck.reason || 'Yetersiz kredi');
       return;
     }
 
@@ -47,9 +47,9 @@ export default function AbstractGenerator() {
       // Kredi bakiyesini güncelle (API zaten kredi kesti)
       await refresh();
 
-      toast.success(`Abstract generated! (${creditCost} credits used)`);
+      toast.success(`Özet oluşturuldu! (${creditCost} kredi kullanıldı)`);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to generate abstract');
+      toast.error(error.message || 'Özet oluşturulamadı');
     } finally {
       setLoading(false);
     }
@@ -61,31 +61,31 @@ export default function AbstractGenerator() {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Language
+            Dil
           </label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             className="input-modern"
           >
-            <option value="tr">Turkish (Summary)</option>
-            <option value="en">English (Abstract)</option>
-            <option value="both">Both</option>
+            <option value="tr">Türkçe (Özet)</option>
+            <option value="en">İngilizce (Abstract)</option>
+            <option value="both">Her İkisi</option>
           </select>
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Abstract Length
+            Özet Uzunluğu
           </label>
           <select
             value={wordCount}
             onChange={(e) => setWordCount(e.target.value)}
             className="input-modern"
           >
-            <option value="100-150">Short Abstract (100-150 words) - Key findings</option>
-            <option value="200-300">Standard Abstract (200-300 words) - Academic standard</option>
-            <option value="400-500">Detailed Abstract (400-500 words) - Comprehensive analysis</option>
+            <option value="100-150">Kısa Özet (100-150 kelime) - Temel bulgular</option>
+            <option value="200-300">Standart Özet (200-300 kelime) - Akademik standart</option>
+            <option value="400-500">Detaylı Özet (400-500 kelime) - Kapsamlı analiz</option>
           </select>
         </div>
       </div>
@@ -93,17 +93,17 @@ export default function AbstractGenerator() {
       {/* Text Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Thesis Content
+          Tez İçeriği
         </label>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Paste the main content or sections of your thesis here..."
+          placeholder="Tezinizin ana içeriğini veya bölümlerini buraya yapıştırın..."
           className="input-modern"
           rows={8}
         />
         <p className="text-sm text-gray-500 mt-1">
-          {text.split(' ').filter(w => w).length} words
+          {text.split(' ').filter(w => w).length} kelime
         </p>
       </div>
 
@@ -119,7 +119,7 @@ export default function AbstractGenerator() {
               <div className="flex items-center space-x-2">
                 <Coins className="h-5 w-5 text-green-600" />
                 <span className="text-sm text-green-800">
-                  You have <strong>{credits.credits}</strong> credits • This action costs <strong>{creditCost}</strong> credits
+                  <strong>{credits.credits}</strong> krediniz var • Bu işlem <strong>{creditCost}</strong> kredi harcar
                 </span>
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function AbstractGenerator() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-700">
-                    You need <strong>{creditCost}</strong> credits but have <strong>{credits.credits}</strong>
+                    Bu işlem için <strong>{creditCost}</strong> kredi gerekiyor, mevcut krediniz: <strong>{credits.credits}</strong>
                   </p>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function AbstractGenerator() {
                 onClick={() => window.location.href = '/#pricing'}
                 className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                Buy Credits
+                Kredi Satın Al
               </button>
             </div>
           )}
@@ -154,22 +154,22 @@ export default function AbstractGenerator() {
         {loading ? (
           <>
             <Loader2 className="animate-spin h-5 w-5 mr-2" />
-            Generating abstract...
+            Özet oluşturuluyor...
           </>
         ) : !user ? (
           <>
             <Lock className="h-5 w-5 mr-2" />
-            Sign In
+            Giriş Yap
           </>
         ) : !checkCredits('abstract_generate').allowed ? (
           <>
             <Coins className="h-5 w-5 mr-2" />
-            Insufficient Credits
+            Yetersiz Kredi
           </>
         ) : (
           <>
             <Languages className="h-5 w-5 mr-2" />
-            Generate Abstract ({creditCost} credits)
+            Özet Oluştur ({creditCost} kredi)
           </>
         )}
       </button>
@@ -179,7 +179,7 @@ export default function AbstractGenerator() {
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-semibold mb-2">
-              {language === 'tr' ? 'Summary' : language === 'en' ? 'Abstract' : 'Summary & Abstract'}
+              {language === 'tr' ? 'Özet' : language === 'en' ? 'Abstract' : 'Özet & Abstract'}
             </h3>
             <p className="text-gray-800 whitespace-pre-wrap">{abstract}</p>
           </div>

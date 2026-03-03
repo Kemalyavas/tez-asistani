@@ -49,9 +49,9 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center group">
             <div className="relative w-20 h-20 group-hover:scale-110 transition-transform duration-300">
-              <Image 
-                src="/logo.png" 
-                alt="TezAI logo" 
+              <Image
+                src="/logo.png"
+                alt="TezAI logo"
                 width={80}
                 height={80}
                 className="object-contain"
@@ -59,40 +59,40 @@ export default function Navbar() {
               />
             </div>
           </Link>
-          
+
           {/* Desktop Navigation Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <button 
+            <button
               onClick={() => scrollToSection('features')}
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              Features
+              Özellikler
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection('how-it-works')}
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              How it works
+              Nasıl Çalışır
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection('pricing')}
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              Pricing
+              Fiyatlar
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection('app')}
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              Tools
+              Araçlar
             </button>
-            <Link 
-              href="/privacy-policy" 
+            <Link
+              href="/privacy-policy"
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
             >
-              Privacy Policy
+              Gizlilik Politikası
             </Link>
-            
+
             {/* Auth Buttons */}
             {user ? (
               <div className="flex items-center space-x-4">
@@ -101,7 +101,7 @@ export default function Navbar() {
                   className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium">My Analyses</span>
+                  <span className="text-sm font-medium">Analizlerim</span>
                 </Link>
                 <Link
                   href="/profile"
@@ -115,16 +115,16 @@ export default function Navbar() {
                   className="flex items-center space-x-1 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <span>Çıkış</span>
                 </button>
               </div>
             ) : (
-              <Link 
-                href="/auth" 
+              <Link
+                href="/auth"
                 className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
                 <LogIn className="h-4 w-4" />
-                <span>Sign in</span>
+                <span>Giriş Yap</span>
               </Link>
             )}
           </div>
@@ -133,7 +133,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={isMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -143,38 +143,38 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200 animate-fade-in">
             <div className="flex flex-col space-y-4">
-              <button 
+              <button
                 onClick={() => scrollToSection('features')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                Features
+                Özellikler
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('how-it-works')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                How It Works
+                Nasıl Çalışır
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('pricing')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                Pricing
+                Fiyatlar
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('app')}
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
               >
-                Application
+                Araçlar
               </button>
-              <Link 
-                href="/privacy-policy" 
+              <Link
+                href="/privacy-policy"
                 className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Privacy Policy
+                Gizlilik Politikası
               </Link>
-              
+
               {/* Mobile Auth Section */}
               <div className="border-t pt-4">
                 {user ? (
@@ -185,7 +185,7 @@ export default function Navbar() {
                       className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300 py-2"
                     >
                       <BarChart3 className="h-4 w-4" />
-                      <span className="text-sm font-medium">My Analyses</span>
+                      <span className="text-sm font-medium">Analizlerim</span>
                     </Link>
                     <Link
                       href="/profile"
@@ -199,16 +199,16 @@ export default function Navbar() {
                       onClick={handleLogout}
                       className="w-full text-left text-red-600 hover:bg-red-50 font-medium transition-colors duration-300 py-2"
                     >
-                      Logout
+                      Çıkış Yap
                     </button>
                   </>
                 ) : (
-                  <Link 
+                  <Link
                     href="/auth"
                     onClick={() => setIsMenuOpen(false)}
                     className="block text-blue-600 hover:bg-blue-50 font-medium transition-colors duration-200 py-2"
                   >
-                    Sign in / Register
+                    Giriş Yap / Kayıt Ol
                   </Link>
                 )}
               </div>

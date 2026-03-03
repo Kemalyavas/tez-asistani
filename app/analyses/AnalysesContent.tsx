@@ -115,9 +115,9 @@ export default function AnalysesContent() {
 
   const getAnalysisTypeLabel = (type: string) => {
     switch (type) {
-      case 'basic': return 'Basic';
-      case 'standard': return 'Standard';
-      case 'comprehensive': return 'Comprehensive';
+      case 'basic': return 'Temel';
+      case 'standard': return 'Standart';
+      case 'comprehensive': return 'Kapsamlı';
       default: return type;
     }
   };
@@ -152,9 +152,9 @@ export default function AnalysesContent() {
         a.id === analysisId ? { ...a, status: 'failed' } : a
       ));
 
-      toast.success(data.refunded ? 'Marked failed and credits refunded.' : 'Marked failed.');
+      toast.success(data.refunded ? 'Başarısız işaretlendi ve krediler iade edildi.' : 'Başarısız işaretlendi.');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to mark analysis as failed.');
+      toast.error(error.message || 'Analiz başarısız olarak işaretlenemedi.');
     } finally {
       setActionLoadingId(null);
     }
@@ -165,7 +165,7 @@ export default function AnalysesContent() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your analyses...</p>
+          <p className="text-gray-600">Analizleriniz yükleniyor...</p>
         </div>
       </div>
     );
@@ -182,9 +182,9 @@ export default function AnalysesContent() {
               className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span>Return to Home</span>
+              <span>Ana Sayfaya Dön</span>
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">My Analyses</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Analizlerim</h1>
             <div className="w-32"></div>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function AnalysesContent() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{analyses.length}</p>
-                <p className="text-sm text-gray-500">Total Analyses</p>
+                <p className="text-sm text-gray-500">Toplam Analiz</p>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function AnalysesContent() {
                 <p className="text-2xl font-bold text-gray-900">
                   {analyses.filter(a => a.status === 'analyzed').length}
                 </p>
-                <p className="text-sm text-gray-500">Completed</p>
+                <p className="text-sm text-gray-500">Tamamlanan</p>
               </div>
             </div>
           </div>
@@ -233,7 +233,7 @@ export default function AnalysesContent() {
                       )
                     : '-'}
                 </p>
-                <p className="text-sm text-gray-500">Average Score</p>
+                <p className="text-sm text-gray-500">Ortalama Puan</p>
               </div>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function AnalysesContent() {
                 <p className="text-2xl font-bold text-gray-900">
                   {analyses.filter(a => a.status === 'processing').length}
                 </p>
-                <p className="text-sm text-gray-500">Processing</p>
+                <p className="text-sm text-gray-500">İşleniyor</p>
               </div>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function AnalysesContent() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by filename..."
+                placeholder="Dosya adına göre ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -273,7 +273,7 @@ export default function AnalysesContent() {
               className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
               <Filter className="h-5 w-5 mr-2 text-gray-500" />
-              Filters
+              Filtrele
               <ChevronDown className={`h-4 w-4 ml-2 text-gray-500 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
           </div>
@@ -282,29 +282,29 @@ export default function AnalysesContent() {
           {showFilters && (
             <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sırala</label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="highest_score">Highest Score</option>
-                  <option value="lowest_score">Lowest Score</option>
+                  <option value="newest">En Yeni</option>
+                  <option value="oldest">En Eski</option>
+                  <option value="highest_score">En Yüksek Puan</option>
+                  <option value="lowest_score">En Düşük Puan</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Durum</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="all">All Status</option>
-                  <option value="analyzed">Completed</option>
-                  <option value="processing">Processing</option>
-                  <option value="failed">Failed</option>
+                  <option value="all">Tüm Durumlar</option>
+                  <option value="analyzed">Tamamlanan</option>
+                  <option value="processing">İşleniyor</option>
+                  <option value="failed">Başarısız</option>
                 </select>
               </div>
             </div>
@@ -317,20 +317,20 @@ export default function AnalysesContent() {
             <BarChart3 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             {analyses.length === 0 ? (
               <>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No analyses yet</h3>
-                <p className="text-gray-500 mb-6">Start by analyzing your first thesis!</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Henüz analiz yok</h3>
+                <p className="text-gray-500 mb-6">İlk tezinizi analiz ederek başlayın!</p>
                 <Link
                   href="/"
                   className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
                 >
                   <FileText className="h-5 w-5 mr-2" />
-                  Analyze a Thesis
+                  Tez Analiz Et
                 </Link>
               </>
             ) : (
               <>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No matching analyses</h3>
-                <p className="text-gray-500">Try adjusting your search or filters</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Eşleşen analiz bulunamadı</h3>
+                <p className="text-gray-500">Aramanızı veya filtrelerinizi değiştirmeyi deneyin</p>
               </>
             )}
           </div>
@@ -355,11 +355,11 @@ export default function AnalysesContent() {
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-500">
                           <span className="flex items-center">
                             <FileText className="h-4 w-4 mr-1" />
-                            {analysis.page_count} pages
+                            {analysis.page_count} sayfa
                           </span>
                           <span className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            {new Date(analysis.created_at).toLocaleDateString('en-US', {
+                            {new Date(analysis.created_at).toLocaleDateString('tr-TR', {
                               year: 'numeric',
                               month: 'short',
                               day: 'numeric'
@@ -378,7 +378,7 @@ export default function AnalysesContent() {
                       <div className="flex items-center gap-2">
                         <div className="flex items-center text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
                           <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                          <span className="font-medium">Processing...</span>
+                          <span className="font-medium">İşleniyor...</span>
                         </div>
                         {isStuckProcessing(analysis) && (
                           <button
@@ -386,14 +386,14 @@ export default function AnalysesContent() {
                             className="text-xs px-3 py-2 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 transition"
                             disabled={actionLoadingId === analysis.id}
                           >
-                            {actionLoadingId === analysis.id ? 'Updating...' : 'Mark failed'}
+                            {actionLoadingId === analysis.id ? 'Güncelleniyor...' : 'Başarısız işaretle'}
                           </button>
                         )}
                       </div>
                     ) : analysis.status === 'failed' ? (
                       <div className="flex items-center text-red-600 bg-red-50 px-4 py-2 rounded-lg">
                         <AlertCircle className="h-5 w-5 mr-2" />
-                        <span className="font-medium">Failed</span>
+                        <span className="font-medium">Başarısız</span>
                       </div>
                     ) : analysis.overall_score !== null ? (
                       <div className={`flex items-center px-4 py-2 rounded-lg font-semibold ${getScoreColor(analysis.overall_score)}`}>
@@ -402,7 +402,7 @@ export default function AnalysesContent() {
                         <span className="text-sm ml-1">/100</span>
                       </div>
                     ) : (
-                      <span className="text-gray-400 px-4 py-2">No score</span>
+                      <span className="text-gray-400 px-4 py-2">Puan yok</span>
                     )}
                   </div>
                 </div>
@@ -414,7 +414,7 @@ export default function AnalysesContent() {
         {/* Results count */}
         {filteredAnalyses.length > 0 && (
           <p className="text-center text-sm text-gray-500 mt-6">
-            Showing {filteredAnalyses.length} of {analyses.length} analyses
+            {analyses.length} analizden {filteredAnalyses.length} tanesi gösteriliyor
           </p>
         )}
       </div>

@@ -6,44 +6,44 @@ import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 const testimonials = [
   {
     id: 1,
-    text: "Automatically fixing the formatting rules I struggled with the most in my thesis is amazing. It solves in minutes what used to take me nights.",
-    name: "Adam Y.",
+    text: "Tezimde en çok zorlandığım format kurallarını otomatik olarak düzeltmesi inanılmaz. Gecelerce uğraştığımı dakikalar içinde hallediyor.",
+    name: "Ahmet Y.",
     color: "bg-blue-600"
   },
   {
     id: 2,
-    text: "The citation formatting part is truly a lifesaver. When I tried to do it manually I kept making mistakes, now it gets everything right.",
-    name: "Zoe K.",
+    text: "Kaynak formatlama kısmı gerçekten hayat kurtarıcı. Elle yapmaya çalışırken sürekli hata yapıyordum, şimdi her şeyi doğru yapıyor.",
+    name: "Zeynep K.",
     color: "bg-purple-600"
   },
   {
     id: 3,
-    text: "My advisor kept asking for format fixes. Since I started using the app I haven't had a single formatting issue.",
-    name: "Michael A.",
+    text: "Danışmanım sürekli format düzeltmesi istiyordu. Uygulamayı kullanmaya başladığımdan beri tek bir format hatası yaşamadım.",
+    name: "Mehmet A.",
     color: "bg-green-600"
   },
   {
     id: 4,
-    text: "Figure and table layout used to be so hard. Now everything automatically matches the required standards.",
-    name: "Fiona S.",
+    text: "Şekil ve tablo düzeni çok zordu. Artık her şey otomatik olarak gerekli standartlara uyuyor.",
+    name: "Fatma S.",
     color: "bg-red-600"
   },
   {
     id: 5,
-    text: "I tried other tools but none were this fast and easy. My thesis process really sped up.",
-    name: "Alex R.",
+    text: "Başka araçlar denedim ama hiçbiri bu kadar hızlı ve kolay değildi. Tez sürecim gerçekten hızlandı.",
+    name: "Ali R.",
     color: "bg-indigo-600"
   },
   {
     id: 6,
-    text: "Formatting the summary and abstract sections was so complex. Now it all becomes clean with one click.",
-    name: "Ella T.",
+    text: "Özet ve abstract bölümlerini formatlamak çok karmaşıktı. Artık tek tıkla temiz bir hale geliyor.",
+    name: "Elif T.",
     color: "bg-pink-600"
   },
   {
     id: 7,
-    text: "Definitely worth the price. I never thought writing a thesis could feel this easy. I recommend it to everyone.",
-    name: "Ethan D.",
+    text: "Fiyatına kesinlikle değer. Tez yazmanın bu kadar kolay olabileceğini hiç düşünmemiştim. Herkese tavsiye ederim.",
+    name: "Emre D.",
     color: "bg-yellow-600"
   }
 ];
@@ -56,7 +56,7 @@ export default function TestimonialsCarousel() {
   const nextSlide = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex + 1 >= testimonials.length ? 0 : prevIndex + 1
     );
     setTimeout(() => setIsTransitioning(false), 700);
@@ -65,7 +65,7 @@ export default function TestimonialsCarousel() {
   const prevSlide = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? testimonials.length - 1 : prevIndex - 1
     );
     setTimeout(() => setIsTransitioning(false), 700);
@@ -78,7 +78,6 @@ export default function TestimonialsCarousel() {
     setTimeout(() => setIsTransitioning(false), 700);
   };
 
-  // Auto-play functionality
   useEffect(() => {
     if (!isAutoPlaying || isTransitioning) return;
 
@@ -94,20 +93,19 @@ export default function TestimonialsCarousel() {
   return (
     <div className="relative max-w-6xl mx-auto px-4">
       {/* Main Carousel */}
-      <div 
+      <div
         className="overflow-hidden"
         onMouseEnter={() => setIsAutoPlaying(false)}
         onMouseLeave={() => setIsAutoPlaying(true)}
       >
         {/* Desktop View - 3 cards */}
         <div className="hidden md:block">
-          <div 
+          <div
             className="flex transition-transform duration-700 ease-in-out"
             style={{ transform: `translateX(-${(currentIndex * 100) / 3}%)` }}
           >
-            {/* Genişletilmiş testimonial dizisi - smooth döngü için */}
             {[...testimonials, ...testimonials, ...testimonials].map((testimonial, index) => (
-              <div 
+              <div
                 key={`testimonial-${testimonial.id}-${index}`}
                 className="w-1/3 flex-shrink-0 px-3"
               >
@@ -118,7 +116,7 @@ export default function TestimonialsCarousel() {
                     ))}
                   </div>
                   <p className="text-gray-600 mb-6 min-h-[100px] leading-relaxed text-sm">
-                    "{testimonial.text}"
+                    &ldquo;{testimonial.text}&rdquo;
                   </p>
                   <div className="flex items-center mt-auto">
                     <div className={`w-10 h-10 ${testimonial.color} rounded-full mr-3 flex items-center justify-center shadow-md`}>
@@ -138,12 +136,12 @@ export default function TestimonialsCarousel() {
 
         {/* Mobile View - 1 card */}
         <div className="md:hidden">
-          <div 
+          <div
             className="flex transition-transform duration-700 ease-in-out"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
             {testimonials.map((testimonial, index) => (
-              <div 
+              <div
                 key={`mobile-testimonial-${testimonial.id}-${index}`}
                 className="w-full flex-shrink-0 px-2"
               >
@@ -154,7 +152,7 @@ export default function TestimonialsCarousel() {
                     ))}
                   </div>
                   <p className="text-gray-600 mb-6 leading-relaxed text-center">
-                    "{testimonial.text}"
+                    &ldquo;{testimonial.text}&rdquo;
                   </p>
                   <div className="flex items-center justify-center">
                     <div className={`w-12 h-12 ${testimonial.color} rounded-full mr-3 flex items-center justify-center shadow-md`}>
@@ -177,8 +175,8 @@ export default function TestimonialsCarousel() {
       <button
         onClick={prevSlide}
         disabled={isTransitioning}
-  className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
-  aria-label="Previous testimonials"
+        className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
+        aria-label="Önceki yorumlar"
       >
         <ChevronLeft className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
       </button>
@@ -186,8 +184,8 @@ export default function TestimonialsCarousel() {
       <button
         onClick={nextSlide}
         disabled={isTransitioning}
-  className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
-  aria-label="Next testimonials"
+        className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed z-10 group"
+        aria-label="Sonraki yorumlar"
       >
         <ChevronRight className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
       </button>
@@ -198,20 +196,20 @@ export default function TestimonialsCarousel() {
           onClick={prevSlide}
           disabled={isTransitioning}
           className="bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Previous testimonial"
+          aria-label="Önceki yorum"
         >
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </button>
-        
+
         <span className="text-sm text-gray-500 font-medium" aria-live="polite">
           {currentIndex + 1} / {totalSlides}
         </span>
-        
+
         <button
           onClick={nextSlide}
           disabled={isTransitioning}
           className="bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Next testimonial"
+          aria-label="Sonraki yorum"
         >
           <ChevronRight className="h-5 w-5 text-gray-600" />
         </button>
@@ -224,7 +222,7 @@ export default function TestimonialsCarousel() {
           className="text-xs text-gray-500 hover:text-gray-700 underline"
           aria-pressed={isAutoPlaying}
         >
-          {isAutoPlaying ? 'Pause auto-play' : 'Resume auto-play'}
+          {isAutoPlaying ? 'Otomatik oynatmayı duraklat' : 'Otomatik oynatmayı sürdür'}
         </button>
       </div>
 
@@ -236,11 +234,11 @@ export default function TestimonialsCarousel() {
             onClick={() => goToSlide(index)}
             disabled={isTransitioning}
             className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 hover:scale-125 disabled:cursor-not-allowed ${
-              currentIndex === index 
-                ? 'bg-blue-600 scale-125 shadow-md' 
+              currentIndex === index
+                ? 'bg-blue-600 scale-125 shadow-md'
                 : 'bg-gray-300 hover:bg-gray-400'
             }`}
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={`${index + 1}. yoruma git`}
           />
         ))}
       </div>

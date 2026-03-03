@@ -22,7 +22,7 @@ export const siteMetadata = {
       alt: 'TezAI – AI-Powered Academic Writing',
     }
   ],
-  locale: 'en_US',
+  locale: 'tr_TR',
   type: 'website',
   author: 'TezAI Team',
   robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
@@ -66,7 +66,7 @@ export const homeMetadata: Metadata = {
   },
   alternates: {
     canonical: siteMetadata.url,
-    languages: { 'en-US': siteMetadata.url },
+    languages: { 'tr-TR': siteMetadata.url },
   },
   category: 'Education Technology',
   classification: 'Academic Writing Tool'
@@ -74,20 +74,20 @@ export const homeMetadata: Metadata = {
 
 // Pricing sayfası metadata
 export const pricingMetadata: Metadata = {
-  title: 'Pricing - TezAI | Academic Writing Tools',
-  description: 'TezAI pricing plans: Start free, upgrade to Pro ($9/month) or Expert ($25/month) for advanced academic writing capabilities with AI.',
-  keywords: 'thesis assistant pricing, academic writing tool pricing, citation generator price, AI thesis tool subscription, student discount academic writing',
+  title: 'Fiyatlar - TezAI | Kredi Paketleri',
+  description: 'TezAI kredi paketleri: Starter ($5), Standard ($15), Pro ($25), Ultimate ($50). Abonelik yok, krediler asla sona ermez. Sadece kullandığın kadar öde.',
+  keywords: 'tezai fiyat, kredi paketi, tez analizi fiyat, akademik yazım aracı fiyat, yapay zeka tez asistanı',
   openGraph: {
-    title: 'Pricing - TezAI | Academic Writing Tools',
-    description: 'Affordable academic writing tools. Start free, unlock more with Pro ($9) or Expert ($25) plans.',
+    title: 'Fiyatlar - TezAI | Kredi Paketleri',
+    description: 'Sadece kullandığın kadar öde. Starter $5, Pro $25. Abonelik yok.',
     url: `${siteMetadata.url}/pricing`,
-    images: [{ url: '/og?title=TezAI%20Pricing&subtitle=Pro%20%249%20%E2%80%A2%20Expert%20%2425', width: 1200, height: 630, alt: 'TezAI Pricing' }],
+    images: [{ url: '/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%245%20%E2%80%A2%20Pro%20%2425', width: 1200, height: 630, alt: 'TezAI Fiyatlar' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pricing - TezAI',
-    description: 'Affordable academic writing tools. Start free, unlock more with Pro ($9) or Expert ($25) plans.',
-    images: ['/og?title=TezAI%20Pricing&subtitle=Pro%20%249%20%E2%80%A2%20Expert%20%2425'],
+    title: 'Fiyatlar - TezAI',
+    description: 'Sadece kullandığın kadar öde. Starter $5, Pro $25. Abonelik yok.',
+    images: ['/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%245%20%E2%80%A2%20Pro%20%2425'],
   },
   alternates: {
     canonical: `${siteMetadata.url}/pricing`,

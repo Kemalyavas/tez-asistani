@@ -2,87 +2,87 @@ export default function MesafeliSatisSozlesmesi() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8">Distance Sales Agreement (Terms of Sale)</h1>
-        
+        <h1 className="text-3xl font-bold mb-8">Mesafeli Satış Sözleşmesi</h1>
+
         <div className="bg-white rounded-lg shadow p-8 space-y-6">
           <section>
-            <h2 className="text-xl font-semibold mb-3">1. PARTIES</h2>
+            <h2 className="text-xl font-semibold mb-3">1. TARAFLAR</h2>
             <div className="text-gray-700">
-              <p><strong>Seller:</strong></p>
-              <p>Company: Thesis Assistant</p>
-              <p>Address: Kocaeli/Izmit</p>
-              <p>Email: kemalyavaas@outlook.com</p>
-              <p>Phone: 554 969 00 11</p>
-              
-              <p className="mt-4"><strong>Buyer:</strong></p>
-              <p>The person specified during contract approval (checkout)</p>
+              <p><strong>Satıcı:</strong></p>
+              <p>Ünvan: Tez Asistanı</p>
+              <p>Adres: Kocaeli/İzmit</p>
+              <p>E-posta: kemalyavaas@outlook.com</p>
+              <p>Telefon: 554 969 00 11</p>
+
+              <p className="mt-4"><strong>Alıcı:</strong></p>
+              <p>Sözleşme onayı (ödeme) sırasında belirtilen kişi</p>
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">2. SUBJECT</h2>
+            <h2 className="text-xl font-semibold mb-3">2. KONU</h2>
             <p className="text-gray-700">
-              This agreement sets out the rights and obligations of the parties pursuant to the provisions of Turkish Consumer Protection Law No. 6502 regarding the sale and delivery of the service, the features of which are specified below together with its sales price, provided by the Seller to the Buyer.
+              Bu sözleşme; Satıcı tarafından Alıcıya sunulan, aşağıda nitelikleri ve satış fiyatı belirtilen hizmetin satışı ve teslimatına ilişkin olarak, 6502 sayılı Türk Tüketicinin Korunması Hakkında Kanun hükümleri çerçevesinde tarafların hak ve yükümlülüklerini düzenlemektedir.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">3. SERVICE INFORMATION</h2>
+            <h2 className="text-xl font-semibold mb-3">3. HİZMET BİLGİLERİ</h2>
             <div className="text-gray-700">
-              <p><strong>Credit-Based System:</strong></p>
-              <p className="mt-2 mb-3">TezAI operates on a credit-based system. Users purchase credit packages and use credits for various services:</p>
+              <p><strong>Kredi Tabanlı Sistem:</strong></p>
+              <p className="mt-2 mb-3">TezAI kredi tabanlı bir sistem ile çalışmaktadır. Kullanıcılar kredi paketi satın alır ve çeşitli hizmetler için bu kredileri kullanır:</p>
               <ul className="list-disc pl-6 mt-2">
-                <li>Starter Pack: 50 credits - $5</li>
-                <li>Standard Pack: 240 credits (200 + 40 bonus) - $15</li>
-                <li>Pro Pack: 600 credits (500 + 100 bonus) - $35</li>
-                <li>Ultimate Pack: 1500 credits (1200 + 300 bonus) - $75</li>
+                <li>Starter Paketi: 50 kredi - $5</li>
+                <li>Standard Paketi: 240 kredi (200 + 40 bonus) - $15</li>
+                <li>Pro Paketi: 600 kredi (500 + 100 bonus) - $35</li>
+                <li>Ultimate Paketi: 1500 kredi (1200 + 300 bonus) - $75</li>
               </ul>
-              <p className="mt-3"><strong>Credit Usage:</strong></p>
+              <p className="mt-3"><strong>Kredi Kullanımı:</strong></p>
               <ul className="list-disc pl-6 mt-2">
-                <li>Citation Formatting: 1 credit</li>
-                <li>Abstract Generation: 3 credits</li>
-                <li>Thesis Analysis (Short): 10 credits</li>
-                <li>Thesis Analysis (Medium): 25 credits</li>
-                <li>Thesis Analysis (Long): 50 credits</li>
+                <li>Kaynak Formatlama: 1 kredi</li>
+                <li>Özet Oluşturma: 3 kredi</li>
+                <li>Tez Analizi (Kısa): 10 kredi</li>
+                <li>Tez Analizi (Orta): 25 kredi</li>
+                <li>Tez Analizi (Uzun): 50 kredi</li>
               </ul>
               <p className="mt-3">
-                Credits are delivered digitally and are activated immediately after purchase. Credits never expire.
+                Krediler dijital olarak teslim edilir ve satın alma işleminin hemen ardından aktif hale gelir. Kredilerin son kullanma tarihi yoktur.
               </p>
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">4. PAYMENT INFORMATION</h2>
+            <h2 className="text-xl font-semibold mb-3">4. ÖDEME BİLGİLERİ</h2>
             <p className="text-gray-700">
-              Payments are made by credit or debit card through Iyzico's secure payment infrastructure. Your payment information is protected with 256‑bit SSL encryption.
+              Ödemeler, Iyzico&apos;nun güvenli ödeme altyapısı aracılığıyla kredi veya banka kartıyla yapılmaktadır. Ödeme bilgileriniz 256 bit SSL şifrelemesiyle korunmaktadır.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">5. RIGHT OF WITHDRAWAL</h2>
+            <h2 className="text-xl font-semibold mb-3">5. CAYMA HAKKI</h2>
             <p className="text-gray-700">
-              Due to the nature of digital content and services, the right of withdrawal ends once the service begins to be used. Pursuant to Article 15(ğ) of Law No. 6502, the right of withdrawal does not apply to services performed instantly in electronic media.
+              Dijital içerik ve hizmetlerin niteliği gereği, hizmetin kullanılmaya başlanmasıyla birlikte cayma hakkı sona erer. 6502 sayılı Kanun&apos;un 15/(ğ) maddesi uyarınca, elektronik ortamda anında ifa edilen hizmetlerde cayma hakkı uygulanmaz.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">6. PRIVACY AND DATA SECURITY</h2>
+            <h2 className="text-xl font-semibold mb-3">6. GİZLİLİK VE VERİ GÜVENLİĞİ</h2>
             <p className="text-gray-700">
-              Your personal data is protected under Turkish Personal Data Protection Law (KVKK). For details, please review our
-              <a href="/privacy-policy" className="text-blue-600 hover:underline ml-1">Privacy Policy</a>.
+              Kişisel verileriniz, Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında korunmaktadır. Ayrıntılar için
+              <a href="/privacy-policy" className="text-blue-600 hover:underline ml-1">Gizlilik Politikamızı</a> inceleyiniz.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">7. JURISDICTION</h2>
+            <h2 className="text-xl font-semibold mb-3">7. YETKİLİ MAHKEME</h2>
             <p className="text-gray-700">
-              For the implementation of this agreement, Consumer Arbitration Committees and Consumer Courts are authorized up to the monetary limits announced by the Ministry of Trade.
+              Bu sözleşmenin uygulanmasında, Ticaret Bakanlığı tarafından ilan edilen parasal sınırlar dahilinde Tüketici Hakem Heyetleri ve Tüketici Mahkemeleri yetkilidir.
             </p>
           </section>
 
           <div className="mt-8 pt-8 border-t">
             <p className="text-sm text-gray-500">
-              Last updated: {new Date().toLocaleDateString('en-US')}
+              Son güncelleme: {new Date().toLocaleDateString('tr-TR')}
             </p>
           </div>
         </div>
