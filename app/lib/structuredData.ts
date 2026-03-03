@@ -1,4 +1,4 @@
-// JSON-LD Structured Data for SEO (clean, en-US, production domain)
+// JSON-LD Structured Data for SEO (Turkish, production domain)
 const siteUrl = 'https://www.tezai.com.tr';
 
 export const structuredData = {
@@ -7,12 +7,11 @@ export const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'TezAI',
-    alternateName: 'Thesis Assistant',
+    alternateName: 'Tez Asistanı',
     url: siteUrl,
     description:
-      'AI-powered academic writing assistant for theses, papers, and research: citation formatting, abstract generation, and reference management.',
-    inLanguage: 'en-US',
-    // If you add a /search route, update urlTemplate. For now, point to home with q param.
+      'Yapay zeka destekli akademik yazım asistanı: tez analizi, atıf biçimlendirme (APA, MLA, Chicago), özet oluşturma ve kaynak yönetimi.',
+    inLanguage: 'tr-TR',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
@@ -47,10 +46,9 @@ export const structuredData = {
       width: '600',
       height: '60',
     },
-    description: 'AI-powered academic writing platform',
+    description: 'Yapay zeka destekli akademik yazım platformu',
     sameAs: [
       'https://x.com/tezasistani',
-      // Add more profiles if available (LinkedIn, GitHub, YouTube)
     ],
     foundingDate: '2024',
     founders: [
@@ -74,11 +72,11 @@ export const structuredData = {
     applicationCategory: 'EducationalApplication',
     applicationSubCategory: 'Academic Writing Tool',
     description:
-      'AI-powered tool for APA/MLA/Chicago citations, abstract generation, and thesis assistance.',
+      'Yapay zeka destekli APA/MLA/Chicago atıf biçimlendirme, özet oluşturma ve tez analizi aracı.',
     url: siteUrl,
     image: `${siteUrl}/logo.png`,
     operatingSystem: 'Web',
-    browserRequirements: 'Requires JavaScript. Works in modern browsers.',
+    browserRequirements: 'JavaScript gerektirir. Modern tarayıcılarda çalışır.',
     softwareVersion: '1.0',
     author: {
       '@type': 'Organization',
@@ -87,62 +85,78 @@ export const structuredData = {
     offers: [
       {
         '@type': 'Offer',
-        name: 'Pro Plan',
-        price: '9',
-        priceCurrency: 'USD',
-        category: 'Subscription',
+        name: 'Starter Paket',
+        price: '149',
+        priceCurrency: 'TRY',
+        category: 'Credits',
         url: `${siteUrl}/pricing`,
       },
       {
         '@type': 'Offer',
-        name: 'Expert Plan',
-        price: '25',
-        priceCurrency: 'USD',
-        category: 'Subscription',
+        name: 'Standart Paket',
+        price: '449',
+        priceCurrency: 'TRY',
+        category: 'Credits',
+        url: `${siteUrl}/pricing`,
+      },
+      {
+        '@type': 'Offer',
+        name: 'Pro Paket',
+        price: '749',
+        priceCurrency: 'TRY',
+        category: 'Credits',
+        url: `${siteUrl}/pricing`,
+      },
+      {
+        '@type': 'Offer',
+        name: 'Ultimate Paket',
+        price: '1499',
+        priceCurrency: 'TRY',
+        category: 'Credits',
         url: `${siteUrl}/pricing`,
       },
     ],
   },
 
-  // FAQPage Schema (embedded questions used sitewide)
+  // FAQPage Schema
   faq: {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'How does TezAI work?',
+        name: 'TezAI nasıl çalışır?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'TezAI analyzes your academic texts and automatically creates citations in APA, MLA, or Chicago. It can also generate abstracts from your PDF or Word files.',
+            'TezAI, akademik metinlerinizi analiz ederek otomatik olarak APA, MLA veya Chicago formatında atıflar oluşturur. Ayrıca PDF veya Word dosyalarınızdan özet üretebilir ve tezinizi detaylı olarak analiz edebilir.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Which citation formats are supported?',
+        name: 'Hangi atıf formatları destekleniyor?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'We support APA 7th Edition, MLA 9th Edition, Chicago 17th Edition, and IEEE. Custom formats are available to meet various university requirements.',
+            'APA 7. Baskı, MLA 9. Baskı, Chicago 17. Baskı ve IEEE formatlarını destekliyoruz. Farklı üniversite gereksinimlerini karşılamak için özel formatlar da mevcuttur.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Is my data secure?',
+        name: 'Verilerim güvende mi?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'Yes. All data is transmitted over HTTPS. We follow GDPR-compliant practices and securely delete files after processing.',
+            'Evet. Tüm veriler HTTPS üzerinden iletilir. KVKK ve GDPR uyumlu uygulamalar izlenir ve dosyalar işlem sonrası güvenli bir şekilde silinir.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Is there a free plan?',
+        name: 'Ücretsiz deneme var mı?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'Yes. You can try TezAI for free with limited daily usage. Paid plans increase limits and unlock advanced features.',
+            'Evet. Kayıt olduğunuzda 10 ücretsiz kredi kazanırsınız. Kredi kartı gerekmez. Abonelik yok, sadece kullandığınız kadar ödersiniz.',
         },
       },
     ],
@@ -160,4 +174,3 @@ export const structuredData = {
     })),
   }),
 };
-

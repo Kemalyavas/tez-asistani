@@ -5,8 +5,8 @@
 // ============================================================================
 
 // Currency constants
-export const CURRENCY_CODE = 'USD';
-export const CURRENCY_SYMBOL = '$';
+export const CURRENCY_CODE = 'TRY';
+export const CURRENCY_SYMBOL = '₺';
 
 // ============================================================================
 // CREDIT PACKAGES (Satın alınabilir kredi paketleri)
@@ -28,81 +28,81 @@ export interface CreditPackage {
 export const CREDIT_PACKAGES: Record<string, CreditPackage> = {
   starter: {
     id: 'starter',
-    name: 'Starter Pack',
+    name: 'Starter Paket',
     credits: 50,
     bonusCredits: 0,
     totalCredits: 50,
-    priceUsd: 5,
-    pricePerCredit: 0.10,
+    priceUsd: 149,
+    pricePerCredit: 2.98,
     savings: '',
-    description: 'Perfect for trying out TezAI',
+    description: 'TezAI\'yi denemek için ideal',
     popular: false,
     features: [
-      '50 credits',
-      '~5 citation formats OR',
-      '~16 abstracts OR',
-      '~2 basic thesis analyses',
-      'Never expires'
+      '50 kredi',
+      '~5 atıf biçimlendirme VEYA',
+      '~16 özet oluşturma VEYA',
+      '~2 temel tez analizi',
+      'Süresiz geçerli'
     ]
   },
   standard: {
     id: 'standard',
-    name: 'Standard Pack',
+    name: 'Standart Paket',
     credits: 200,
     bonusCredits: 40,
     totalCredits: 240,
-    priceUsd: 15,
-    pricePerCredit: 0.0625,
-    savings: '20% bonus',
-    description: 'Great value for regular users',
+    priceUsd: 449,
+    pricePerCredit: 1.87,
+    savings: '%20 bonus',
+    description: 'Düzenli kullanıcılar için ideal',
     popular: false,
     features: [
-      '200 + 40 bonus credits',
-      '~24 abstracts OR',
-      '~9 standard analyses OR',
-      '~4 comprehensive analyses',
-      'Never expires'
+      '200 + 40 bonus kredi',
+      '~24 özet oluşturma VEYA',
+      '~9 standart analiz VEYA',
+      '~4 kapsamlı analiz',
+      'Süresiz geçerli'
     ]
   },
   pro: {
     id: 'pro',
-    name: 'Pro Pack',
+    name: 'Pro Paket',
     credits: 400,
     bonusCredits: 100,
     totalCredits: 500,
-    priceUsd: 25,
-    pricePerCredit: 0.05,
-    savings: '25% bonus',
-    description: 'Best for thesis writers',
+    priceUsd: 749,
+    pricePerCredit: 1.50,
+    savings: '%25 bonus',
+    description: 'Tez yazarları için en iyi değer',
     popular: true,
     features: [
-      '400 + 100 bonus credits',
-      '~166 abstracts OR',
-      '~20 standard analyses OR',
-      '~10 comprehensive analyses',
-      'Priority processing',
-      'Never expires'
+      '400 + 100 bonus kredi',
+      '~166 özet oluşturma VEYA',
+      '~20 standart analiz VEYA',
+      '~10 kapsamlı analiz',
+      'Öncelikli işleme',
+      'Süresiz geçerli'
     ]
   },
   ultimate: {
     id: 'ultimate',
-    name: 'Ultimate Pack',
+    name: 'Ultimate Paket',
     credits: 1000,
     bonusCredits: 250,
     totalCredits: 1250,
-    priceUsd: 50,
-    pricePerCredit: 0.04,
-    savings: '25% bonus',
-    description: 'Maximum value for power users',
+    priceUsd: 1499,
+    pricePerCredit: 1.20,
+    savings: '%25 bonus',
+    description: 'Maksimum değer arayanlar için',
     popular: false,
     features: [
-      '1000 + 250 bonus credits',
-      '~416 abstracts OR',
-      '~50 standard analyses OR',
-      '~25 comprehensive analyses',
-      'Priority processing',
-      'Premium support',
-      'Never expires'
+      '1000 + 250 bonus kredi',
+      '~416 özet oluşturma VEYA',
+      '~50 standart analiz VEYA',
+      '~25 kapsamlı analiz',
+      'Öncelikli işleme',
+      'Premium destek',
+      'Süresiz geçerli'
     ]
   }
 };
