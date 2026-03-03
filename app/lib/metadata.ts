@@ -75,19 +75,19 @@ export const homeMetadata: Metadata = {
 // Pricing sayfası metadata
 export const pricingMetadata: Metadata = {
   title: 'Fiyatlar - TezAI | Kredi Paketleri',
-  description: 'TezAI kredi paketleri: Starter ($5), Standard ($15), Pro ($25), Ultimate ($50). Abonelik yok, krediler asla sona ermez. Sadece kullandığın kadar öde.',
+  description: 'TezAI kredi paketleri: Starter (₺149), Standart (₺449), Pro (₺749), Ultimate (₺1499). Abonelik yok, krediler asla sona ermez. Sadece kullandığın kadar öde.',
   keywords: 'tezai fiyat, kredi paketi, tez analizi fiyat, akademik yazım aracı fiyat, yapay zeka tez asistanı',
   openGraph: {
     title: 'Fiyatlar - TezAI | Kredi Paketleri',
-    description: 'Sadece kullandığın kadar öde. Starter $5, Pro $25. Abonelik yok.',
+    description: 'Sadece kullandığın kadar öde. Starter ₺149, Pro ₺749. Abonelik yok.',
     url: `${siteMetadata.url}/pricing`,
-    images: [{ url: '/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%245%20%E2%80%A2%20Pro%20%2425', width: 1200, height: 630, alt: 'TezAI Fiyatlar' }],
+    images: [{ url: '/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%E2%82%BA149%20%E2%80%A2%20Pro%20%E2%82%BA749', width: 1200, height: 630, alt: 'TezAI Fiyatlar' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Fiyatlar - TezAI',
-    description: 'Sadece kullandığın kadar öde. Starter $5, Pro $25. Abonelik yok.',
-    images: ['/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%245%20%E2%80%A2%20Pro%20%2425'],
+    description: 'Sadece kullandığın kadar öde. Starter ₺149, Pro ₺749. Abonelik yok.',
+    images: ['/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%E2%82%BA149%20%E2%80%A2%20Pro%20%E2%82%BA749'],
   },
   alternates: {
     canonical: `${siteMetadata.url}/pricing`,

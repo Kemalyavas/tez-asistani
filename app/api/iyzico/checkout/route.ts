@@ -62,11 +62,11 @@ export async function POST(request: NextRequest) {
 
     // Build payment request
     const paymentRequest: any = {
-      locale: 'en',
+      locale: 'tr',
       conversationId: conversationId,
       price: creditPackage.priceUsd.toFixed(2),
       paidPrice: creditPackage.priceUsd.toFixed(2),
-      currency: 'USD',
+      currency: 'TRY',
       basketId: basketId,
       paymentChannel: 'WEB',
       paymentGroup: 'PRODUCT',

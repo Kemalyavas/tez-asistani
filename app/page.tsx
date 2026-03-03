@@ -368,7 +368,7 @@ export default function Home() {
                   <p className="text-sm text-gray-500 mb-4">{pkg.description}</p>
 
                   {/* Price */}
-                  <div className="text-4xl font-bold mb-2">${pkg.priceUsd}</div>
+                  <div className="text-4xl font-bold mb-2">₺{pkg.priceUsd}</div>
 
                   {/* Credits */}
                   <div className="bg-blue-50 rounded-lg py-3 px-4">
@@ -387,7 +387,7 @@ export default function Home() {
 
                   {/* Per Credit Price */}
                   <p className="text-sm text-gray-500 mt-2">
-                    Kredi başı ${pkg.pricePerCredit.toFixed(2)}
+                    Kredi başı ₺{pkg.pricePerCredit.toFixed(2)}
                   </p>
                 </div>
 
