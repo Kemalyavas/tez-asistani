@@ -489,7 +489,7 @@ export default function Home() {
                   Hangi kredi paketini seçmeliyim?
                 </h3>
                 <p className="text-gray-600">
-                  Tek bir tez için <strong>Başlangıç</strong> veya <strong>Standart</strong> paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, <strong>Pro</strong> paketi 600 kredi sunuyor.
+                  Tek bir tez için <strong>Başlangıç</strong> veya <strong>Standart</strong> paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, <strong>Pro</strong> paketi 500 kredi sunuyor.
                 </p>
               </div>
 
