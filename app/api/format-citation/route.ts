@@ -89,13 +89,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Process the citation formatting with OpenAI
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Using cheaper model for simple task
-      max_tokens: 300,
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert academic citation formatter. 
+    let response;
+    try {
+      response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        max_tokens: 300,
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert academic citation formatter.
 Format the given source information according to ${format.toUpperCase()} style guide.
 
 Format rules:
@@ -105,21 +107,43 @@ Format rules:
 - IEEE: [1] A. Author, "Title," Publisher, Year.
 
 Return ONLY the formatted citation, no explanations.`
-        },
-        {
-          role: "user",
-          content: `Format this ${type === 'book' ? 'book' : type === 'article' ? 'article' : 'website'} in ${format.toUpperCase()} format: ${source}`
+          },
+          {
+            role: "user",
+            content: `Format this ${type === 'book' ? 'book' : type === 'article' ? 'article' : 'website'} in ${format.toUpperCase()} format: ${source}`
+          }
+        ],
+        temperature: 0.1
+      });
+    } catch (aiError) {
+      console.error('OpenAI API error:', aiError);
+      // AI başarısız oldu — krediyi iade et
+      if (!userIsAdmin) {
+        try {
+          await supabase.rpc('add_credits', {
+            p_user_id: user.id,
+            p_amount: CREDITS_REQUIRED,
+            p_bonus: 0,
+            p_payment_id: null,
+            p_package_id: null,
+          });
+          console.log(`[FormatCitation] Refunded ${CREDITS_REQUIRED} credits to user ${user.id}`);
+        } catch (refundError) {
+          console.error('[CRITICAL] Credit refund failed:', refundError);
         }
-      ],
-      temperature: 0.1
-    });
+      }
+      return NextResponse.json(
+        { error: 'Citation formatting failed. Your credits have been refunded.' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       formatted: response.choices[0].message.content,
       creditsUsed: CREDITS_REQUIRED,
-      remainingCredits: result.new_balance
+      remainingCredits: result?.new_balance ?? 0
     });
-    
+
   } catch (error) {
     console.error('Citation format error:', error);
     return NextResponse.json(

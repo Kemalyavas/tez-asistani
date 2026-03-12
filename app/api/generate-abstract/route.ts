@@ -169,15 +169,39 @@ ABSTRACT:
 
     const fullPrompt = `${systemPrompt}\n\n${prompt}\n\nThesis Content:\n${text.substring(0, 15000)}`;
 
-    const geminiResult = await model.generateContent(fullPrompt);
-    const abstractText = geminiResult.response.text();
+    let abstractText;
+    try {
+      const geminiResult = await model.generateContent(fullPrompt);
+      abstractText = geminiResult.response.text();
+    } catch (aiError) {
+      console.error('Gemini API error:', aiError);
+      // AI başarısız oldu — krediyi iade et
+      if (!userIsAdmin) {
+        try {
+          await supabase.rpc('add_credits', {
+            p_user_id: user.id,
+            p_amount: CREDITS_REQUIRED,
+            p_bonus: 0,
+            p_payment_id: null,
+            p_package_id: null,
+          });
+          console.log(`[GenerateAbstract] Refunded ${CREDITS_REQUIRED} credits to user ${user.id}`);
+        } catch (refundError) {
+          console.error('[CRITICAL] Credit refund failed:', refundError);
+        }
+      }
+      return NextResponse.json(
+        { error: 'Abstract generation failed. Your credits have been refunded.' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       abstract: abstractText,
       creditsUsed: CREDITS_REQUIRED,
       remainingCredits: creditInfo?.new_balance || 0
     });
-    
+
   } catch (error) {
     console.error('Abstract generation error:', error);
     return NextResponse.json(

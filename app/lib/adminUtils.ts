@@ -3,15 +3,11 @@
  * Bu dosya hem client hem server-side'da çalışır
  */
 
-// Admin kullanıcılar - sınırsız erişim
-const ADMIN_USER_IDS = [
-  '90bc0065-4115-4730-8c00-12c74b4f8748', // kemalyavaas@outlook.com
-];
+// Admin kullanıcılar - environment variable'dan okunur (virgülle ayrılmış)
+const ADMIN_USER_IDS = (process.env.NEXT_PUBLIC_ADMIN_USER_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
 
-// Admin email'leri (yedek kontrol için)
-const ADMIN_EMAILS = [
-  'kemalyavaas@outlook.com',
-];
+// Admin email'leri (yedek kontrol için) - environment variable'dan okunur
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean);
 
 /**
  * Kullanıcı ID'sinin admin olup olmadığını kontrol eder

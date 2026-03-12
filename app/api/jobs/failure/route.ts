@@ -10,15 +10,20 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    // QStash signature doğrulama
+    // QStash signature doğrulama (zorunlu)
     const signature = request.headers.get('upstash-signature');
     const body = await request.text();
 
-    if (signature && process.env.QSTASH_CURRENT_SIGNING_KEY) {
-      const isValid = await verifyQStashSignature(signature, body);
-      if (!isValid) {
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
+    if (!process.env.QSTASH_CURRENT_SIGNING_KEY) {
+      console.error('[Failure] QSTASH_CURRENT_SIGNING_KEY not configured');
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
+    if (!signature) {
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+    }
+    const isValid = await verifyQStashSignature(signature, body);
+    if (!isValid) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     const failureData = JSON.parse(body);

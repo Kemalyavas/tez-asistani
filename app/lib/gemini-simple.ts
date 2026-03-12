@@ -26,7 +26,7 @@ export function getGeminiFlash() {
 // Gemini 3 Pro - en gelişmiş reasoning (1M context)
 export function getGeminiPro() {
   return genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-pro-preview',
     safetySettings,
     generationConfig: {
       temperature: 0.3,

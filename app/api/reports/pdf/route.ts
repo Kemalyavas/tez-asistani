@@ -54,33 +54,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Kredi kontrolü (admin hariç)
-    if (!userIsAdmin) {
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('credits')
-        .eq('id', userId)
-        .single();
-
-      if (!profile || profile.credits < PDF_CREDIT_COST) {
-        return NextResponse.json(
-          {
-            error: 'Yetersiz kredi',
-            required: PDF_CREDIT_COST,
-            current: profile?.credits || 0,
-          },
-          { status: 402 }
-        );
-      }
-
-      // Kredi düş
-      await supabaseAdmin.rpc('use_credits', {
-        p_user_id: userId,
-        p_amount: PDF_CREDIT_COST,
-        p_action_type: 'pdf_report',
-        p_description: `PDF rapor: ${document.filename}`,
-      });
-    }
+    // NOT: PDF rapor şu an HTML olarak döndürülüyor, gerçek PDF üretimi henüz implementasyonda.
+    // Kredi düşürme devre dışı — gerçek PDF üretimi tamamlanınca aktif edilecek.
 
     // PDF HTML içeriği oluştur
     const result = document.analysis_result;

@@ -9,7 +9,7 @@ import {
   enqueueNextStep,
   PIPELINE_STEPS,
 } from '@/app/lib/queue/qstash';
-import { analyzeWithGemini } from '@/app/lib/gemini';
+import { analyzeWithGemini, GEMINI_MODELS } from '@/app/lib/gemini';
 
 // Supabase admin client
 const supabaseAdmin = createClient(
@@ -299,15 +299,20 @@ JSON formatında yanıt ver:
 
 export async function POST(request: NextRequest) {
   try {
-    // QStash signature doğrulama
+    // QStash signature doğrulama (zorunlu)
     const signature = request.headers.get('upstash-signature');
     const body = await request.text();
 
-    if (signature && process.env.QSTASH_CURRENT_SIGNING_KEY) {
-      const isValid = await verifyQStashSignature(signature, body);
-      if (!isValid) {
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
+    if (!process.env.QSTASH_CURRENT_SIGNING_KEY) {
+      console.error('[DeepAnalyze] QSTASH_CURRENT_SIGNING_KEY not configured');
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
+    if (!signature) {
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+    }
+    const isValid = await verifyQStashSignature(signature, body);
+    if (!isValid) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     const job: AnalysisJob = JSON.parse(body);
@@ -424,7 +429,7 @@ export async function POST(request: NextRequest) {
       await supabaseAdmin.from('agent_results').insert({
         document_id: documentId,
         agent_id: result.agentId,
-        model_used: result.model === 'flash' ? 'gemini-2.5-flash' : 'gemini-2.5-pro',
+        model_used: result.model === 'flash' ? GEMINI_MODELS.FLASH : GEMINI_MODELS.PRO,
         raw_response: result.result,
         parsed_score: result.result.score,
         issues: result.result.issues || [],

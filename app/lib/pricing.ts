@@ -150,20 +150,8 @@ export const CREDIT_COSTS: Record<string, CreditCost> = {
   },
   pdf_report: {
     actionType: 'pdf_report',
-    creditsRequired: 5,
-    description: 'PDF rapor indirme',
-    category: 'thesis'
-  },
-  comparative_analysis: {
-    actionType: 'comparative_analysis',
-    creditsRequired: 10,
-    description: 'Önceki versiyon ile karşılaştırma',
-    category: 'thesis'
-  },
-  revision_tracking: {
-    actionType: 'revision_tracking',
-    creditsRequired: 15,
-    description: 'Revizyon takibi ve öneriler',
+    creditsRequired: 0,
+    description: 'PDF rapor indirme (ücretsiz)',
     category: 'thesis'
   }
 };
