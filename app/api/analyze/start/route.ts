@@ -6,11 +6,18 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../../lib/rateLimit';
 import { extractPdfText } from '../../../lib/fileUtils';
 import { CREDIT_COSTS, getAnalysisTier } from '../../../lib/pricing';
 import { isAdmin } from '../../../lib/adminUtils';
+
+// Service-role client for privileged operations (refunds bypass authenticated REVOKE)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // ============================================================================
 // Helper Functions
@@ -33,7 +40,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting
     const clientIP = getClientIP(request, request.headers);
-    const rateLimitResult = rateLimit(`analyze_${clientIP}`, {
+    const rateLimitResult = await rateLimit(`analyze_${clientIP}`, {
       windowMs: 15 * 60 * 1000,
       maxAttempts: 10,
       blockDurationMs: 30 * 60 * 1000
@@ -231,12 +238,14 @@ export async function POST(request: NextRequest) {
       // Refund credits if document creation failed
       if (!userIsAdmin) {
         try {
-          const { error: refundError } = await supabase.rpc('add_credits', {
+          const { error: refundError } = await supabaseAdmin.rpc('add_credits', {
             p_user_id: user.id,
             p_amount: creditsRequired,
             p_bonus: 0,
             p_payment_id: null,
-            p_package_id: null
+            p_package_id: null,
+            p_idempotency_key: `refund_startfail_${filePath}`,
+            p_transaction_type: 'refund'
           });
 
           if (refundError) {

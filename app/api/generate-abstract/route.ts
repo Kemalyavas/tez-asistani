@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { CREDIT_COSTS } from '../../lib/pricing';
 import { isAdmin } from '../../lib/adminUtils';
+
+// Service-role client for privileged refunds
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Gemini API client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
@@ -24,7 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting
     const clientIP = getClientIP(request, request.headers);
-    const rateLimitResult = rateLimit(`abstract_${clientIP}`, {
+    const rateLimitResult = await rateLimit(`abstract_${clientIP}`, {
       windowMs: 60 * 1000, // 1 minute
       maxAttempts: 10, // 10 requests per minute
       blockDurationMs: 5 * 60 * 1000 // 5 minutes block
@@ -175,15 +182,17 @@ ABSTRACT:
       abstractText = geminiResult.response.text();
     } catch (aiError) {
       console.error('Gemini API error:', aiError);
-      // AI başarısız oldu — krediyi iade et
+      // AI başarısız oldu — krediyi iade et (service-role gerekli)
       if (!userIsAdmin) {
         try {
-          await supabase.rpc('add_credits', {
+          await supabaseAdmin.rpc('add_credits', {
             p_user_id: user.id,
             p_amount: CREDITS_REQUIRED,
             p_bonus: 0,
             p_payment_id: null,
             p_package_id: null,
+            p_idempotency_key: `refund_abstract_${user.id}_${Date.now()}`,
+            p_transaction_type: 'refund'
           });
           console.log(`[GenerateAbstract] Refunded ${CREDITS_REQUIRED} credits to user ${user.id}`);
         } catch (refundError) {

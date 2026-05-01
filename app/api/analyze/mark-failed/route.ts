@@ -5,8 +5,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { isAdmin, isAdminEmail } from '../../../lib/adminUtils';
+
+// Service-role client for privileged refunds
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,12 +76,14 @@ export async function POST(request: NextRequest) {
     let refunded = false;
 
     if (!userIsAdmin && doc.credits_used && doc.credits_used > 0) {
-      const { error: refundError } = await supabase.rpc('add_credits', {
+      const { error: refundError } = await supabaseAdmin.rpc('add_credits', {
         p_user_id: user.id,
         p_amount: doc.credits_used,
         p_bonus: 0,
         p_payment_id: null,
-        p_package_id: null
+        p_package_id: null,
+        p_idempotency_key: `refund_markfailed_${documentId}`,
+        p_transaction_type: 'refund'
       });
 
       if (!refundError) {

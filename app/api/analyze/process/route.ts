@@ -8,10 +8,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { extractPdfText } from '../../../lib/fileUtils';
 import { isAdmin } from '../../../lib/adminUtils';
 import { analyzePremium, PremiumAnalysisResult } from '../../../lib/thesis/premiumAnalysisService';
+
+// Service-role client for privileged refunds
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Extend timeout for this route (Vercel Pro: up to 300s)
 export const maxDuration = 300; // 5 minutes
@@ -412,15 +419,18 @@ async function markAsFailed(
       console.error('[ANALYZE/PROCESS] Failed to update document status:', updateError);
     }
 
-    // Refund credits (skip for admin)
+    // Refund credits (skip for admin) — service-role required since
+    // authenticated has REVOKE EXECUTE on add_credits.
     const userIsAdmin = isAdmin(userId);
     if (!userIsAdmin && creditsUsed > 0) {
-      const { error: refundError } = await supabase.rpc('add_credits', {
+      const { error: refundError } = await supabaseAdmin.rpc('add_credits', {
         p_user_id: userId,
         p_amount: creditsUsed,
         p_bonus: 0,
         p_payment_id: null,
-        p_package_id: null
+        p_package_id: null,
+        p_idempotency_key: `refund_processfail_${documentId}`,
+        p_transaction_type: 'refund'
       });
 
       if (refundError) {
@@ -461,15 +471,17 @@ async function markAsFailedWithTimeout(
       console.error('[ANALYZE/PROCESS] Failed to update document status on timeout:', updateError);
     }
 
-    // Refund credits (skip for admin)
+    // Refund credits (skip for admin) — service-role required.
     const userIsAdmin = isAdmin(userId);
     if (!userIsAdmin && creditsUsed > 0) {
-      const { error: refundError } = await supabase.rpc('add_credits', {
+      const { error: refundError } = await supabaseAdmin.rpc('add_credits', {
         p_user_id: userId,
         p_amount: creditsUsed,
         p_bonus: 0,
         p_payment_id: null,
-        p_package_id: null
+        p_package_id: null,
+        p_idempotency_key: `refund_timeout_${documentId}`,
+        p_transaction_type: 'refund'
       });
 
       if (refundError) {

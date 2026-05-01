@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';
 import openai from "../../lib/openai";
 import { CREDIT_COSTS } from '../../lib/pricing';
 import { isAdmin } from '../../lib/adminUtils';
+
+// Service-role client for privileged refunds
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const ACTION_TYPE = 'citation_format';
 const CREDITS_REQUIRED = CREDIT_COSTS[ACTION_TYPE].creditsRequired;
@@ -13,7 +20,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting
     const clientIP = getClientIP(request, request.headers);
-    const rateLimitResult = rateLimit(`citation_${clientIP}`, {
+    const rateLimitResult = await rateLimit(`citation_${clientIP}`, {
       windowMs: 60 * 1000, // 1 minute
       maxAttempts: 20, // 20 requests per minute
       blockDurationMs: 5 * 60 * 1000 // 5 minutes block
@@ -117,15 +124,17 @@ Return ONLY the formatted citation, no explanations.`
       });
     } catch (aiError) {
       console.error('OpenAI API error:', aiError);
-      // AI başarısız oldu — krediyi iade et
+      // AI başarısız oldu — krediyi iade et (service-role gerekli)
       if (!userIsAdmin) {
         try {
-          await supabase.rpc('add_credits', {
+          await supabaseAdmin.rpc('add_credits', {
             p_user_id: user.id,
             p_amount: CREDITS_REQUIRED,
             p_bonus: 0,
             p_payment_id: null,
             p_package_id: null,
+            p_idempotency_key: `refund_citation_${user.id}_${Date.now()}`,
+            p_transaction_type: 'refund'
           });
           console.log(`[FormatCitation] Refunded ${CREDITS_REQUIRED} credits to user ${user.id}`);
         } catch (refundError) {
