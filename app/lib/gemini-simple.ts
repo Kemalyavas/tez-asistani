@@ -14,7 +14,7 @@ const safetySettings = [
 // Gemini Flash - hızlı işlemler (ekonomik, 1M context)
 export function getGeminiFlash() {
   return genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash',
     safetySettings,
     generationConfig: {
       temperature: 0.3,
@@ -23,10 +23,10 @@ export function getGeminiFlash() {
   });
 }
 
-// Gemini 3 Pro - en gelişmiş reasoning (1M context)
+// Gemini 3.1 Pro - en gelişmiş reasoning (1M context)
 export function getGeminiPro() {
   return genAI.getGenerativeModel({
-    model: 'gemini-3-pro-preview',
+    model: process.env.GEMINI_PRO_MODEL || 'gemini-3.1-pro-preview',
     safetySettings,
     generationConfig: {
       temperature: 0.3,

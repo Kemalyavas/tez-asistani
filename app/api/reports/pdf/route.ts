@@ -14,18 +14,19 @@ const PDF_CREDIT_COST = 5;
 
 export async function POST(request: NextRequest) {
   try {
-    // Auth kontrolü
+    // Auth kontrolü (getUser validates server-side; getSession only reads cookie)
     const cookieStore = await cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (userError || !user) {
       return NextResponse.json({ error: 'Oturum açmanız gerekiyor' }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
     const userIsAdmin = isAdmin(userId);
 
     const body = await request.json();

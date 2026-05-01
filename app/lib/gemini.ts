@@ -3,12 +3,13 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
 // Gemini API istemcisi
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
-// Model konfigürasyonları
+// Model konfigürasyonları (env ile override edilebilir)
 export const GEMINI_MODELS = {
   // Hızlı ve ekonomik model - yapı kontrolü, basit analizler (1M context)
-  FLASH: 'gemini-2.5-flash',
-  // En güçlü model - Gemini 3 Pro Preview (1M context, gelişmiş reasoning)
-  PRO: 'gemini-3-pro-preview',
+  FLASH: process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash',
+  // En güçlü model - Gemini 3.1 Pro Preview (1M context, gelişmiş reasoning)
+  // NOT: gemini-3-pro-preview 9 Mart 2026'da deprecated oldu, 3.1'e yönlendiriliyor
+  PRO: process.env.GEMINI_PRO_MODEL || 'gemini-3.1-pro-preview',
 } as const;
 
 // Güvenlik ayarları - akademik içerik için optimize

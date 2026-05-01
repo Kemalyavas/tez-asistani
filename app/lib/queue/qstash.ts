@@ -13,17 +13,31 @@ export const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-// Rate limiter - Upstash Redis tabanlı (dağıtık)
+// Rate limiter - Upstash Redis tabanlı (dağıtık, serverless'ta çalışır)
 export const analysisRateLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(5, '15 m'), // 15 dakikada 5 analiz
+  limiter: Ratelimit.slidingWindow(10, '15 m'), // 15 dakikada 10 analiz
   analytics: true,
   prefix: 'ratelimit:analysis',
 });
 
+export const abstractRateLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1 m'), // Dakikada 10 abstract
+  analytics: true,
+  prefix: 'ratelimit:abstract',
+});
+
+export const citationRateLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, '1 m'), // Dakikada 20 citation
+  analytics: true,
+  prefix: 'ratelimit:citation',
+});
+
 export const apiRateLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(60, '1 m'), // Dakikada 60 istek
+  limiter: Ratelimit.slidingWindow(60, '1 m'), // Dakikada 60 genel API
   analytics: true,
   prefix: 'ratelimit:api',
 });

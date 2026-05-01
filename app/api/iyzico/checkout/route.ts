@@ -11,17 +11,15 @@ export async function POST(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies });
 
   try {
-    // Authenticate user
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // Authenticate user (getUser validates server-side; getSession only reads cookie)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError || !session?.user) {
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'Please sign in to purchase credits.' },
         { status: 401 }
       );
     }
-    
-    const user = session.user;
 
     // Get package from request
     const { packageId } = await request.json();

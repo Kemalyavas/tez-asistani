@@ -307,10 +307,10 @@ export async function analyzePremium(
 ): Promise<PremiumAnalysisResult> {
   const startTime = Date.now();
 
-  // Gemini 3 Pro - En gelişmiş model (multimodal, PDF, görsel, dynamic thinking)
+  // Gemini 3.1 Pro - En gelişmiş model (multimodal, PDF, görsel, dynamic thinking)
   // %50+ performans artışı, gelişmiş reasoning, 1M context
   const model = genAI.getGenerativeModel({
-    model: 'gemini-3-pro-preview',
+    model: process.env.GEMINI_PRO_MODEL || 'gemini-3.1-pro-preview',
     safetySettings,
     generationConfig: {
       temperature: 0.2,

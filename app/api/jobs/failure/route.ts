@@ -77,21 +77,16 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (document && document.credits_used > 0) {
+        // add_credits RPC artık transaction'ı kendisi yazıyor ve idempotent;
+        // aynı documentId için tekrar çağrılırsa çift iade yapmaz.
         await supabaseAdmin.rpc('add_credits', {
           p_user_id: document.user_id,
           p_amount: document.credits_used,
           p_bonus: 0,
           p_payment_id: null,
           p_package_id: null,
-        });
-
-        // İade işlemini logla
-        await supabaseAdmin.from('credit_transactions').insert({
-          user_id: document.user_id,
-          amount: document.credits_used,
-          transaction_type: 'refund',
-          action_type: 'thesis_analysis_failed',
-          description: `Başarısız analiz için iade: ${job.documentId}`,
+          p_idempotency_key: `refund_jobfailure_${job.documentId}`,
+          p_transaction_type: 'refund',
         });
 
         console.log(`[Failure] Refunded ${document.credits_used} credits for document: ${job.documentId}`);
