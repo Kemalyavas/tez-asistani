@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import crypto from 'node:crypto';
 import { rateLimit, getClientIP } from '../../../lib/rateLimit';
 import { extractPdfText } from '../../../lib/fileUtils';
 import { CREDIT_COSTS, getAnalysisTier } from '../../../lib/pricing';
@@ -18,6 +19,11 @@ const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// Rubric versiyonu: rubric tanımı her güncellendiğinde bump et.
+// Aynı dosya farklı rubric versiyonlarında ayrı cache satırı tutulur,
+// böylece yeni rubric çıkınca eski cache otomatik invalid olur.
+const RUBRIC_VERSION = '1.0';
 
 // ============================================================================
 // Helper Functions
@@ -139,6 +145,54 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // ========================================================================
+    // CACHE LOOKUP: aynı kullanıcı aynı dosyayı (aynı rubric ile) daha önce
+    // analiz ettiyse mevcut analizi döndür — kredi düşürme yok, AI çağrısı yok.
+    // Hash hesaplama buffer üzerinde direkt çalışır, çok hızlı.
+    // Cache check'i text extraction'dan ÖNCE yapıyoruz ki hit durumunda
+    // CPU'yu da harcamayalım.
+    // ========================================================================
+    const fileSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+
+    const { data: cachedDoc } = await supabase
+      .from('thesis_documents')
+      .select('id, status, page_count, word_count, analysis_type, credits_used')
+      .eq('user_id', user.id)
+      .eq('file_sha256', fileSha256)
+      .eq('rubric_version', RUBRIC_VERSION)
+      .in('status', ['analyzed', 'processing'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (cachedDoc) {
+      console.log(
+        `[ANALYZE/START] Cache hit user=${user.id.slice(0, 8)} hash=${fileSha256.slice(0, 12)}... → existing doc=${cachedDoc.id} (status=${cachedDoc.status})`
+      );
+
+      // Az önce yüklenen redundant kopyayı temizle (storage temiz kalsın).
+      // Hata olursa görmezden gel — kritik değil.
+      try {
+        await supabase.storage.from('thesis-files').remove([filePath]);
+      } catch (cleanupErr) {
+        console.warn('[ANALYZE/START] Duplicate upload cleanup failed:', cleanupErr);
+      }
+
+      return NextResponse.json({
+        success: true,
+        documentId: cachedDoc.id,
+        cached: true,
+        status: cachedDoc.status,
+        pageCount: cachedDoc.page_count,
+        wordCount: cachedDoc.word_count,
+        analysisTier: cachedDoc.analysis_type,
+        creditsUsed: 0,
+        // remainingCredits client-side cache'den okunacak; cache hit'te server tarafı
+        // dokunmuyor.
+      });
+    }
+
     let text = '';
 
     if (isDocx) {
@@ -227,7 +281,11 @@ export async function POST(request: NextRequest) {
         word_count: wordCount,
         status: 'processing',
         analysis_type: analysisTier.id,
-        credits_used: creditsRequired
+        credits_used: creditsRequired,
+        // Cache anahtarları: bir sonraki aynı-dosya yüklemesinde
+        // bu satır eşleşip kredi düşürülmeden mevcut analiz döndürülür.
+        file_sha256: fileSha256,
+        rubric_version: RUBRIC_VERSION,
       })
       .select('id')
       .single();
