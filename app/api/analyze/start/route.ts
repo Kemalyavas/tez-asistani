@@ -20,10 +20,14 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Rubric versiyonu: rubric tanımı her güncellendiğinde bump et.
-// Aynı dosya farklı rubric versiyonlarında ayrı cache satırı tutulur,
-// böylece yeni rubric çıkınca eski cache otomatik invalid olur.
-const RUBRIC_VERSION = '1.0';
+// Rubric/pipeline versiyonu: aynı dosya farklı pipeline'larda ayrı cache
+// satırı tutar, böylece USE_RUBRIC_PIPELINE flag'i açılıp kapanırken
+// eski/yeni analizler birbirine karışmaz.
+//   - 'legacy-1.0'  → eski analyzePremium prompt + non-rubric analysis
+//   - 'rubric-1.0'  → yeni iki-pass (Extract + Score) rubric pipeline
+// Pipeline değişikliğinde version bump'lanır → eski cache otomatik invalid.
+const PIPELINE_VERSION =
+  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.0' : 'legacy-1.0';
 
 // ============================================================================
 // Helper Functions
@@ -160,7 +164,7 @@ export async function POST(request: NextRequest) {
       .select('id, status, page_count, word_count, analysis_type, credits_used')
       .eq('user_id', user.id)
       .eq('file_sha256', fileSha256)
-      .eq('rubric_version', RUBRIC_VERSION)
+      .eq('rubric_version', PIPELINE_VERSION)
       .in('status', ['analyzed', 'processing'])
       .order('created_at', { ascending: false })
       .limit(1)
@@ -285,7 +289,7 @@ export async function POST(request: NextRequest) {
         // Cache anahtarları: bir sonraki aynı-dosya yüklemesinde
         // bu satır eşleşip kredi düşürülmeden mevcut analiz döndürülür.
         file_sha256: fileSha256,
-        rubric_version: RUBRIC_VERSION,
+        rubric_version: PIPELINE_VERSION,
       })
       .select('id')
       .single();
