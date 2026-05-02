@@ -13,6 +13,18 @@ import { cookies } from 'next/headers';
 import { extractPdfData } from '../../../lib/fileUtils';
 import { isAdmin } from '../../../lib/adminUtils';
 import { analyzePremium, PremiumAnalysisResult } from '../../../lib/thesis/premiumAnalysisService';
+import { analyzeWithRubric, toLegacyShape } from '../../../lib/thesis/rubricAnalysisService';
+
+/**
+ * Rubric pipeline toggle. Vercel env'de USE_RUBRIC_PIPELINE=true set edilirse
+ * yeni iki-pass (Extract + Score) sistemi devreye girer; aksi halde mevcut
+ * analyzePremium kullanılır. Sorun olursa env var'ı kaldırmak anında eski
+ * davranışa döndürür — risksiz rollout.
+ *
+ * Şu an sadece PDF Direct Mode'da rubric pipeline çalışır (DOCX ve >50MB
+ * PDF'ler eski sistemle gider).
+ */
+const USE_RUBRIC_PIPELINE = process.env.USE_RUBRIC_PIPELINE === 'true';
 
 // Service-role client for privileged refunds
 const supabaseAdmin = createClient(
@@ -237,43 +249,71 @@ export async function POST(request: NextRequest) {
     // Perform Premium Analysis with Gemini Pro
     let analysisResult: PremiumAnalysisResult;
 
+    // Rubric pipeline koşulu: env flag açık AND PDF Direct Mode (DOCX/büyük PDF
+    // hâlâ eski sistemle gider). Yeni sistem geriye uyumlu legacy shape döner;
+    // frontend ve DB şeması değişmez.
+    const useRubricPipeline = USE_RUBRIC_PIPELINE && useDirectPdf;
+
     try {
-      console.log(`[ANALYZE/PROCESS] Starting Premium Analysis with Gemini ${useDirectPdf ? '(PDF Direct - images included)' : '(Text mode)'}...`);
+      if (useRubricPipeline) {
+        console.log(`[ANALYZE/PROCESS] Starting RUBRIC pipeline (Extract + Score)...`);
+        const rubricResult = await analyzeWithRubric(buffer, { fileName });
+        analysisResult = toLegacyShape(rubricResult);
 
-      if (useDirectPdf) {
-        // PDF DIRECT MODE: Buffer'ı doğrudan gönder
-        // Gemini tüm görselleri, tabloları, grafikleri görecek
-        analysisResult = await analyzePremium(buffer, {
-          fileName,
-          isPdf: true,
-          includeImages: true,
-          // Metin çıkarılabildiyse hesaplanmış istatistikleri geç
-          preCalculatedStats: hasExtractedText ? { pageCount, wordCount } : undefined,
-          // Çıkarılan metni de geçir → PDF mode'da characterCount/readabilityScore
-          // /averageSentenceLength sıfır yerine gerçek değer üretsin
-          extractedText: hasExtractedText ? text : undefined,
-          // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
-          reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
-        });
+        // Statistics block: rubric servisi PDF parse etmediği için route'taki
+        // gerçek değerleri buradan dolduruyoruz (truthful pageCount + wordCount).
+        analysisResult.statistics = {
+          pageCount,
+          wordCount,
+          characterCount: hasExtractedText ? text.length : 0,
+          averageSentenceLength: 0,
+          readabilityScore: 0,
+          referenceCount: 0,
+          figureCount: 0,
+          tableCount: 0,
+        };
+
+        console.log(
+          `[ANALYZE/PROCESS] Rubric pipeline OK — grade=${rubricResult.overallGrade} (${rubricResult.gradeLabel}), ${rubricResult.criticalFindings.length} critical, ${rubricResult.partialFindings.length} partial`
+        );
       } else {
-        // TEXT MODE: Sadece metin gönder
-        // Gemini Pro 1M token işleyebilir - 500K karakter güvenli limit
-        const maxChars = 500000;
-        const analysisText = text.length > maxChars
-          ? text.substring(0, maxChars) + '\n\n[...Dökümanın geri kalanı boyut sınırı nedeniyle kesildi...]'
-          : text;
+        console.log(`[ANALYZE/PROCESS] Starting LEGACY Premium Analysis with Gemini ${useDirectPdf ? '(PDF Direct - images included)' : '(Text mode)'}...`);
 
-        if (text.length > maxChars) {
-          console.log(`[ANALYZE/PROCESS] Text truncated: ${text.length} -> ${maxChars} chars`);
+        if (useDirectPdf) {
+          // PDF DIRECT MODE: Buffer'ı doğrudan gönder
+          // Gemini tüm görselleri, tabloları, grafikleri görecek
+          analysisResult = await analyzePremium(buffer, {
+            fileName,
+            isPdf: true,
+            includeImages: true,
+            // Metin çıkarılabildiyse hesaplanmış istatistikleri geç
+            preCalculatedStats: hasExtractedText ? { pageCount, wordCount } : undefined,
+            // Çıkarılan metni de geçir → PDF mode'da characterCount/readabilityScore
+            // /averageSentenceLength sıfır yerine gerçek değer üretsin
+            extractedText: hasExtractedText ? text : undefined,
+            // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
+            reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
+          });
+        } else {
+          // TEXT MODE: Sadece metin gönder
+          // Gemini Pro 1M token işleyebilir - 500K karakter güvenli limit
+          const maxChars = 500000;
+          const analysisText = text.length > maxChars
+            ? text.substring(0, maxChars) + '\n\n[...Dökümanın geri kalanı boyut sınırı nedeniyle kesildi...]'
+            : text;
+
+          if (text.length > maxChars) {
+            console.log(`[ANALYZE/PROCESS] Text truncated: ${text.length} -> ${maxChars} chars`);
+          }
+
+          // Premium analiz yap (Gemini Pro ile)
+          analysisResult = await analyzePremium(analysisText, {
+            fileName,
+            isPdf: false,
+            // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
+            reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
+          });
         }
-
-        // Premium analiz yap (Gemini Pro ile)
-        analysisResult = await analyzePremium(analysisText, {
-          fileName,
-          isPdf: false,
-          // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
-          reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
-        });
       }
 
       // Update thesis document with Premium results
