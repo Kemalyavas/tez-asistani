@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { extractPdfText } from '../../../lib/fileUtils';
+import { extractPdfData } from '../../../lib/fileUtils';
 import { isAdmin } from '../../../lib/adminUtils';
 import { analyzePremium, PremiumAnalysisResult } from '../../../lib/thesis/premiumAnalysisService';
 
@@ -156,6 +156,9 @@ export async function POST(request: NextRequest) {
     // DOCX için: Metin çıkarılacak
     let text = '';
     let useDirectPdf = false;
+    // PDF metadata'sından gelen GERÇEK fiziksel sayfa sayısı.
+    // 0 = bilinmiyor (DOCX veya extraction fail). 0 ise chars/2750 tahminine fallback.
+    let actualPdfPages = 0;
 
     try {
       if (isDocx) {
@@ -171,9 +174,11 @@ export async function POST(request: NextRequest) {
           useDirectPdf = true;
           console.log(`[ANALYZE/PROCESS] PDF Direct Mode enabled - ${pdfSizeMB.toFixed(2)} MB (images will be analyzed)`);
 
-          // İstatistikler için yine metin çıkar (opsiyonel)
+          // İstatistikler için yine metin + gerçek sayfa sayısı çıkar (opsiyonel)
           try {
-            text = await extractPdfText(buffer);
+            const pdfData = await extractPdfData(buffer);
+            text = pdfData.text;
+            actualPdfPages = pdfData.numPages;
           } catch {
             // Metin çıkarılamasa bile devam et - Gemini okuyacak
             text = '[PDF içeriği Gemini tarafından doğrudan okunacak]';
@@ -182,7 +187,9 @@ export async function POST(request: NextRequest) {
         } else {
           // Çok büyük PDF - sadece metin modu
           console.log(`[ANALYZE/PROCESS] PDF too large for direct mode (${pdfSizeMB.toFixed(2)} MB), using text extraction`);
-          text = await extractPdfText(buffer);
+          const pdfData = await extractPdfData(buffer);
+          text = pdfData.text;
+          actualPdfPages = pdfData.numPages;
         }
       }
     } catch (parseError) {
@@ -205,11 +212,17 @@ export async function POST(request: NextRequest) {
 
     // İstatistikler için metin varsa kullan, yoksa buffer boyutundan tahmin et
     const hasExtractedText = text && text.length > 100 && !text.includes('[PDF içeriği Gemini');
-    const pageCount = hasExtractedText ? estimatePageCount(text) : Math.ceil(buffer.length / 50000);
+    // Sayfa sayısı önceliği:
+    //   1) PDF metadata'sından gerçek sayfa (actualPdfPages)
+    //   2) Metin yoğunluğu tahmini (chars/2750)
+    //   3) Buffer boyutu tahmini (büyük PDF, metin çıkmamış)
+    const pageCount = actualPdfPages > 0
+      ? actualPdfPages
+      : (hasExtractedText ? estimatePageCount(text) : Math.ceil(buffer.length / 50000));
     const wordCount = hasExtractedText ? getWordCount(text) : 0;
     const analysisTier = doc.analysis_type;
 
-    console.log(`[ANALYZE/PROCESS] Mode: ${useDirectPdf ? 'PDF Direct (with images)' : 'Text'}, Pages: ~${pageCount}, Words: ${wordCount}, Tier: ${analysisTier}`);
+    console.log(`[ANALYZE/PROCESS] Mode: ${useDirectPdf ? 'PDF Direct (with images)' : 'Text'}, Pages: ${pageCount} (${actualPdfPages > 0 ? 'actual' : 'estimated'}), Words: ${wordCount}, Tier: ${analysisTier}`);
 
     // Check timeout before heavy analysis
     if (timeoutOccurred) {
@@ -236,6 +249,9 @@ export async function POST(request: NextRequest) {
           includeImages: true,
           // Metin çıkarılabildiyse hesaplanmış istatistikleri geç
           preCalculatedStats: hasExtractedText ? { pageCount, wordCount } : undefined,
+          // Çıkarılan metni de geçir → PDF mode'da characterCount/readabilityScore
+          // /averageSentenceLength sıfır yerine gerçek değer üretsin
+          extractedText: hasExtractedText ? text : undefined,
           // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
           reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
         });

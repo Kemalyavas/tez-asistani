@@ -302,15 +302,23 @@ export async function analyzePremium(
       pageCount: number;
       wordCount: number;
     };
+    /**
+     * PDF Direct Mode'da Gemini'ye buffer gönderiyoruz, ama istatistik
+     * hesaplaması için (characterCount, readabilityScore, averageSentenceLength)
+     * çıkarılmış metni de geçebilirsin. Yoksa stats sıfırlanır.
+     */
+    extractedText?: string;
     reportLanguage?: 'tr' | 'en' | 'auto';
   }
 ): Promise<PremiumAnalysisResult> {
   const startTime = Date.now();
 
   // Gemini 3.1 Pro - En gelişmiş model (multimodal, PDF, görsel, dynamic thinking)
-  // %50+ performans artışı, gelişmiş reasoning, 1M context
+  // Tek bir kaynak: model adını hem API çağrısında hem de metadata'da kullan
+  // (env override edilebilir; default deprecated 3-pro değil 3.1-pro-preview)
+  const modelName = process.env.GEMINI_PRO_MODEL || 'gemini-3.1-pro-preview';
   const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_PRO_MODEL || 'gemini-3.1-pro-preview',
+    model: modelName,
     safetySettings,
     generationConfig: {
       temperature: 0.2,
@@ -335,14 +343,17 @@ export async function analyzePremium(
   }
 
   // Metin istatistikleri hesapla
-  // PDF mode'da önceden hesaplanmış istatistikleri kullan (metin çıkarılmışsa)
-  const calculatedStats = isPdf ? null : calculateStatistics(text);
+  // PDF Direct Mode'da textOrBuffer Buffer olduğu için 'text' boştur;
+  // ama route 'extractedText' geçirmişse onu kullanırız.
+  // Böylece characterCount/readabilityScore/averageSentenceLength sıfır kalmaz.
+  const statsSourceText = options.extractedText || (isPdf ? '' : text);
+  const calculatedStats = statsSourceText ? calculateStatistics(statsSourceText) : null;
   const stats = {
     pageCount: options.preCalculatedStats?.pageCount || calculatedStats?.pageCount || 0,
     wordCount: options.preCalculatedStats?.wordCount || calculatedStats?.wordCount || 0,
     characterCount: calculatedStats?.characterCount || 0,
     averageSentenceLength: calculatedStats?.averageSentenceLength || 0,
-    readabilityScore: calculatedStats?.readabilityScore || 50,
+    readabilityScore: calculatedStats?.readabilityScore ?? 50,
     referenceCount: calculatedStats?.referenceCount || 0,
     figureCount: calculatedStats?.figureCount || 0,
     tableCount: calculatedStats?.tableCount || 0,
@@ -567,7 +578,7 @@ ${langForPrompt === 'tr' ? 'SADECE JSON yanıt ver, başka açıklama ekleme.' :
       metadata: {
         analyzedAt: new Date().toISOString(),
         processingTimeMs: Date.now() - startTime,
-        modelUsed: 'gemini-3-pro',
+        modelUsed: modelName,
         analysisVersion: '2.0',
         reportLanguage: reportLang,
       },
