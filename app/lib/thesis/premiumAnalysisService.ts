@@ -321,12 +321,13 @@ export async function analyzePremium(
     model: modelName,
     safetySettings,
     generationConfig: {
-      temperature: 0.2,
-      topP: 0.8,
+      // temperature 0 + topP 1 → sampling deterministiğe yaklaşır.
+      // Aynı tez her seferinde aynı puanı / aynı bulguyu verir (≈%80+ tutarlılık).
+      // Tam determinizm Gemini sunucu tarafında garanti değil ama büyük varyans söner.
+      temperature: 0,
+      topP: 1,
       maxOutputTokens: 32768,
       // JSON-only mode: Gemini'yi geçerli JSON üretmeye zorlar.
-      // Bozuk syntax / trailing comma / unescaped char gibi non-deterministik
-      // hataların büyük kısmını sunucu tarafında engeller.
       responseMimeType: 'application/json',
     },
   });
