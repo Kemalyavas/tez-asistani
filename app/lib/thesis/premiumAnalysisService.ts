@@ -324,6 +324,10 @@ export async function analyzePremium(
       temperature: 0.2,
       topP: 0.8,
       maxOutputTokens: 32768,
+      // JSON-only mode: Gemini'yi geçerli JSON üretmeye zorlar.
+      // Bozuk syntax / trailing comma / unescaped char gibi non-deterministik
+      // hataların büyük kısmını sunucu tarafında engeller.
+      responseMimeType: 'application/json',
     },
   });
 
@@ -499,27 +503,78 @@ ${langForPrompt === 'tr' ? 'SADECE JSON yanıt ver, başka açıklama ekleme.' :
 
     const response = result.response.text();
 
-    // JSON'u güvenli şekilde parse et
-    let analysis;
+    // JSON'u güvenli şekilde parse et — katmanlı strateji:
+    //   1) Doğrudan parse (responseMimeType=json sayesinde çoğunlukla yeterli)
+    //   2) Markdown fence kaldır + en dıştaki { ... } objesini izole et
+    //   3) Yaygın bozuklukları onar (trailing comma, raw newline/tab)
+    let analysis: any;
+    let parseStage = 'direct';
     try {
-      // Önce direkt JSON parse dene (prompt "SADECE JSON" diyor)
       analysis = JSON.parse(response.trim());
     } catch (directParseError) {
-      // Fallback: Response içinden JSON'u çıkar
-      // Non-greedy match kullan - en dıştaki JSON objesini al
-      const jsonMatch = response.match(/\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}/);
-      if (!jsonMatch) {
-        console.error('[PREMIUM ANALYSIS] Invalid response (no JSON found):', response.substring(0, 500));
+      parseStage = 'extract';
+      const fenceStripped = response
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
+        .trim();
+
+      const firstBrace = fenceStripped.indexOf('{');
+      const lastBrace = fenceStripped.lastIndexOf('}');
+      if (firstBrace === -1 || lastBrace <= firstBrace) {
+        console.error('[PREMIUM ANALYSIS] No JSON object boundary found:', fenceStripped.substring(0, 500));
         throw new Error('Gemini yanıtında geçerli JSON bulunamadı');
       }
+      const candidate = fenceStripped.substring(firstBrace, lastBrace + 1);
 
       try {
-        analysis = JSON.parse(jsonMatch[0]);
+        analysis = JSON.parse(candidate);
       } catch (extractParseError) {
-        console.error('[PREMIUM ANALYSIS] JSON parse failed:', extractParseError);
-        console.error('[PREMIUM ANALYSIS] Extracted JSON:', jsonMatch[0].substring(0, 500));
-        throw new Error(`JSON parse hatası: ${(extractParseError as Error).message}`);
+        parseStage = 'repair';
+        // Sırayla onarım dene; ilk geçerlide dur.
+        const repairs: Array<{ name: string; transform: (s: string) => string }> = [
+          {
+            name: 'trailing-comma',
+            transform: (s) => s.replace(/,(\s*[\]}])/g, '$1'),
+          },
+          {
+            name: 'escape-newlines',
+            transform: (s) =>
+              s.replace(/\r\n/g, '\\n').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t'),
+          },
+          {
+            name: 'comma+newlines',
+            transform: (s) =>
+              s
+                .replace(/,(\s*[\]}])/g, '$1')
+                .replace(/\r\n/g, '\\n')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r')
+                .replace(/\t/g, '\\t'),
+          },
+        ];
+
+        let lastRepairError: unknown = extractParseError;
+        for (const r of repairs) {
+          try {
+            analysis = JSON.parse(r.transform(candidate));
+            console.warn(`[PREMIUM ANALYSIS] JSON repair succeeded via ${r.name}`);
+            break;
+          } catch (e) {
+            lastRepairError = e;
+          }
+        }
+
+        if (!analysis) {
+          console.error('[PREMIUM ANALYSIS] All JSON repair attempts failed:', lastRepairError);
+          console.error('[PREMIUM ANALYSIS] Original response length:', response.length);
+          console.error('[PREMIUM ANALYSIS] Candidate (first 1500):', candidate.substring(0, 1500));
+          console.error('[PREMIUM ANALYSIS] Candidate (last 1500):', candidate.substring(Math.max(0, candidate.length - 1500)));
+          throw new Error(`JSON parse hatası: ${(lastRepairError as Error).message}`);
+        }
       }
+    }
+    if (parseStage !== 'direct') {
+      console.log(`[PREMIUM ANALYSIS] JSON parsed via ${parseStage} stage`);
     }
 
     // Zorunlu alanları kontrol et
