@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Rate limiting state
@@ -247,22 +247,6 @@ export default function AuthComponent() {
             <p className="text-sm text-gray-600 mt-2">
               E-posta adresinizi girin, size şifre sıfırlama bağlantısı göndereceğiz.
             </p>
-          </div>
-        )}
-
-        {/* Güvenlik uyarısı */}
-        {!isSignUp && !isForgotPassword && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <AlertTriangle className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">Güvenlik Bildirimi:</p>
-                <ul className="text-xs space-y-1 text-blue-700">
-                  <li>• 5 başarısız deneme hesabı 30 dakika kilitler</li>
-                  <li>• Şifre sıfırlama: saatte 3 istek limiti</li>
-                </ul>
-              </div>
-            </div>
           </div>
         )}
 
