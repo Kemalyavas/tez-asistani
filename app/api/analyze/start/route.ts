@@ -10,7 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import crypto from 'node:crypto';
 import { rateLimit, getClientIP } from '../../../lib/rateLimit';
-import { extractPdfText } from '../../../lib/fileUtils';
+import { extractPdfData } from '../../../lib/fileUtils';
 import { CREDIT_COSTS, getAnalysisTier } from '../../../lib/pricing';
 import { isAdmin } from '../../../lib/adminUtils';
 
@@ -198,6 +198,9 @@ export async function POST(request: NextRequest) {
     }
 
     let text = '';
+    // PDF metadata'sından gelen GERÇEK fiziksel sayfa sayısı.
+    // 0 = bilinmiyor (DOCX). 0 ise chars/2750 tahminine fallback.
+    let actualPdfPages = 0;
 
     if (isDocx) {
       const mammoth = await import('mammoth');
@@ -205,7 +208,9 @@ export async function POST(request: NextRequest) {
       text = result.value;
     } else if (isPdf) {
       try {
-        text = await extractPdfText(buffer);
+        const pdfData = await extractPdfData(buffer);
+        text = pdfData.text;
+        actualPdfPages = pdfData.numPages;
       } catch (pdfError) {
         console.error('PDF parse error:', pdfError);
         return NextResponse.json(
@@ -222,11 +227,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Estimate document size
-    const pageCount = estimatePageCount(text);
+    // Sayfa sayısı önceliği: PDF metadata > metin yoğunluğu tahmini.
+    // DB'deki page_count kolonu UI'da doğrudan gösteriliyor — gerçek değeri yaz.
+    const pageCount = actualPdfPages > 0 ? actualPdfPages : estimatePageCount(text);
     const wordCount = getWordCount(text);
 
-    console.log(`[ANALYZE/START] File: ${fileName}, Pages: ~${pageCount}, Words: ${wordCount}`);
+    console.log(
+      `[ANALYZE/START] File: ${fileName}, Pages: ${pageCount} (${actualPdfPages > 0 ? 'actual' : 'estimated'}), Words: ${wordCount}`
+    );
 
     // Determine analysis tier and credit cost
     const analysisTier = getAnalysisTier(pageCount);
