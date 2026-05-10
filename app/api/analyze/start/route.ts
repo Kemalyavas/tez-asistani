@@ -91,6 +91,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SECURITY: filePath kullanıcının kendi klasörü altında olmalı.
+    // FileUploader client-side `${user.id}/${timestamp}.ext` ile yüklüyor;
+    // server burada bunu zorunlu kılarak IDOR'u kapatır (saldırgan başka
+    // kullanıcının dosyasının path'ini gönderse bile reddeder).
+    // Storage RLS de aynı kontrolü yapmalı (defense in depth) ama bu route
+    // önce kontrol ederek olası policy boşluklarını da tutar.
+    const expectedPrefix = `${user.id}/`;
+    if (!filePath.startsWith(expectedPrefix) || filePath.includes('..')) {
+      console.warn(
+        `[ANALYZE/START] Rejected filePath outside user folder. user=${user.id.slice(0, 8)} filePath=${filePath.slice(0, 80)}`
+      );
+      return NextResponse.json(
+        { error: 'Invalid file path' },
+        { status: 403 }
+      );
+    }
+
     // Download file from Supabase Storage
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('thesis-files')

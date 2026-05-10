@@ -51,9 +51,21 @@ export async function POST(request: NextRequest) {
     const { text, language, wordCount } = await request.json();
 
     // Validate input
-    if (!text || text.length < 100) {
+    if (!text || typeof text !== 'string' || text.length < 100) {
       return NextResponse.json(
         { error: 'Please provide thesis content (minimum 100 characters)' },
+        { status: 400 }
+      );
+    }
+
+    // Length cap — devasa input'la AI maliyetini şişirmeyi engeller.
+    // 100 KB karakter (~25K-30K kelime) bir tezin tamamını kapsar; daha
+    // uzun gönderim büyük olasılıkla kötüye kullanım. Aşağıda zaten
+    // text.substring(0, 15000) ile prompt'a kesiyoruz, ama buradaki cap
+    // RAM kullanımı + JSON parse maliyeti için erken kontrol.
+    if (text.length > 100_000) {
+      return NextResponse.json(
+        { error: 'Text too long. Maximum 100,000 characters.' },
         { status: 400 }
       );
     }

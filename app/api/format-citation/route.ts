@@ -38,11 +38,21 @@ export async function POST(request: NextRequest) {
     }
 
     const { source, type, format } = await request.json();
-    
+
     // Validate input
     if (!source || !type || !format) {
       return NextResponse.json(
         { error: 'Missing required fields: source, type, format' },
+        { status: 400 }
+      );
+    }
+
+    // Length cap — kötü niyetli/yanlışlıkla devasa girdiyle AI maliyetini
+    // şişirmeyi ve sunucu RAM'ini bozmayı engeller. 5000 karakter tek bir
+    // kaynak için fazlasıyla yeterli (uzun bir kitap referansı bile <500).
+    if (typeof source !== 'string' || source.length > 5000) {
+      return NextResponse.json(
+        { error: 'Source is too long. Maximum 5000 characters.' },
         { status: 400 }
       );
     }

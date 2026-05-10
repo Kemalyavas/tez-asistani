@@ -84,6 +84,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * HTML escape — Gemini AI'dan gelen kullanıcı tezi içeriği (issue.description,
+ * suggestion, strengths text, vs.) HTML'e raw interpolate edilmemeli. Aksi
+ * halde kötü-niyetli ya da prompt-injection edilmiş içerik script enjekte
+ * edebilir. PDF kullanıcının kendi browser'ında render edildiği için risk
+ * self-XSS düzeyinde ama yine de iyi pratik.
+ */
+function esc(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function generatePDFHTML(result: any, filename: string): string {
   const date = new Date().toLocaleDateString('tr-TR', {
     year: 'numeric',
@@ -116,7 +133,7 @@ function generatePDFHTML(result: any, filename: string): string {
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>TezAI Analiz Raporu - ${filename}</title>
+  <title>TezAI Analiz Raporu - ${esc(filename)}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -288,12 +305,12 @@ function generatePDFHTML(result: any, filename: string): string {
 
   <div class="score-section">
     <div class="score-circle">
-      <div class="score-value">${result.overallScore}</div>
+      <div class="score-value">${esc(result.overallScore)}</div>
       <div class="score-label">/ 100</div>
     </div>
     <div class="grade-info">
-      <div class="grade-letter">${result.grade?.letter || 'N/A'}</div>
-      <div class="grade-label">${result.grade?.label || 'Değerlendirilmedi'}</div>
+      <div class="grade-letter">${esc(result.grade?.letter || 'N/A')}</div>
+      <div class="grade-label">${esc(result.grade?.label || 'Değerlendirilmedi')}</div>
     </div>
   </div>
 
@@ -301,19 +318,19 @@ function generatePDFHTML(result: any, filename: string): string {
     <h2 class="section-title">Döküman Bilgileri</h2>
     <div class="metadata-grid">
       <div class="metadata-item">
-        <div class="metadata-value">${result.metadata?.pageCount || 'N/A'}</div>
+        <div class="metadata-value">${esc(result.metadata?.pageCount ?? 'N/A')}</div>
         <div class="metadata-label">Sayfa</div>
       </div>
       <div class="metadata-item">
-        <div class="metadata-value">${result.metadata?.wordCount?.toLocaleString() || 'N/A'}</div>
+        <div class="metadata-value">${esc(result.metadata?.wordCount?.toLocaleString() ?? 'N/A')}</div>
         <div class="metadata-label">Kelime</div>
       </div>
       <div class="metadata-item">
-        <div class="metadata-value">${result.metadata?.referenceCount || 'N/A'}</div>
+        <div class="metadata-value">${esc(result.metadata?.referenceCount ?? 'N/A')}</div>
         <div class="metadata-label">Toplam Kaynak</div>
       </div>
       <div class="metadata-item">
-        <div class="metadata-value">${result.metadata?.recentReferenceCount || 'N/A'}</div>
+        <div class="metadata-value">${esc(result.metadata?.recentReferenceCount ?? 'N/A')}</div>
         <div class="metadata-label">Güncel Kaynak</div>
       </div>
     </div>
@@ -326,8 +343,8 @@ function generatePDFHTML(result: any, filename: string): string {
         .map(
           ([key, data]: [string, any]) => `
         <li class="category-item">
-          <span class="category-name">${categoryLabels[key] || key}</span>
-          <span class="category-score">${data.score}/100</span>
+          <span class="category-name">${esc(categoryLabels[key] || key)}</span>
+          <span class="category-score">${esc(data?.score ?? '-')}/100</span>
         </li>
       `
         )
@@ -341,15 +358,15 @@ function generatePDFHTML(result: any, filename: string): string {
     result.issues?.minor?.length > 0
       ? `
   <div class="section">
-    <h2 class="section-title">Tespit Edilen Sorunlar (${result.issues?.total || 0})</h2>
+    <h2 class="section-title">Tespit Edilen Sorunlar (${esc(result.issues?.total ?? 0)})</h2>
     <ul class="issue-list">
       ${(result.issues?.critical || [])
         .map(
           (issue: any) => `
         <li class="issue-item issue-critical">
           <div class="issue-severity" style="color: #ef4444;">Kritik</div>
-          <div class="issue-description">${issue.description}</div>
-          ${issue.suggestion ? `<div class="issue-suggestion">💡 ${issue.suggestion}</div>` : ''}
+          <div class="issue-description">${esc(issue.description)}</div>
+          ${issue.suggestion ? `<div class="issue-suggestion">💡 ${esc(issue.suggestion)}</div>` : ''}
         </li>
       `
         )
@@ -359,8 +376,8 @@ function generatePDFHTML(result: any, filename: string): string {
           (issue: any) => `
         <li class="issue-item issue-major">
           <div class="issue-severity" style="color: #f97316;">Önemli</div>
-          <div class="issue-description">${issue.description}</div>
-          ${issue.suggestion ? `<div class="issue-suggestion">💡 ${issue.suggestion}</div>` : ''}
+          <div class="issue-description">${esc(issue.description)}</div>
+          ${issue.suggestion ? `<div class="issue-suggestion">💡 ${esc(issue.suggestion)}</div>` : ''}
         </li>
       `
         )
@@ -371,7 +388,7 @@ function generatePDFHTML(result: any, filename: string): string {
           (issue: any) => `
         <li class="issue-item issue-minor">
           <div class="issue-severity" style="color: #3b82f6;">Küçük</div>
-          <div class="issue-description">${issue.description}</div>
+          <div class="issue-description">${esc(issue.description)}</div>
         </li>
       `
         )
@@ -390,7 +407,7 @@ function generatePDFHTML(result: any, filename: string): string {
     <ul class="strength-list">
       ${result.strengths
         .slice(0, 8)
-        .map((s: string) => `<li class="strength-item">${s}</li>`)
+        .map((s: string) => `<li class="strength-item">${esc(s)}</li>`)
         .join('')}
     </ul>
   </div>
@@ -404,7 +421,7 @@ function generatePDFHTML(result: any, filename: string): string {
   <div class="section">
     <h2 class="section-title">Geliştirme Önerileri</h2>
     <ul class="strength-list">
-      ${result.recommendations.map((r: string) => `<li class="strength-item">${r}</li>`).join('')}
+      ${result.recommendations.map((r: string) => `<li class="strength-item">${esc(r)}</li>`).join('')}
     </ul>
   </div>
   `
