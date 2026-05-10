@@ -24,11 +24,12 @@ const supabaseAdmin = createClient(
 // satırı tutar, böylece USE_RUBRIC_PIPELINE flag'i açılıp kapanırken
 // eski/yeni analizler birbirine karışmaz.
 //   - 'legacy-1.0'   → eski analyzePremium prompt + non-rubric analysis
-//   - 'rubric-1.0.1' → yeni iki-pass (Extract + Score) rubric pipeline
-//                       + analyze/start gerçek PDF page count fix'i
+//   - 'rubric-1.0.1' → yeni iki-pass rubric pipeline + page count fix
+//   - 'rubric-1.1'   → 10-kategori output (introduction/findings/discussion
+//                       /conclusion/originality eklendi sections'a)
 // Pipeline değişikliğinde version bump'lanır → eski cache otomatik invalid.
 const PIPELINE_VERSION =
-  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.0.1' : 'legacy-1.0';
+  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.1' : 'legacy-1.0';
 
 // ============================================================================
 // Helper Functions
