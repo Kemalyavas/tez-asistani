@@ -649,13 +649,21 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
       color: GRADE_COLORS[rubric.overallGrade],
     },
     executiveSummary: rubric.executiveSummary,
+    // Tüm 10 rubric kategorisi sections object'inde gösterilir.
+    // UI Object.entries ile dinamik render ettiği için yeni key eklemek
+    // otomatik olarak yeni section bloğu üretir.
+    // 'references' eski legacy duplicate'iydi (format'ın aynısı) — kaldırıldı.
     sections: {
-      structure: sectionFromCat('structure'),
-      methodology: sectionFromCat('methodology'),
-      writingQuality: sectionFromCat('writing'),
-      references: sectionFromCat('format'),
-      literature: sectionFromCat('literature'),
       formatting: sectionFromCat('format'),
+      structure: sectionFromCat('structure'),
+      introduction: sectionFromCat('introduction'),
+      literature: sectionFromCat('literature'),
+      methodology: sectionFromCat('methodology'),
+      findings: sectionFromCat('findings'),
+      discussion: sectionFromCat('discussion'),
+      conclusion: sectionFromCat('conclusion'),
+      originality: sectionFromCat('originality'),
+      writingQuality: sectionFromCat('writing'),
     },
     issues,
     strengths,

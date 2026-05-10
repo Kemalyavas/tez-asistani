@@ -101,24 +101,38 @@ export default function PremiumResultDisplay({ result }: PremiumResultDisplayPro
 
   const getSectionIcon = (section: string) => {
     switch (section) {
-      case 'structure': return <Layout className="h-5 w-5" />;
-      case 'methodology': return <Target className="h-5 w-5" />;
-      case 'literature': return <BookOpen className="h-5 w-5" />;
-      case 'writingQuality': return <PenTool className="h-5 w-5" />;
-      case 'references': return <Quote className="h-5 w-5" />;
+      // Rubric v1.0 — 10 kategori
       case 'formatting': return <FileText className="h-5 w-5" />;
+      case 'structure': return <Layout className="h-5 w-5" />;
+      case 'introduction': return <MapPin className="h-5 w-5" />;
+      case 'literature': return <BookOpen className="h-5 w-5" />;
+      case 'methodology': return <Target className="h-5 w-5" />;
+      case 'findings': return <BarChart3 className="h-5 w-5" />;
+      case 'discussion': return <Lightbulb className="h-5 w-5" />;
+      case 'conclusion': return <Award className="h-5 w-5" />;
+      case 'originality': return <TrendingUp className="h-5 w-5" />;
+      case 'writingQuality': return <PenTool className="h-5 w-5" />;
+      // Legacy (eski analizlerde olabilir, geriye uyum)
+      case 'references': return <Quote className="h-5 w-5" />;
       default: return <FileText className="h-5 w-5" />;
     }
   };
 
   const getSectionLabel = (section: string) => {
     const labels: Record<string, string> = {
-      structure: 'Yapı ve Organizasyon',
-      methodology: 'Metodoloji',
-      literature: 'Literatür Taraması',
-      writingQuality: 'Yazım Kalitesi',
-      references: 'Kaynaklar ve Atıflar',
+      // Rubric v1.0 — 10 kategori
       formatting: 'Format ve Biçimlendirme',
+      structure: 'Yapı ve Organizasyon',
+      introduction: 'Giriş',
+      literature: 'Literatür Taraması',
+      methodology: 'Metodoloji',
+      findings: 'Bulgular',
+      discussion: 'Tartışma',
+      conclusion: 'Sonuç ve Öneriler',
+      originality: 'Özgünlük ve Katkı',
+      writingQuality: 'Akademik Yazım',
+      // Legacy
+      references: 'Kaynaklar ve Atıflar',
     };
     return labels[section] || section;
   };

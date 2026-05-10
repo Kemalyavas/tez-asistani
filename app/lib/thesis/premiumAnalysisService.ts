@@ -34,14 +34,18 @@ export interface PremiumAnalysisResult {
   };
   executiveSummary: string;
 
-  // Bölüm Bazlı Skorlar
-  sections: {
-    structure: SectionAnalysis;
-    methodology: SectionAnalysis;
-    literature: SectionAnalysis;
-    writingQuality: SectionAnalysis;
-    references: SectionAnalysis;
-    formatting: SectionAnalysis;
+  // Bölüm Bazlı Skorlar.
+  // Rubric pipeline 10 kategori üretebilir; legacy pipeline 6. Her ikisini
+  // de kabul edecek şekilde Record<string, SectionAnalysis> kullanılıyor;
+  // tarihi anahtarlar (structure, methodology, vb.) açıklayıcı amaçla
+  // bilinir (& {...}) kesişimde tutuldu.
+  sections: Record<string, SectionAnalysis> & {
+    structure?: SectionAnalysis;
+    methodology?: SectionAnalysis;
+    literature?: SectionAnalysis;
+    writingQuality?: SectionAnalysis;
+    references?: SectionAnalysis;
+    formatting?: SectionAnalysis;
   };
 
   // Sorunlar (Sayfa numaralı)
