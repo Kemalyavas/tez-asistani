@@ -259,18 +259,26 @@ export async function POST(request: NextRequest) {
     // Legacy path'te null kalır.
     let rubricExtractData: ExtractResult | null = null;
 
-    // Rubric pipeline koşulu: env flag açık AND PDF Direct Mode (DOCX/büyük PDF
-    // hâlâ eski sistemle gider). Yeni sistem geriye uyumlu legacy shape döner;
-    // frontend ve DB şeması değişmez.
-    const useRubricPipeline = USE_RUBRIC_PIPELINE && useDirectPdf;
+    // Rubric pipeline koşulu: env flag açık + ya PDF Direct Mode ya da
+    // çıkarılmış metin var (DOCX veya büyük PDF text-mode'a düşüyorsa o da
+    // rubric'e gider). Sadece text de yoksa (extract fail vs) legacy yola düş.
+    const useRubricPipeline = USE_RUBRIC_PIPELINE && (useDirectPdf || hasExtractedText);
 
     try {
       if (useRubricPipeline) {
-        console.log(`[ANALYZE/PROCESS] Starting RUBRIC pipeline (Extract + Score)...`);
+        // PDF Direct Mode varsa multimodal (görseller dahil) → rubric extract.
+        // Yoksa (DOCX veya büyük PDF) text mode rubric extract.
+        const extractInput = useDirectPdf
+          ? ({ mode: 'pdf', buffer } as const)
+          : ({ mode: 'text', text } as const);
+
+        console.log(
+          `[ANALYZE/PROCESS] Starting RUBRIC pipeline (Extract + Score) in ${extractInput.mode} mode...`
+        );
 
         // Extract ve Score'u ayrı ayrı çağırıyoruz; analyzeWithRubric tek
         // adımda yapsa da extract çıktısına ihtiyacımız var (DB'ye yazmak için).
-        const extract = await extractRubricItems(buffer, { fileName });
+        const extract = await extractRubricItems(extractInput, { fileName });
         rubricExtractData = extract;
         const rubricResult = scoreRubric(extract);
         analysisResult = toLegacyShape(rubricResult);
@@ -289,7 +297,7 @@ export async function POST(request: NextRequest) {
         };
 
         console.log(
-          `[ANALYZE/PROCESS] Rubric pipeline OK — grade=${rubricResult.overallGrade} (${rubricResult.gradeLabel}), ${rubricResult.criticalFindings.length} critical, ${rubricResult.partialFindings.length} partial, ${extract.items.length} items extracted`
+          `[ANALYZE/PROCESS] Rubric pipeline OK (${extractInput.mode}) — grade=${rubricResult.overallGrade} (${rubricResult.gradeLabel}), ${rubricResult.criticalFindings.length} critical, ${rubricResult.partialFindings.length} partial, ${extract.items.length} items extracted`
         );
       } else {
         console.log(`[ANALYZE/PROCESS] Starting LEGACY Premium Analysis with Gemini ${useDirectPdf ? '(PDF Direct - images included)' : '(Text mode)'}...`);

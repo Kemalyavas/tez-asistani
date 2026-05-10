@@ -216,8 +216,25 @@ ${itemsBlock}
 Şimdi tezi oku ve her kriter için JSON çıktısını üret. responseSchema'ya bire bir uy.`;
 }
 
+/**
+ * Extract pass'in girdi tipi:
+ *   - 'pdf':  Gemini'ye PDF buffer multimodal gönderilir (görseller, tablolar
+ *              dahil tam analiz). 50MB altı PDF'ler için tercih edilen yol.
+ *   - 'text': DOCX gibi multimodal desteklenmeyen formatlar veya çok büyük
+ *              PDF'ler için. Mammoth/pdf-parse ile çıkarılan düz metin
+ *              prompt'a inline edilir; Gemini görselleri görmez ama metinden
+ *              50 kriteri yine değerlendirir.
+ */
+export type ExtractInput =
+  | { mode: 'pdf'; buffer: Buffer }
+  | { mode: 'text'; text: string };
+
+// Çok büyük dökümanlarda Gemini'nin context'ini boşa harcamamak için cap.
+// 1M token ≈ 750K kelime ≈ ~4M karakter; 500K char güvenli + zengin.
+const TEXT_MODE_MAX_CHARS = 500_000;
+
 export async function extractRubricItems(
-  pdfBuffer: Buffer,
+  input: ExtractInput,
   options: { fileName: string }
 ): Promise<ExtractResult> {
   const startMs = Date.now();
@@ -236,8 +253,33 @@ export async function extractRubricItems(
     },
   });
 
-  const prompt = buildExtractPrompt();
-  const pdfBase64 = pdfBuffer.toString('base64');
+  const basePrompt = buildExtractPrompt();
+
+  // Mod-bazlı içerik hazırlığı
+  let contentParts: any[];
+  let modeInfo: string;
+
+  if (input.mode === 'pdf') {
+    const pdfBase64 = input.buffer.toString('base64');
+    contentParts = [
+      { inlineData: { mimeType: 'application/pdf', data: pdfBase64 } },
+      { text: basePrompt },
+    ];
+    modeInfo = `mode=pdf, fileSize=${(input.buffer.length / 1024 / 1024).toFixed(2)}MB`;
+  } else {
+    // Text mode — PDF eki yok; metin prompt'un içine inline edilir.
+    // Çok büyük metinleri kes (rubric prompt + 500K text = ~510K, 1M ctx'e sığar).
+    const truncated =
+      input.text.length > TEXT_MODE_MAX_CHARS
+        ? input.text.substring(0, TEXT_MODE_MAX_CHARS) +
+          '\n\n[...Dökümanın geri kalanı boyut sınırı nedeniyle kesildi...]'
+        : input.text;
+    const textBlock = `\n\nTEZ METNİ (PDF eki yok, düz metin):\n===\n${truncated}\n===`;
+    contentParts = [{ text: basePrompt + textBlock }];
+    modeInfo = `mode=text, textLen=${input.text.length}${
+      input.text.length > TEXT_MODE_MAX_CHARS ? ' (truncated)' : ''
+    }`;
+  }
 
   // Schema validation + retry on malformed output
   const MAX_ATTEMPTS = 3;
@@ -246,13 +288,10 @@ export async function extractRubricItems(
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       console.log(
-        `[RUBRIC EXTRACT] Attempt ${attempt}/${MAX_ATTEMPTS} — model=${modelName}, fileSize=${(pdfBuffer.length / 1024 / 1024).toFixed(2)}MB`
+        `[RUBRIC EXTRACT] Attempt ${attempt}/${MAX_ATTEMPTS} — model=${modelName}, ${modeInfo}`
       );
 
-      const result = await model.generateContent([
-        { inlineData: { mimeType: 'application/pdf', data: pdfBase64 } },
-        { text: prompt },
-      ]);
+      const result = await model.generateContent(contentParts);
 
       const text = result.response.text();
       const parsed = JSON.parse(text);
@@ -524,10 +563,10 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
 // ----------------------------------------------------------------------------
 
 export async function analyzeWithRubric(
-  pdfBuffer: Buffer,
+  input: ExtractInput,
   options: { fileName: string }
 ): Promise<RubricAnalysisResult> {
-  const extract = await extractRubricItems(pdfBuffer, options);
+  const extract = await extractRubricItems(input, options);
   const result = scoreRubric(extract);
   return result;
 }
