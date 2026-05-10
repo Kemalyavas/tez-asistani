@@ -263,7 +263,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
         {/* Premium Format - Yeni gelişmiş sonuç gösterimi */}
         {isPremiumFormat && result && (
-          <PremiumResultDisplay result={result as any} />
+          <PremiumResultDisplay result={result as any} documentId={analysisId} />
         )}
 
         {/* Eski format için mevcut gösterim */}

@@ -21,12 +21,17 @@ import {
   Shield,
   BarChart3
 } from 'lucide-react';
+import RubricFeedbackButton from './RubricFeedbackButton';
 
 interface PremiumResultDisplayProps {
   result: any;
+  documentId?: string; // Rubric feedback için — verilmezse buton render olmaz
 }
 
-export default function PremiumResultDisplay({ result }: PremiumResultDisplayProps) {
+export default function PremiumResultDisplay({
+  result,
+  documentId,
+}: PremiumResultDisplayProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['overview', 'priority']));
   const [selectedIssueType, setSelectedIssueType] = useState<'all' | 'critical' | 'major' | 'minor' | 'formatting'>('all');
 
@@ -443,6 +448,18 @@ export default function PremiumResultDisplay({ result }: PremiumResultDisplayPro
                           <div className="mt-2 flex items-start">
                             <Lightbulb className="h-4 w-4 text-green-600 mr-1 mt-0.5 flex-shrink-0" />
                             <p className="text-sm text-green-700">{issue.suggestion}</p>
+                          </div>
+                        )}
+
+                        {/* Rubric feedback — sadece rubric pipeline analizi için
+                            (issue.rubricItemId yalnızca yeni sistemde dolar; legacy
+                            analizlerde undefined → buton render olmaz) */}
+                        {documentId && issue.rubricItemId && (
+                          <div className="mt-3 flex justify-end">
+                            <RubricFeedbackButton
+                              documentId={documentId}
+                              rubricItemId={issue.rubricItemId}
+                            />
                           </div>
                         )}
                       </div>

@@ -635,6 +635,10 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
     const cat = getRubricCategory(def.categoryId);
     const issue = {
       id: `${sev}-${++issueCounter}`,
+      // Rubric item id'sini de tut — UI feedback button'unun hangi item için
+      // geri bildirim verildiğini bilmesi için. legacy issue id ('critical-1')
+      // sadece UI key, semantik anlam taşımıyor.
+      rubricItemId: def.id,
       title: def.title,
       severity: sev,
       category: 'general',
