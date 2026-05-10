@@ -172,7 +172,7 @@ function buildExtractSchema() {
             comment: {
               type: SchemaType.STRING,
               description:
-                'Kısa Türkçe açıklama (1-2 cümle). Status not_found ise eksiği, partial ise eksik kısmı, found ise neyi sağladığını söyle.',
+                'Kısa açıklama (1-2 cümle). TEZİN DİLİNDE yaz — Türkçe tez için Türkçe, İngilizce tez için İngilizce. Status not_found ise eksiği, partial ise eksik kısmı, found ise neyi sağladığını söyle.',
             },
           },
           required: ['id', 'status', 'evidence', 'pageNumber', 'comment'],
@@ -190,22 +190,24 @@ function buildExtractPrompt(): string {
     return `${i + 1}. [${it.id}] (${cat.title}) ${it.title}\n   Kriter: ${it.description}`;
   }).join('\n\n');
 
-  return `Sen YÖK standartlarına ve uluslararası akademik kriterlere hakim, deneyimli bir tez jürisisin.
+  return `Sen YÖK standartlarına ve uluslararası akademik kriterlere hakim, deneyimli bir tez jürisisin. (You are an experienced thesis evaluator familiar with both Turkish YÖK standards and international academic criteria.)
 
 Sana ekli olarak bir Türkçe veya İngilizce yüksek lisans / doktora tezi PDF'i sunuluyor. Görevin: aşağıdaki 50 kriterin her biri için tezi kontrol et ve sonucu yapılandırılmış JSON olarak döndür.
 
-ÇOK ÖNEMLİ KURALLAR:
-1. Her kriter için MUTLAKA bir değerlendirme döndür — eksik bırakma.
+(A Turkish or English master's / PhD thesis is attached. Your task: check the thesis against each of the 50 criteria below and return the result as structured JSON.)
+
+ÇOK ÖNEMLİ KURALLAR / IMPORTANT RULES:
+1. Her kriter için MUTLAKA bir değerlendirme döndür — eksik bırakma. (Always return an evaluation for every criterion.)
 2. status değerleri:
-   - "found": Kriter tezde net olarak karşılanmış.
-   - "partial": Kısmen karşılanmış (ör. var ama eksik/yetersiz).
-   - "not_found": Karşılanmamış / bulunamadı.
-   - "not_applicable": Bu tez tipi için geçerli değil (ör. teorik tezde "etik kurul onayı").
-3. evidence alanına tezdeki ORİJİNAL metni alıntıla (en fazla 200 karakter). Alıntı yapamıyorsan boş bırak.
-4. pageNumber: alıntının bulunduğu sayfa numarası (PDF metadata sayfası, bilinmiyorsa 0).
-5. comment: 1-2 cümle Türkçe açıklama. NEYI yaptığını/yapmadığını net söyle, genel laf etme.
-6. Tarafsız ol. "Bu çok güzel" / "Bu mükemmel" gibi övgü ya da abartı kullanma.
-7. Tezin dilini detectedLanguage'da belirt; thesisType'a "Yüksek Lisans Tezi" veya "Doktora Tezi" yaz (kapaktan görüyorsun).
+   - "found": Kriter tezde net olarak karşılanmış. / Criterion clearly met.
+   - "partial": Kısmen karşılanmış. / Partially met.
+   - "not_found": Karşılanmamış / bulunamadı. / Not met / not present.
+   - "not_applicable": Bu tez tipi için geçerli değil (ör. teorik tezde etik kurul onayı). / Not applicable for this thesis type.
+3. evidence alanına tezdeki ORİJİNAL metni alıntıla (en fazla 200 karakter). / Quote the original text from the thesis (max 200 chars).
+4. pageNumber: alıntının bulunduğu sayfa numarası, bilinmiyorsa 0. / Page where the evidence appears, 0 if unknown.
+5. **comment: TEZİN DİLİNDE 1-2 cümle yaz.** Türkçe tez → Türkçe comment; İngilizce tez → English comment. NEYI yaptığını/yapmadığını net söyle. (Write the comment IN THE LANGUAGE OF THE THESIS. State concretely what is done or missing — no vague praise.)
+6. Tarafsız ol. "Bu çok güzel" / "Excellent" gibi övgü ya da abartı kullanma. (Stay neutral; no flattery.)
+7. detectedLanguage: tezin dilini "tr" veya "en" olarak belirt. thesisType: "Yüksek Lisans Tezi" / "Doktora Tezi" / "Master's Thesis" / "PhD Thesis" — tezin diline uygun olanı seç.
 
 Değerlendirilecek 50 kriter:
 
