@@ -13,7 +13,12 @@ import { cookies } from 'next/headers';
 import { extractPdfData } from '../../../lib/fileUtils';
 import { isAdmin } from '../../../lib/adminUtils';
 import { analyzePremium, PremiumAnalysisResult } from '../../../lib/thesis/premiumAnalysisService';
-import { analyzeWithRubric, toLegacyShape } from '../../../lib/thesis/rubricAnalysisService';
+import {
+  extractRubricItems,
+  scoreRubric,
+  toLegacyShape,
+  type ExtractResult,
+} from '../../../lib/thesis/rubricAnalysisService';
 
 /**
  * Rubric pipeline toggle. Vercel env'de USE_RUBRIC_PIPELINE=true set edilirse
@@ -249,6 +254,11 @@ export async function POST(request: NextRequest) {
     // Perform Premium Analysis with Gemini Pro
     let analysisResult: PremiumAnalysisResult;
 
+    // Rubric pipeline'ın Extract pass çıktısı — DB'ye rubric_extract kolonuna
+    // yazılır (audit trail + future calibration/refinement için ham veri).
+    // Legacy path'te null kalır.
+    let rubricExtractData: ExtractResult | null = null;
+
     // Rubric pipeline koşulu: env flag açık AND PDF Direct Mode (DOCX/büyük PDF
     // hâlâ eski sistemle gider). Yeni sistem geriye uyumlu legacy shape döner;
     // frontend ve DB şeması değişmez.
@@ -257,7 +267,12 @@ export async function POST(request: NextRequest) {
     try {
       if (useRubricPipeline) {
         console.log(`[ANALYZE/PROCESS] Starting RUBRIC pipeline (Extract + Score)...`);
-        const rubricResult = await analyzeWithRubric(buffer, { fileName });
+
+        // Extract ve Score'u ayrı ayrı çağırıyoruz; analyzeWithRubric tek
+        // adımda yapsa da extract çıktısına ihtiyacımız var (DB'ye yazmak için).
+        const extract = await extractRubricItems(buffer, { fileName });
+        rubricExtractData = extract;
+        const rubricResult = scoreRubric(extract);
         analysisResult = toLegacyShape(rubricResult);
 
         // Statistics block: rubric servisi PDF parse etmediği için route'taki
@@ -274,7 +289,7 @@ export async function POST(request: NextRequest) {
         };
 
         console.log(
-          `[ANALYZE/PROCESS] Rubric pipeline OK — grade=${rubricResult.overallGrade} (${rubricResult.gradeLabel}), ${rubricResult.criticalFindings.length} critical, ${rubricResult.partialFindings.length} partial`
+          `[ANALYZE/PROCESS] Rubric pipeline OK — grade=${rubricResult.overallGrade} (${rubricResult.gradeLabel}), ${rubricResult.criticalFindings.length} critical, ${rubricResult.partialFindings.length} partial, ${extract.items.length} items extracted`
         );
       } else {
         console.log(`[ANALYZE/PROCESS] Starting LEGACY Premium Analysis with Gemini ${useDirectPdf ? '(PDF Direct - images included)' : '(Text mode)'}...`);
@@ -317,8 +332,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Update thesis document with Premium results
-      const updateData = {
+      const updateData: Record<string, any> = {
         status: 'analyzed',
+        // Rubric pipeline'ın ham Extract çıktısı (50 item × {status, evidence,
+        // page, comment}). Audit trail + ileride rubric versiyon yükseltirken
+        // mevcut analizi yeniden skorlayabilmek için saklanıyor. Legacy yolda
+        // null kalır.
+        rubric_extract: rubricExtractData,
         analysis_result: {
           // Yeni Premium format
           overallScore: analysisResult.overallScore,
