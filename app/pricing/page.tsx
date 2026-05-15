@@ -132,6 +132,24 @@ export default function PricingPage() {
           )}
         </div>
 
+        {/* Çok turlu analiz değer önerisi */}
+        <div className="max-w-3xl mx-auto mb-12">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6 flex items-start gap-4">
+            <Sparkles className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">
+                En iyi sonuç için birden fazla analiz turu
+              </h3>
+              <p className="text-sm text-gray-600">
+                Tezinizi analiz edin, raporun önerdiği düzeltmeleri yapın, sonra
+                tekrar analiz edin. Her turda teziniz jüri ve YÖK standartlarına
+                biraz daha yaklaşır. Tek seferlik bir kontrolden çok, revizyon
+                döngüsü için kredi planlamak çoğu tez yazarına daha iyi sonuç verir.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Kredi Paketleri */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-16">
           {Object.values(CREDIT_PACKAGES).map((pkg) => (
@@ -155,8 +173,7 @@ export default function PricingPage() {
               <div className="p-6">
                 {/* Paket Başlığı */}
                 <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{pkg.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{pkg.description}</p>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">{pkg.name}</h3>
 
                   {/* Fiyat */}
                   <div className="flex items-baseline justify-center mb-2">
@@ -178,10 +195,6 @@ export default function PricingPage() {
                     )}
                   </div>
 
-                  {/* Kredi Başı Fiyat */}
-                  <p className="text-sm text-gray-500 mt-2">
-                    Kredi başı ₺{pkg.pricePerCredit.toFixed(2)}
-                  </p>
                 </div>
 
                 {/* Ne yapabilirsin */}
