@@ -12,7 +12,13 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { extractPdfData } from '../../../lib/fileUtils';
 import { isAdmin } from '../../../lib/adminUtils';
-import { analyzePremium, PremiumAnalysisResult } from '../../../lib/thesis/premiumAnalysisService';
+import {
+  analyzePremium,
+  PremiumAnalysisResult,
+  countReferences,
+  countFigures,
+  countTables,
+} from '../../../lib/thesis/premiumAnalysisService';
 import {
   extractRubricItems,
   scoreRubric,
@@ -285,15 +291,18 @@ export async function POST(request: NextRequest) {
 
         // Statistics block: rubric servisi PDF parse etmediği için route'taki
         // gerçek değerleri buradan dolduruyoruz (truthful pageCount + wordCount).
+        // referenceCount/figureCount/tableCount extracted text'ten text-based
+        // sayım ile geliyor — hasExtractedText yoksa (PDF parse fail) 0 kalır
+        // ki bu da doğru ("bulamadık" ≠ "yok" ama gösterilecek veri yok).
         analysisResult.statistics = {
           pageCount,
           wordCount,
           characterCount: hasExtractedText ? text.length : 0,
           averageSentenceLength: 0,
           readabilityScore: 0,
-          referenceCount: 0,
-          figureCount: 0,
-          tableCount: 0,
+          referenceCount: hasExtractedText ? countReferences(text) : 0,
+          figureCount: hasExtractedText ? countFigures(text) : 0,
+          tableCount: hasExtractedText ? countTables(text) : 0,
         };
 
         console.log(

@@ -31,9 +31,11 @@ const supabaseAdmin = createClient(
 //                       kolonuna yazılıyor (audit trail + future re-scoring)
 //   - 'rubric-1.3'   → Text mode rubric extract (DOCX/büyük PDF rubric'e
 //                       sokuldu); ExtractInput discriminated union
+//   - 'rubric-1.4'   → referenceCount/figureCount/tableCount artık extracted
+//                       text'ten sayılıyor (rubric pipeline'da 0 hardcode bug fix)
 // Pipeline değişikliğinde version bump'lanır → eski cache otomatik invalid.
 const PIPELINE_VERSION =
-  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.3' : 'legacy-1.0';
+  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.4' : 'legacy-1.0';
 
 // ============================================================================
 // Helper Functions

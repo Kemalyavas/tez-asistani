@@ -779,7 +779,10 @@ function addPageMarkers(text: string): string {
   return result;
 }
 
-function countReferences(text: string): number {
+// NOT: Bu sayım fonksiyonları rubric pipeline tarafından da kullanılıyor
+// (export edildi), çünkü rubric servisi PDF parse etmiyor ama process route
+// elindeki extracted text'i geçiriyor.
+export function countReferences(text: string): number {
   // Kaynakça bölümündeki kaynakları say
   const refSection = text.match(/kaynakça|references|bibliography/i);
   if (!refSection) return 0;
@@ -789,12 +792,12 @@ function countReferences(text: string): number {
   return refs ? refs.length : 0;
 }
 
-function countFigures(text: string): number {
+export function countFigures(text: string): number {
   const matches = text.match(/şekil\s*\d+|figure\s*\d+|grafik\s*\d+/gi);
   return matches ? new Set(matches.map(m => m.toLowerCase())).size : 0;
 }
 
-function countTables(text: string): number {
+export function countTables(text: string): number {
   const matches = text.match(/tablo\s*\d+|table\s*\d+|çizelge\s*\d+/gi);
   return matches ? new Set(matches.map(m => m.toLowerCase())).size : 0;
 }
