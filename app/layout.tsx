@@ -57,17 +57,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData.softwareApplication) }}
         />
-        <Script
-          id="structured-data-faq"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData.faq) }}
-        />
 
-        {/* Other head tags */}
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <meta name="format-detection" content="telephone=no" />
+        {/* Manifest, favicon ve format-detection metadata API üzerinden yönetiliyor (lib/metadata.ts) */}
         <meta name="msapplication-TileColor" content="#3b82f6" />
       </head>
       <body className={inter.className}>

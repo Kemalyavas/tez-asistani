@@ -1,8 +1,7 @@
 import { MetadataRoute } from 'next'
+import { SITE_URL, absoluteUrl } from './lib/site'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://www.tezai.com.tr'
-
   return {
     rules: [
       {
@@ -12,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
           '/api/',
           '/auth',
           '/profile',
+          '/analyses',
           '/payment/',
           '/admin/',
           '/private/',
@@ -20,24 +20,11 @@ export default function robots(): MetadataRoute.Robots {
           '/tmp/',
         ],
       },
-      // Specific bot rules (optional)
-      {
-        userAgent: 'Googlebot',
-        allow: '/',
-      },
-      {
-        userAgent: 'Bingbot',
-        allow: '/',
-      },
-      {
-        userAgent: 'Yandex',
-        allow: '/',
-      },
-      // You can optionally block overly aggressive bots here
+      { userAgent: 'Googlebot', allow: '/' },
+      { userAgent: 'Bingbot', allow: '/' },
+      { userAgent: 'Yandex', allow: '/' },
     ],
-    sitemap: [
-      `${baseUrl}/sitemap.xml`,
-    ],
-    host: baseUrl,
+    sitemap: [absoluteUrl('/sitemap.xml')],
+    host: SITE_URL,
   }
 }

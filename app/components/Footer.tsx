@@ -2,37 +2,77 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FileText, Mail, Shield } from 'lucide-react';
 
+const productLinks = [
+  { href: '/tez-analizi', label: 'Tez Analizi' },
+  { href: '/akademik-formatlar', label: 'Akademik Formatlar' },
+  { href: '/ozellikler', label: 'Özellikler' },
+  { href: '/universitelere-ozel', label: 'Üniversitelere Özel' },
+  { href: '/pricing', label: 'Fiyatlar' },
+];
+
+const companyLinks = [
+  { href: '/hakkimizda', label: 'Hakkımızda' },
+  { href: '/sss', label: 'Sık Sorulan Sorular' },
+  { href: '/iletisim', label: 'İletişim' },
+  { href: '/auth', label: 'Giriş Yap' },
+];
+
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
-          {/* Logo and Description */}
+          {/* Logo ve açıklama */}
           <div>
-            <div className="flex items-center space-x-2 mb-8">
+            <div className="flex items-center space-x-2 mb-6">
               <FileText className="h-6 w-6 text-blue-400" />
               <span className="font-bold text-xl text-white">TezAI</span>
             </div>
-            <p className="text-sm max-w-sm">
-              Tezini güvenle formatlamana, kaynaklarını düzenlemeye ve cilalamana yardımcı olan pratik araçlar.
+            <p className="text-sm max-w-sm mb-6">
+              Yapay zeka destekli tez analizi, otomatik kaynakça ve özet araçlarıyla tezini güvenle
+              tamamla.
             </p>
+            <p className="text-xs text-gray-400 mb-2">Güvenli Ödeme</p>
+            <Image
+              src="/logo_band_colored@3x.png"
+              alt="Kabul edilen ödemeler: iyzico, Mastercard, Visa, American Express, Troy"
+              width={320}
+              height={40}
+              className="w-full max-w-[280px]"
+            />
           </div>
 
-          {/* Quick Links */}
+          {/* Ürün */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Hızlı Bağlantılar</h3>
+            <h2 className="font-semibold text-white mb-4">Ürün</h2>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/" className="hover:text-blue-400 transition">Ana Sayfa</Link></li>
-              <li><Link href="/#features" className="hover:text-blue-400 transition">Özellikler</Link></li>
-              <li><Link href="/#pricing" className="hover:text-blue-400 transition">Fiyatlar</Link></li>
-              <li><Link href="/#app" className="hover:text-blue-400 transition">Araçlar</Link></li>
-              <li><Link href="/auth" className="hover:text-blue-400 transition">Giriş Yap</Link></li>
+              {productLinks.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="hover:text-blue-400 transition">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Kurumsal */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Yasal</h3>
+            <h2 className="font-semibold text-white mb-4">Kurumsal</h2>
+            <ul className="space-y-2 text-sm">
+              {companyLinks.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="hover:text-blue-400 transition">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Yasal */}
+          <div>
+            <h2 className="font-semibold text-white mb-4">Yasal</h2>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/privacy-policy" className="hover:text-blue-400 transition flex items-center">
@@ -50,33 +90,19 @@ export default function Footer() {
                   Teslimat ve İade
                 </Link>
               </li>
-              <li>
-                <span className="text-gray-500">GDPR uyumlu</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact and Payment */}
-          <div>
-            <h3 className="font-semibold text-white mb-4">İletişim</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center">
+              <li className="flex items-center pt-2">
                 <Mail className="h-3 w-3 mr-2" />
-                kemalyavaas@outlook.com
-              </li>
-              <li className="mt-8">
-                <p className="text-xs text-gray-400 mb-2 mt-6">Güvenli Ödeme</p>
-
-                <Image
-                  src="/logo_band_colored@3x.png"
-                  alt="Kabul edilen ödemeler: iyzico, Mastercard, Visa, American Express, Troy"
-                  width={320}
-                  height={40}
-                  className="w-full max-w-[320px] mt-4"
-                />
+                <a href="mailto:kemalyavaas@outlook.com" className="hover:text-blue-400 transition break-all">
+                  kemalyavaas@outlook.com
+                </a>
               </li>
             </ul>
           </div>
+        </div>
+
+        <div className="border-t border-gray-800 mt-10 pt-6 text-xs text-gray-500 flex flex-col sm:flex-row justify-between gap-2">
+          <span>© {new Date().getFullYear()} TezAI. Tüm hakları saklıdır.</span>
+          <span>KVKK & GDPR uyumlu</span>
         </div>
       </div>
     </footer>

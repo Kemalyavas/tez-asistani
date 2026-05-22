@@ -1,5 +1,6 @@
 // JSON-LD Structured Data for SEO (Turkish, production domain)
-const siteUrl = 'https://www.tezai.com.tr';
+import { SITE_URL } from './site';
+const siteUrl = SITE_URL;
 
 export const structuredData = {
   // Website Schema
@@ -118,45 +119,45 @@ export const structuredData = {
     ],
   },
 
-  // FAQPage Schema
+  // FAQPage Schema — ana sayfadaki görünür SSS bölümüyle birebir eşleşir
   faq: {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'TezAI nasıl çalışır?',
+        name: 'Başlamak için kredi kartı gerekiyor mu?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'TezAI, akademik metinlerinizi analiz ederek otomatik olarak APA, MLA veya Chicago formatında atıflar oluşturur. Ayrıca PDF veya Word dosyalarınızdan özet üretebilir ve tezinizi detaylı olarak analiz edebilir.',
+            'Hayır. Kayıt olunca anında 10 ücretsiz kredi kazanırsın. Bu, tam bir tez analizi veya birden fazla kaynak ve özet için yeterli. Kredi kartı gerekmez.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Hangi atıf formatları destekleniyor?',
+        name: 'Krediler sona erer mi?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'APA 7. Baskı, MLA 9. Baskı, Chicago 17. Baskı ve IEEE formatlarını destekliyoruz. Farklı üniversite gereksinimlerini karşılamak için özel formatlar da mevcuttur.',
+            'Hayır, kredilerin asla sona ermez. Bir kez satın al, ihtiyaç duyduğunda kullan. Aylık ücret, abonelik veya baskı yoktur.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Verilerim güvende mi?',
+        name: 'Hangi kredi paketini seçmeliyim?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'Evet. Tüm veriler HTTPS üzerinden iletilir. KVKK ve GDPR uyumlu uygulamalar izlenir ve dosyalar işlem sonrası güvenli bir şekilde silinir.',
+            'Tek bir tez için Starter veya Standart paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, Pro paketi 500 kredi sunar.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Ücretsiz deneme var mı?',
+        name: 'Tezim güvende mi? Gizliliğim korunuyor mu?',
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'Evet. Kayıt olduğunuzda 10 ücretsiz kredi kazanırsınız. Kredi kartı gerekmez. Abonelik yok, sadece kullandığınız kadar ödersiniz.',
+            'Evet. Yüklenen tez dosyaların diğer kullanıcılarla asla paylaşılmaz, analiz sonrası otomatik olarak silinir, yapay zeka modellerini eğitmek için kullanılmaz ve SSL şifrelemesiyle korunur. KVKK ve GDPR uyumludur.',
         },
       },
     ],

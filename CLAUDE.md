@@ -54,11 +54,11 @@ thesis_standard (31-60 sayfa): 25 kredi
 thesis_comprehensive (61+ sayfa): 50 kredi
 ```
 
-### Kredi Paketleri
-- Starter: 50 kredi - $5
-- Standard: 200+40 bonus - $15
-- Pro: 500+100 bonus - $35
-- Ultimate: 1200+300 bonus - $75
+### Kredi Paketleri (pricing.ts)
+- Starter: 50 kredi - ₺149
+- Standard: 200+40 bonus (240 toplam) - ₺449
+- Pro: 400+100 bonus (500 toplam) - ₺749
+- Ultimate: 1000+250 bonus (1250 toplam) - ₺1499
 
 ## Önemli Dosyalar ve Yapı
 
@@ -172,8 +172,8 @@ npm run lint     # ESLint kontrolü
 
 1. **Dosya boyutu limiti**: 10MB (FileUploader.tsx)
 2. **Admin kullanıcıları**: `adminUtils.ts` içinde tanımlı, sınırsız erişim
-3. **Dil**: UI İngilizce, kod yorumları Türkçe olabilir
-4. **Para birimi**: USD ($)
+3. **Dil**: UI ve SEO/metadata tamamen Türkçe (hedef pazar: Türkiye); kod yorumları Türkçe
+4. **Para birimi**: TRY (₺)
 5. **Ödeme Idempotency**: Çift kredi eklemeyi önlemek için tüm ödeme route'larında kontrol var:
    - `callback`, `webhook`, `verify-payment` → `payment_id` VEYA `conversation_id` ile kontrol
    - Checkout'ta token, sonra gerçek paymentId'ye güncelleniyor

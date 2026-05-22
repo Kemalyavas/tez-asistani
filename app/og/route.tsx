@@ -4,8 +4,8 @@ export const runtime = 'edge'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  const title = searchParams.get('title') || 'TezAI – AI Thesis Writing Assistant'
-  const subtitle = searchParams.get('subtitle') || 'APA/MLA/Chicago Citations • Abstracts • Thesis Tools'
+  const title = searchParams.get('title') || 'TezAI – Yapay Zeka Tez Asistanı'
+  const subtitle = searchParams.get('subtitle') || 'APA/MLA/Chicago Kaynakça • Özet • Tez Analizi'
 
   return new ImageResponse(
     (
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
             marginBottom: 24,
           }}
         >
-          {'\uD83C\uDF93'} Academic Writing
+          {'\uD83C\uDF93'} Akademik Yaz\u0131m
         </div>
 
         <div style={{ fontSize: 88, fontWeight: 800, lineHeight: 1.1 }}>{title}</div>

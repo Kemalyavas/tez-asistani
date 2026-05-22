@@ -1,146 +1,295 @@
 import type { Metadata } from 'next'
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_LOCALE,
+  TWITTER_HANDLE,
+  absoluteUrl,
+  ogImageUrl,
+} from './site'
 
-// Main site metadata
+// Robots direktifleri
+const ROBOTS_INDEX =
+  'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+const ROBOTS_NOINDEX = 'noindex, nofollow'
+
+// Birincil Türkçe anahtar kelimeler (Türkiye pazarı)
+const PRIMARY_KEYWORDS = [
+  'tez analizi',
+  'yapay zeka tez',
+  'akademik yazım asistanı',
+  'apa kaynakça oluşturucu',
+  'mla kaynak gösterme',
+  'chicago kaynakça',
+  'ieee kaynakça',
+  'atıf oluşturucu',
+  'otomatik kaynakça',
+  'özet oluşturma',
+  'tez özeti',
+  'tez kontrol',
+]
+
+// Geriye dönük uyumluluk için temel site bilgisi
 export const siteMetadata = {
-  title: 'TezAI - Thesis Writing Assistant | AI-Powered Academic Writing Tool',
-  description: 'AI-powered citation formatting, abstract generation, and writing assistance for your theses, papers, and academic work. Automatic reference formatting in APA, MLA, Chicago styles. The most advanced academic writing platform.',
-  keywords: [
-    // Primary keywords (en-US)
-    'thesis assistant', 'academic writing tool', 'citation generator',
-    'APA formatter', 'MLA formatter', 'Chicago style references',
-    'bibliography generator', 'abstract generator', 'thesis writing',
-    'reference manager', 'research assistant', 'academic research'
-  ],
-  url: 'https://www.tezai.com.tr',
-  siteName: 'TezAI',
-  images: [
-    {
-      // Use dynamic OG generator to ensure a valid 1200x630 image
-      url: '/og',
-      width: 1200,
-      height: 630,
-      alt: 'TezAI – AI-Powered Academic Writing',
-    }
-  ],
-  locale: 'tr_TR',
-  type: 'website',
-  author: 'TezAI Team',
-  robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+  title: 'TezAI – Yapay Zeka Tez Analizi ve Akademik Yazım Asistanı',
+  description:
+    'Yapay zeka ile tez analizi, otomatik kaynakça (APA, MLA, Chicago, IEEE) ve özet oluşturma. Tezini jüri standartlarına göre kontrol et.',
+  keywords: PRIMARY_KEYWORDS,
+  url: SITE_URL,
+  siteName: SITE_NAME,
+  locale: SITE_LOCALE,
+  author: 'TezAI Ekibi',
+  robots: ROBOTS_INDEX,
 }
 
-// Ana sayfa metadata
+// ---------------------------------------------------------------------------
+// Sayfa metadata üretici — her sayfaya canonical + OG + Twitter kartı garanti
+// ---------------------------------------------------------------------------
+interface PageMetaInput {
+  title: string // şablonsuz başlık; kök "%s | TezAI" şablonunu ekler
+  description: string
+  path: string // örn. '/pricing'
+  keywords?: string
+  ogTitle?: string
+  ogSubtitle?: string
+  index?: boolean // false → noindex, nofollow
+  type?: 'website' | 'article'
+}
+
+export function buildPageMetadata({
+  title,
+  description,
+  path,
+  keywords,
+  ogTitle,
+  ogSubtitle,
+  index = true,
+  type = 'website',
+}: PageMetaInput): Metadata {
+  const url = absoluteUrl(path)
+  const image = ogImageUrl(ogTitle ?? title, ogSubtitle)
+
+  return {
+    title,
+    description,
+    ...(keywords ? { keywords } : {}),
+    robots: index ? ROBOTS_INDEX : ROBOTS_NOINDEX,
+    alternates: index ? { canonical: url } : undefined,
+    openGraph: {
+      title: ogTitle ?? title,
+      description,
+      url,
+      siteName: SITE_NAME,
+      locale: SITE_LOCALE,
+      type,
+      images: [{ url: image, width: 1200, height: 630, alt: ogTitle ?? title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: ogTitle ?? title,
+      description,
+      images: [image],
+      creator: TWITTER_HANDLE,
+      site: TWITTER_HANDLE,
+    },
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ana sayfa (kök layout) metadata — başlık şablonu burada tanımlı
+// ---------------------------------------------------------------------------
 export const homeMetadata: Metadata = {
-  metadataBase: new URL('https://www.tezai.com.tr'),
-  title: 'TezAI - Thesis Writing Assistant | AI Academic Writing Tool',
-  description: 'Speed up your thesis and academic writing! AI-powered citation formatting (APA, MLA, Chicago), automatic abstract generation, and reference management. Try it free.',
-  keywords: siteMetadata.keywords.join(', '),
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'TezAI – Yapay Zeka Tez Analizi ve Akademik Yazım Asistanı',
+    template: '%s | TezAI',
+  },
+  description:
+    'Yapay zeka ile tez analizi, otomatik kaynakça (APA, MLA, Chicago) ve özet oluşturma. Tezini jüri standartlarına göre kontrol et; kayıt olana 10 ücretsiz kredi.',
+  keywords: PRIMARY_KEYWORDS.join(', '),
   authors: [{ name: siteMetadata.author }],
   creator: siteMetadata.author,
-  publisher: siteMetadata.siteName,
-  robots: siteMetadata.robots,
+  publisher: SITE_NAME,
+  robots: ROBOTS_INDEX,
+  applicationName: SITE_NAME,
+  manifest: '/manifest.json',
+  formatDetection: { telephone: false },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
     shortcut: '/favicon.ico',
-    apple: '/logo.png',
-    other: {
-      rel: 'apple-touch-icon-precomposed',
-      url: '/logo.png',
-    },
+    apple: '/icon.svg',
   },
   openGraph: {
-    title: 'TezAI - AI-Powered Academic Writing Tool',
-    description: 'AI-powered citation formatting, abstract generation, and reference management.',
-    url: siteMetadata.url,
-    siteName: siteMetadata.siteName,
-    images: siteMetadata.images,
-    locale: siteMetadata.locale,
-    type: 'website' as const,
+    title: 'TezAI – Yapay Zeka Tez Analizi ve Akademik Yazım Asistanı',
+    description:
+      'Yapay zeka ile tez analizi, otomatik kaynakça (APA, MLA, Chicago) ve özet oluşturma.',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    images: [
+      {
+        url: ogImageUrl(),
+        width: 1200,
+        height: 630,
+        alt: 'TezAI – Yapay Zeka Tez Asistanı',
+      },
+    ],
+    locale: SITE_LOCALE,
+    type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TezAI - AI-Powered Academic Writing Tool',
-    description: 'AI-powered citation formatting, abstract generation, and reference management.',
-    images: [siteMetadata.images[0].url],
-    creator: '@tezasistani',
-    site: '@tezasistani'
+    title: 'TezAI – Yapay Zeka Tez Analizi ve Akademik Yazım Asistanı',
+    description:
+      'Yapay zeka ile tez analizi, otomatik kaynakça ve özet oluşturma.',
+    images: [ogImageUrl()],
+    creator: TWITTER_HANDLE,
+    site: TWITTER_HANDLE,
   },
   alternates: {
-    canonical: siteMetadata.url,
-    languages: { 'tr-TR': siteMetadata.url },
+    canonical: SITE_URL,
+    languages: { 'tr-TR': SITE_URL },
   },
-  category: 'Education Technology',
-  classification: 'Academic Writing Tool'
+  category: 'Eğitim Teknolojisi',
 }
 
-// Pricing sayfası metadata
-export const pricingMetadata: Metadata = {
-  title: 'Fiyatlar - TezAI | Kredi Paketleri',
-  description: 'TezAI kredi paketleri: Starter (₺149), Standart (₺449), Pro (₺749), Ultimate (₺1499). Abonelik yok, krediler asla sona ermez. Sadece kullandığın kadar öde.',
-  keywords: 'tezai fiyat, kredi paketi, tez analizi fiyat, akademik yazım aracı fiyat, yapay zeka tez asistanı',
-  openGraph: {
-    title: 'Fiyatlar - TezAI | Kredi Paketleri',
-    description: 'Sadece kullandığın kadar öde. Starter ₺149, Pro ₺749. Abonelik yok.',
-    url: `${siteMetadata.url}/pricing`,
-    images: [{ url: '/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%E2%82%BA149%20%E2%80%A2%20Pro%20%E2%82%BA749', width: 1200, height: 630, alt: 'TezAI Fiyatlar' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Fiyatlar - TezAI',
-    description: 'Sadece kullandığın kadar öde. Starter ₺149, Pro ₺749. Abonelik yok.',
-    images: ['/og?title=TezAI%20Fiyatlar&subtitle=Starter%20%E2%82%BA149%20%E2%80%A2%20Pro%20%E2%82%BA749'],
-  },
-  alternates: {
-    canonical: `${siteMetadata.url}/pricing`,
-  }
-}
+// ---------------------------------------------------------------------------
+// Sayfa metadata'ları
+// ---------------------------------------------------------------------------
+export const pricingMetadata = buildPageMetadata({
+  title: 'Fiyatlar – Kredi Paketleri',
+  description:
+    'TezAI kredi paketleri: Starter ₺149, Standart ₺449, Pro ₺749, Ultimate ₺1499. Abonelik yok, krediler asla sona ermez. Sadece kullandığın kadar öde.',
+  path: '/pricing',
+  keywords:
+    'tezai fiyat, kredi paketi, tez analizi fiyatı, akademik yazım aracı fiyatı, yapay zeka tez asistanı fiyat',
+  ogTitle: 'TezAI Fiyatlar',
+  ogSubtitle: 'Starter ₺149 • Pro ₺749 • Abonelik yok',
+})
 
-// Auth sayfası metadata  
-export const authMetadata: Metadata = {
-  title: 'Sign In - TezAI | Academic Writing Platform',
-  description: 'Sign in to TezAI and access AI-powered academic writing tools. Secure login and free signup.',
-  keywords: 'thesis assistant login, academic writing platform signup, university student login, academic platform login',
-  robots: 'noindex, nofollow', // Auth sayfaları indexlenmemeli
-  openGraph: {
-    title: 'Sign In - TezAI',
-    description: 'Sign in to access academic writing tools.',
-    url: `${siteMetadata.url}/auth`,
-  }
-}
+export const authMetadata = buildPageMetadata({
+  title: 'Giriş Yap',
+  description:
+    'TezAI hesabına giriş yap veya ücretsiz kayıt ol. Tez analizi, kaynakça ve özet araçlarına anında eriş.',
+  path: '/auth',
+  index: false,
+})
 
-// Profile sayfası metadata
-export const profileMetadata: Metadata = {
-  title: 'My Profile - TezAI | Account Management',
-  description: 'Manage your TezAI account settings. View usage stats, upgrade your plan, and update personal info.',
-  robots: 'noindex, nofollow', // Kişisel sayfalar indexlenmemeli
-  openGraph: {
-    title: 'My Profile - TezAI',
-    url: `${siteMetadata.url}/profile`,
-  }
-}
+export const profileMetadata = buildPageMetadata({
+  title: 'Profilim',
+  description: 'TezAI hesap ayarların, kredi bakiyen ve kullanım geçmişin.',
+  path: '/profile',
+  index: false,
+})
 
-// Privacy Policy metadata
-export const privacyMetadata: Metadata = {
-  title: 'Privacy Policy - TezAI | GDPR-Compliant Data Protection',
-  description: 'TezAI privacy policy and data protection practices. GDPR-compliant processing and security measures.',
-  keywords: 'tezai privacy, gdpr compliance, data protection, academic platform security, privacy policy',
-  openGraph: {
-    title: 'Privacy Policy - TezAI',
-    description: 'Learn about our GDPR-compliant privacy practices.',
-    url: `${siteMetadata.url}/privacy-policy`,
-    images: [{ url: '/og?title=Privacy%20Policy&subtitle=GDPR%20Compliant%20Data%20Protection', width: 1200, height: 630, alt: 'Privacy Policy' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Privacy Policy - TezAI',
-    description: 'Learn about our GDPR-compliant privacy practices.',
-    images: ['/og?title=Privacy%20Policy&subtitle=GDPR%20Compliant%20Data%20Protection'],
-  },
-  alternates: {
-    canonical: `${siteMetadata.url}/privacy-policy`,
-  }
-}
+export const analysesMetadata = buildPageMetadata({
+  title: 'Analizlerim',
+  description: 'Geçmiş tez analizlerin ve indirilebilir raporların.',
+  path: '/analyses',
+  index: false,
+})
 
-// Blog/Article için dinamik metadata fonksiyonu
+export const privacyMetadata = buildPageMetadata({
+  title: 'Gizlilik Politikası',
+  description:
+    'TezAI gizlilik politikası: KVKK ve GDPR uyumlu veri işleme. Tez dosyaların SSL ile korunur ve analiz sonrası otomatik silinir.',
+  path: '/privacy-policy',
+  keywords: 'tezai gizlilik, kvkk, gdpr, veri güvenliği, gizlilik politikası',
+  ogTitle: 'Gizlilik Politikası',
+  ogSubtitle: 'KVKK & GDPR Uyumlu Veri Koruma',
+})
+
+export const deliveryReturnsMetadata = buildPageMetadata({
+  title: 'Teslimat ve İade',
+  description:
+    'TezAI teslimat ve iade politikası. Krediler satın alma sonrası anında hesabına tanımlanır; teknik hata durumunda otomatik iade edilir.',
+  path: '/delivery-returns',
+  keywords: 'tezai iade, kredi iadesi, teslimat politikası',
+})
+
+export const mesafeliMetadata = buildPageMetadata({
+  title: 'Mesafeli Satış Sözleşmesi',
+  description:
+    'TezAI mesafeli satış sözleşmesi. 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında tarafların hak ve yükümlülükleri.',
+  path: '/mesafeli-satis-sozlesmesi',
+  keywords: 'mesafeli satış sözleşmesi, tüketici hakları, 6502 sayılı kanun',
+})
+
+// --- Landing sayfaları (Türkçe, arama niyeti odaklı) ---
+export const ozelliklerMetadata = buildPageMetadata({
+  title: 'Özellikler – Tez Analizi, Kaynakça ve Özet Araçları',
+  description:
+    "TezAI'nin yapay zeka destekli özellikleri: tez analizi, otomatik kaynakça (APA, MLA, Chicago, IEEE), özet oluşturma ve akademik format kontrolü.",
+  path: '/ozellikler',
+  keywords:
+    'tezai özellikler, tez analizi aracı, kaynakça oluşturucu, özet oluşturma, akademik format kontrolü',
+  ogTitle: 'TezAI Özellikleri',
+  ogSubtitle: 'Tez Analizi • Kaynakça • Özet',
+})
+
+export const akademikFormatlarMetadata = buildPageMetadata({
+  title: 'Akademik Atıf Formatları – APA, MLA, Chicago, IEEE',
+  description:
+    'APA 7, MLA 9, Chicago 17 ve IEEE formatlarında otomatik kaynakça ve atıf oluştur. Hangi formatın ne zaman kullanıldığını öğren, tek tıkla biçimlendir.',
+  path: '/akademik-formatlar',
+  keywords:
+    'apa kaynakça oluşturucu, mla kaynak gösterme, chicago kaynakça, ieee kaynakça, atıf formatları, kaynakça oluşturma',
+  ogTitle: 'Akademik Atıf Formatları',
+  ogSubtitle: 'APA • MLA • Chicago • IEEE',
+})
+
+export const tezAnaliziMetadata = buildPageMetadata({
+  title: 'Yapay Zeka ile Tez Analizi ve Kontrol',
+  description:
+    'Tezini yapay zeka ile analiz et: yapı, metodoloji, literatür ve kaynak kontrolü. Jüri öncesi eksikleri gör, düzeltme önerileri al. PDF veya DOCX yükle.',
+  path: '/tez-analizi',
+  keywords:
+    'tez analizi, yapay zeka tez kontrol, tez kontrol programı, tez değerlendirme, tez inceleme',
+  ogTitle: 'Yapay Zeka ile Tez Analizi',
+  ogSubtitle: 'Yapı • Metodoloji • Kaynak Kontrolü',
+})
+
+export const universitelereOzelMetadata = buildPageMetadata({
+  title: 'Üniversitelere ve Bölümlere Özel Tez Desteği',
+  description:
+    'Farklı üniversite ve bölüm tez yazım kılavuzlarına uygun analiz ve kaynakça. Lisans, yüksek lisans ve doktora tezleri için yapay zeka desteği.',
+  path: '/universitelere-ozel',
+  keywords:
+    'üniversite tez kılavuzu, yüksek lisans tezi, doktora tezi, lisans bitirme tezi, tez yazım kuralları',
+  ogTitle: 'Üniversitelere Özel Tez Desteği',
+  ogSubtitle: 'Lisans • Yüksek Lisans • Doktora',
+})
+
+export const hakkimizdaMetadata = buildPageMetadata({
+  title: 'Hakkımızda',
+  description:
+    'TezAI; tez yazarlarının akademik metinlerini yapay zeka ile analiz etmesini, kaynakça ve özet oluşturmasını sağlayan Türkiye merkezli bir platformdur.',
+  path: '/hakkimizda',
+  keywords: 'tezai hakkında, tezai nedir, akademik yazım platformu',
+})
+
+export const iletisimMetadata = buildPageMetadata({
+  title: 'İletişim',
+  description:
+    'TezAI ile iletişime geç. Soru, destek ve iş birliği talepleri için e-posta ve iletişim bilgilerimiz.',
+  path: '/iletisim',
+  keywords: 'tezai iletişim, tezai destek, tezai yardım',
+})
+
+export const sssMetadata = buildPageMetadata({
+  title: 'Sık Sorulan Sorular',
+  description:
+    'TezAI hakkında sık sorulan sorular: nasıl çalışır, fiyatlar, atıf formatları, veri güvenliği ve ücretsiz kredi.',
+  path: '/sss',
+  keywords:
+    'tezai sss, tezai nasıl çalışır, tez analizi sss, kaynakça yardım',
+})
+
+// ---------------------------------------------------------------------------
+// Blog/Makale için dinamik metadata (gelecekteki /blog için hazır)
+// ---------------------------------------------------------------------------
 export function generateArticleMetadata({
   title,
   description,
@@ -149,7 +298,7 @@ export function generateArticleMetadata({
   modifiedTime,
   tags = [],
   author = siteMetadata.author,
-  image = siteMetadata.images[0].url
+  image,
 }: {
   title: string
   description: string
@@ -160,20 +309,23 @@ export function generateArticleMetadata({
   author?: string
   image?: string
 }): Metadata {
-  const url = `${siteMetadata.url}/blog/${slug}`
-  
+  const url = absoluteUrl(`/blog/${slug}`)
+  const ogImage = image ?? ogImageUrl(title)
+
   return {
-    title: `${title} | TezAI Blog`,
+    title: { absolute: `${title} | TezAI Blog` },
     description,
-    keywords: [...tags, ...siteMetadata.keywords.slice(0, 10)].join(', '),
+    keywords: [...tags, ...PRIMARY_KEYWORDS.slice(0, 8)].join(', '),
     authors: [{ name: author }],
+    robots: ROBOTS_INDEX,
+    alternates: { canonical: url },
     openGraph: {
       title,
       description,
       url,
-      siteName: siteMetadata.siteName,
-      images: [{ url: image, width: 1200, height: 630, alt: title }],
-      locale: siteMetadata.locale,
+      siteName: SITE_NAME,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      locale: SITE_LOCALE,
       type: 'article',
       publishedTime,
       modifiedTime,
@@ -184,33 +336,8 @@ export function generateArticleMetadata({
       card: 'summary_large_image',
       title,
       description,
-      images: [image],
-      creator: '@tezasistani',
+      images: [ogImage],
+      creator: TWITTER_HANDLE,
     },
-    alternates: {
-      canonical: url,
-    },
-  }
-}
-
-// FAQ sayfası metadata
-export const faqMetadata: Metadata = {
-  title: 'FAQ - TezAI | Academic Writing Help',
-  description: 'Answers to common questions: how it works, pricing, citation styles, security, and more.',
-  keywords: 'tezai faq, academic writing faq, apa format, mla format, citation help',
-  openGraph: {
-    title: 'FAQ - TezAI',
-    description: 'Common questions about TezAI.',
-    url: `${siteMetadata.url}/faq`,
-    images: [{ url: '/og?title=FAQ&subtitle=How%20TezAI%20Works%2C%20Pricing%2C%20Security', width: 1200, height: 630, alt: 'FAQ' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'FAQ - TezAI',
-    description: 'Common questions about TezAI.',
-    images: ['/og?title=FAQ&subtitle=How%20TezAI%20Works%2C%20Pricing%2C%20Security'],
-  },
-  alternates: {
-    canonical: `${siteMetadata.url}/faq`,
   }
 }

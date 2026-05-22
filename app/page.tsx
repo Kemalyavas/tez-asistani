@@ -7,6 +7,8 @@ import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
 import { Zap, CheckCircle, BookOpen, FileSearch, Check, Coins, Gift, Sparkles } from 'lucide-react';
 import { CREDIT_PACKAGES, CREDIT_COSTS } from './lib/pricing';
+import { structuredData } from './lib/structuredData';
+import Script from 'next/script';
 import toast from 'react-hot-toast';
 
 export default function Home() {
@@ -454,6 +456,11 @@ export default function Home() {
 
       {/* FAQ Section */}
       <section className="py-16 bg-white">
+        <Script
+          id="structured-data-faq"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData.faq) }}
+        />
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12">

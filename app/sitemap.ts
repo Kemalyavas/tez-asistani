@@ -1,41 +1,36 @@
 import { MetadataRoute } from 'next'
+import { absoluteUrl } from './lib/site'
+
+// İçerik değiştiğinde güncelle. Her build'de "now" üretmek yerine sabit tarih
+// kullanmak Google için daha güvenilir bir lastmod sinyali verir.
+const LAST_MODIFIED = new Date('2026-05-22')
+
+type Entry = {
+  path: string
+  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']
+  priority: number
+}
+
+const pages: Entry[] = [
+  { path: '/', changeFrequency: 'weekly', priority: 1.0 },
+  { path: '/tez-analizi', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/akademik-formatlar', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/pricing', changeFrequency: 'weekly', priority: 0.9 },
+  { path: '/ozellikler', changeFrequency: 'monthly', priority: 0.8 },
+  { path: '/universitelere-ozel', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/sss', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/hakkimizda', changeFrequency: 'yearly', priority: 0.5 },
+  { path: '/iletisim', changeFrequency: 'yearly', priority: 0.4 },
+  { path: '/privacy-policy', changeFrequency: 'yearly', priority: 0.4 },
+  { path: '/delivery-returns', changeFrequency: 'yearly', priority: 0.4 },
+  { path: '/mesafeli-satis-sozlesmesi', changeFrequency: 'yearly', priority: 0.3 },
+]
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.tezai.com.tr'
-  const currentDate = new Date()
-
-  const staticPages = [
-    {
-      url: baseUrl,
-      lastModified: currentDate,
-      changeFrequency: 'daily' as const,
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/privacy-policy`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/mesafeli-satis-sozlesmesi`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly' as const,
-      priority: 0.4,
-    },
-    {
-      url: `${baseUrl}/delivery-returns`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly' as const,
-      priority: 0.4,
-    },
-  ]
-
-  return staticPages
+  return pages.map(({ path, changeFrequency, priority }) => ({
+    url: absoluteUrl(path),
+    lastModified: LAST_MODIFIED,
+    changeFrequency,
+    priority,
+  }))
 }

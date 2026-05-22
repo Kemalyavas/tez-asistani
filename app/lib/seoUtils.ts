@@ -1,19 +1,14 @@
 // SEO Utility Functions
+import { absoluteUrl, ogImageUrl } from './site'
 
 // Generate canonical URL
 export function generateCanonicalUrl(path: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.tezai.com.tr'
-  return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`
+  return absoluteUrl(path)
 }
 
-// Generate Open Graph image URL
-export function generateOGImageUrl(title: string, description?: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.tezai.com.tr'
-  const params = new URLSearchParams({
-    title,
-    ...(description && { description }),
-  })
-  return `${baseUrl}/api/og?${params.toString()}`
+// Generate Open Graph image URL (dinamik OG route: /og)
+export function generateOGImageUrl(title: string, subtitle?: string): string {
+  return ogImageUrl(title, subtitle)
 }
 
 // SEO-friendly URL slug generator
@@ -100,21 +95,24 @@ export function calculateReadingTime(text: string): { minutes: number; seconds: 
 export function generateBreadcrumbData(pathname: string) {
   const paths = pathname.split('/').filter(Boolean)
   const breadcrumbs = [
-    { name: 'Home', url: '/' }
+    { name: 'Ana Sayfa', url: '/' }
   ]
-  
+
   const routeMap: Record<string, string> = {
-    'pricing': 'Pricing',
-    'auth': 'Sign In',
-    'profile': 'My Profile',
-    'privacy-policy': 'Privacy Policy',
-    'hakkimizda': 'About',
-    'iletisim': 'Contact',
-    'sss': 'FAQ',
+    'pricing': 'Fiyatlar',
+    'auth': 'Giriş Yap',
+    'profile': 'Profilim',
+    'privacy-policy': 'Gizlilik Politikası',
+    'mesafeli-satis-sozlesmesi': 'Mesafeli Satış Sözleşmesi',
+    'delivery-returns': 'Teslimat ve İade',
+    'hakkimizda': 'Hakkımızda',
+    'iletisim': 'İletişim',
+    'sss': 'Sık Sorulan Sorular',
     'blog': 'Blog',
-    'ozellikler': 'Features',
-    'akademik-formatlar': 'Academic Formats',
-    'universitelere-ozel': 'For Universities'
+    'ozellikler': 'Özellikler',
+    'tez-analizi': 'Tez Analizi',
+    'akademik-formatlar': 'Akademik Formatlar',
+    'universitelere-ozel': 'Üniversitelere Özel'
   }
   
   let currentPath = ''
@@ -247,21 +245,12 @@ export function calculateSEOScore(pageData: {
 
 // Generate hreflang tags for international SEO
 export function generateHreflangTags(currentPath: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tez-asistani.vercel.app'
-  
+  const href = absoluteUrl(currentPath)
+
   return [
-    {
-      hrefLang: 'tr',
-      href: `${baseUrl}${currentPath}`
-    },
-    {
-      hrefLang: 'tr-TR',
-      href: `${baseUrl}${currentPath}`
-    },
-    {
-      hrefLang: 'x-default',
-      href: `${baseUrl}${currentPath}`
-    }
+    { hrefLang: 'tr', href },
+    { hrefLang: 'tr-TR', href },
+    { hrefLang: 'x-default', href },
   ]
 }
 

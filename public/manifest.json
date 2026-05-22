@@ -1,105 +1,28 @@
 {
-  "name": "TezAI - Thesis Writing Assistant",
+  "name": "TezAI – Yapay Zeka Tez Asistanı",
   "short_name": "TezAI",
-  "description": "AI-powered academic writing tool. Automatic reference formatting and abstract generation for your theses, papers, and academic work.",
+  "description": "Yapay zeka destekli tez analizi, otomatik kaynakça (APA, MLA, Chicago, IEEE) ve özet oluşturma aracı.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
-  "categories": ["education", "productivity", "academic"],
-  "lang": "en",
+  "categories": ["education", "productivity"],
+  "lang": "tr",
+  "dir": "ltr",
   "scope": "/",
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "maskable any"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Format Citation",
-      "short_name": "Format",
-      "description": "Quickly format citations",
-      "url": "/format?shortcut=true",
-      "icons": [
-        {
-          "src": "/icons/format-shortcut.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Generate Abstract",
-      "short_name": "Abstract",
-      "description": "Generate abstract with AI",
-      "url": "/ozet?shortcut=true",
-      "icons": [
-        {
-          "src": "/icons/summary-shortcut.png",
-          "sizes": "96x96"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Ana sayfa görünümü"
-    },
-    {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "375x812",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobil görünüm"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }

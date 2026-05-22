@@ -1,3 +1,8 @@
+import type { Metadata } from 'next'
+import { mesafeliMetadata } from '../lib/metadata'
+
+export const metadata: Metadata = mesafeliMetadata
+
 export default function MesafeliSatisSozlesmesi() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
