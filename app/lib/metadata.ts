@@ -153,6 +153,9 @@ export const homeMetadata: Metadata = {
     languages: { 'tr-TR': SITE_URL },
   },
   category: 'Eğitim Teknolojisi',
+  verification: {
+    google: 'Z8pop7_M5TRyUoEs7p2580OYtrzfXmJPmj6b2hsxYfI',
+  },
 }
 
 // ---------------------------------------------------------------------------
