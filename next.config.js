@@ -40,6 +40,14 @@ const nextConfig = {
     ]
   },
   
+  // Eski/taşınmış URL'ler için kalıcı yönlendirmeler (SEO: 404'leri 301'e çevir)
+  async redirects() {
+    return [
+      // Eski Türkçe slug → mevcut sayfa (GSC'de 404 tespit edildi)
+      { source: '/teslimat-iade', destination: '/delivery-returns', permanent: true },
+    ]
+  },
+
   // Ortam değişkenleri
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
