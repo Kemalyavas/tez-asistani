@@ -50,8 +50,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Eksik bilgi' }, { status: 400 });
       }
 
-      // basketId format: basket_<userId8>_<packageId>_<timestamp>
+      // basketId format: basket_<userId>_<packageId>_<timestamp>
       const basketParts = basketId.split('_');
+      const userIdFromBasket = basketParts[1];
       const packageId = basketParts[2];
 
       if (!packageId) {
@@ -68,25 +69,39 @@ export async function POST(request: NextRequest) {
 
       const supabase = getSupabaseAdmin();
 
-      // FIXED: Get user_id directly from payment_history (stored during checkout)
-      // This avoids UUID collision risk from parsing basketId
-      const { data: pendingPayment, error: pendingError } = await supabase
+      // Pending kaydından user_id'yi al; yoksa basketId yedeğinden çöz (checkout
+      // INSERT'i başarısız olsa bile webhook krediyi ekleyebilsin). Idempotency
+      // add_credits tarafında (payment_id + 'purchase' unique) garanti altında.
+      const { data: pendingPayment } = await supabase
         .from('payment_history')
         .select('id, user_id, status, payment_id')
         .or(`payment_id.eq.${paymentId},conversation_id.eq.${conversationId}`)
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (pendingError || !pendingPayment) {
-        console.error('[WEBHOOK] Ödeme kaydı bulunamadı:', { paymentId, conversationId });
+      let fullUserId: string | null = pendingPayment?.user_id ?? null;
+
+      if (!fullUserId && userIdFromBasket) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userIdFromBasket)
+          .maybeSingle();
+        if (prof) {
+          fullUserId = prof.id;
+          console.warn('[WEBHOOK] Pending kaydı yok; user_id basketId yedeğinden çözüldü:', fullUserId);
+        }
+      }
+
+      if (!fullUserId) {
+        console.error('[WEBHOOK] user_id çözülemedi:', { paymentId, conversationId, basketId });
         return NextResponse.json({ error: 'Ödeme kaydı bulunamadı' }, { status: 404 });
       }
 
-      const fullUserId = pendingPayment.user_id;
       console.log('[WEBHOOK] Kredi ekleniyor:', { userId: fullUserId, packageId, credits: creditPackage.credits });
 
       // Daha önce işlenmiş mi kontrol et (idempotency)
-      if (pendingPayment.status === 'success') {
+      if (pendingPayment?.status === 'success') {
         console.log('[WEBHOOK] Bu ödeme zaten işlenmiş:', paymentId);
 
         // FIXED: Verify credits were actually added by checking credit_transactions

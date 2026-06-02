@@ -54,9 +54,12 @@ export async function POST(request: NextRequest) {
     });
 
     // Create unique IDs for this transaction
+    // NOT: Tam user.id gömülüyor (slice yok). Böylece callback/webhook, pending
+    // kaydını bulamasa bile (örn. checkout'ta INSERT hatası) user_id'yi basketId'den
+    // yedek olarak çözebilir. UUID '_' içermediği için packageId parse'ı bozulmaz.
     const timestamp = Date.now();
-    const conversationId = `conv_${user.id.slice(0, 8)}_${timestamp}`;
-    const basketId = `basket_${user.id.slice(0, 8)}_${packageId}_${timestamp}`;
+    const conversationId = `conv_${user.id}_${timestamp}`;
+    const basketId = `basket_${user.id}_${packageId}_${timestamp}`;
 
     // Build payment request
     const paymentRequest: any = {

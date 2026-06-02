@@ -108,7 +108,8 @@ async function verifyAndProcessPayment(token: string, request: NextRequest) {
     // Payment successful - extract details from basketId for package info
     const basketId = result.basketId || '';
     const basketParts = basketId.split('_');
-    // basketId format: basket_<userId8>_<packageId>_<timestamp>
+    // basketId format: basket_<userId>_<packageId>_<timestamp>
+    const userIdFromBasket = basketParts[1];
     const packageId = basketParts[2];
 
     console.log('[PAYMENT SUCCESS]', {
@@ -130,27 +131,42 @@ async function verifyAndProcessPayment(token: string, request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // FIXED: Get user_id directly from payment_history (stored during checkout)
-    // This avoids UUID collision risk from parsing basketId
-    const { data: pendingPayment, error: pendingError } = await supabase
+    // Get user_id from the pending payment row written at checkout.
+    // Fallback: if that row is missing (e.g. the checkout INSERT failed), resolve
+    // user_id from the basketId instead of failing. Idempotency is still guaranteed
+    // by add_credits (payment_id + 'purchase' is unique), so this cannot double-credit.
+    const { data: pendingPayment } = await supabase
       .from('payment_history')
       .select('id, user_id, status, payment_id')
       .or(`payment_id.eq.${token},conversation_id.eq.${result.conversationId}`)
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (pendingError || !pendingPayment) {
-      console.error('[ERROR] Payment record not found:', { token, conversationId: result.conversationId });
+    let fullUserId: string | null = pendingPayment?.user_id ?? null;
+
+    if (!fullUserId && userIdFromBasket) {
+      // Verify the basket user_id actually exists before trusting it
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userIdFromBasket)
+        .maybeSingle();
+      if (prof) {
+        fullUserId = prof.id;
+        console.warn('[CALLBACK] Pending kaydı yok; user_id basketId yedeğinden çözüldü:', fullUserId);
+      }
+    }
+
+    if (!fullUserId) {
+      console.error('[ERROR] user_id çözülemedi:', { token, conversationId: result.conversationId, basketId });
       return NextResponse.redirect(
         new URL('/payment/fail?error=payment_not_found', request.nextUrl),
         { status: 303 }
       );
     }
 
-    const fullUserId = pendingPayment.user_id;
-
     // Idempotency check - prevent double credit addition
-    if (pendingPayment.status === 'success') {
+    if (pendingPayment?.status === 'success') {
       console.log('[CALLBACK] Payment already processed:', result.paymentId);
 
       // FIXED: Verify credits were actually added by checking credit_transactions
