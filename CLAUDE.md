@@ -65,14 +65,15 @@ thesis_comprehensive (61+ sayfa): 50 kredi
 ```
 app/
 ├── api/
-│   ├── analyze/           # Tez analizi API
-│   ├── abstract/          # Özet oluşturma API
-│   ├── citation/          # Kaynak formatlama API
+│   ├── analyze/           # start, process, mark-failed (async analiz)
+│   ├── jobs/              # QStash job route'ları (legacy/pasif)
+│   ├── generate-abstract/ # Özet oluşturma API
+│   ├── format-citation/   # Kaynak formatlama API
 │   └── iyzico/
-│       ├── initiate/      # Ödeme başlatma
-│       ├── callback/      # Ödeme dönüşü
-│       ├── verify-payment/ # Ödeme doğrulama
-│       └── webhook/       # Iyzipay webhook (kredi ekleme)
+│       ├── checkout/      # Ödeme başlatma (pending kayıt)
+│       ├── callback/      # Ödeme dönüşü (kredi ekle)
+│       ├── verify-payment/ # Ödeme doğrulama (callback yedeği)
+│       └── webhook/       # Iyzico webhook (kredi ekle)
 ├── components/
 │   ├── FileUploader.tsx   # Tez yükleme
 │   ├── AbstractGenerator.tsx
@@ -130,13 +131,14 @@ created_at: timestamp
 
 | Endpoint | Method | Açıklama |
 |----------|--------|----------|
-| `/api/analyze` | POST | Tez analizi (FormData ile dosya) |
-| `/api/abstract` | POST | Özet oluşturma |
-| `/api/citation` | POST | Kaynak formatlama |
-| `/api/iyzico/initiate` | POST | Ödeme başlat |
-| `/api/iyzico/callback` | POST | Iyzipay callback |
-| `/api/iyzico/verify-payment` | POST | Ödeme doğrula |
-| `/api/iyzico/webhook` | POST | Webhook (kredi ekle) |
+| `/api/analyze/start` | POST | Tez analizi başlat (kayıt + kredi düş, FormData) |
+| `/api/analyze/process` | POST | Tez analizini işle (rubric/legacy pipeline) |
+| `/api/generate-abstract` | POST | Özet oluşturma |
+| `/api/format-citation` | POST | Kaynak formatlama |
+| `/api/iyzico/checkout` | POST | Ödeme başlat (pending kayıt + Iyzico HPP) |
+| `/api/iyzico/callback` | POST | Iyzico ödeme dönüşü (kredi ekle) |
+| `/api/iyzico/verify-payment` | POST | Ödeme doğrula (callback yedeği) |
+| `/api/iyzico/webhook` | POST | Iyzico webhook (kredi ekle) |
 
 ## Environment Variables
 
@@ -174,9 +176,11 @@ npm run lint     # ESLint kontrolü
 2. **Admin kullanıcıları**: `adminUtils.ts` içinde tanımlı, sınırsız erişim
 3. **Dil**: UI ve SEO/metadata tamamen Türkçe (hedef pazar: Türkiye); kod yorumları Türkçe
 4. **Para birimi**: TRY (₺)
-5. **Ödeme Idempotency**: Çift kredi eklemeyi önlemek için tüm ödeme route'larında kontrol var:
-   - `callback`, `webhook`, `verify-payment` → `payment_id` VEYA `conversation_id` ile kontrol
-   - Checkout'ta token, sonra gerçek paymentId'ye güncelleniyor
+5. **Ödeme akışı (KRİTİK — 2 Haz 2026 fix, migration v5)**:
+   - `payment_history` INSERT RLS politikası ZORUNLU. Yoksa checkout pending kaydını yazamaz → callback/webhook/verify-payment `user_id`'yi bulamaz → `add_credits` HİÇ çağrılmaz (ödeme alınır, kredi yansımaz). Bu bug bir dönem TÜM ödemeleri kırmıştı.
+   - checkout `conversationId`/`basketId`'ye TAM `user.id` gömer (slice yok); callback/webhook/verify-payment pending yoksa `basketId`'den `user_id`'yi yedek çözer (profiles'da doğrulayarak).
+   - **Idempotency**: `add_credits` `payment_id`+'purchase' ile tekil; route'lar `payment_id` VEYA `conversation_id` ile pending kontrol eder. Checkout token yazar, callback gerçek paymentId'ye günceller.
+   - `add_credits` SADECE service_role çağırır; checkout pending'i kullanıcı oturumuyla yazar (RLS INSERT policy sayesinde).
 6. **Embedding**: pgvector için array direkt gönderilmeli, `JSON.stringify()` kullanılmamalı
 
 ## Yaygın Hatalar ve Çözümleri
