@@ -34,6 +34,8 @@ import {
   RUBRIC_CATEGORIES,
   RUBRIC_ITEMS,
   RUBRIC_VERSION,
+  EMPIRICAL_ONLY_ITEM_IDS,
+  FOUNDATIONAL_ITEM_IDS,
   type ItemStatus,
   type RubricCategoryId,
   type RubricItem,
@@ -65,9 +67,17 @@ export interface ExtractStatistics {
   tableCount: number;
 }
 
+// Tezin yöntemsel türü — empirik-only kriterlerin uygulanabilirliğini belirler.
+//   - 'empirical':   birincil veri toplayan nicel/nitel/karma çalışma.
+//   - 'theoretical': teorik/kavramsal/derleme/hukuki — birincil veri yok.
+//   - 'mixed':       hem teorik hem empirik bileşen içerir.
+// Tespit edilemezse güvenli varsayılan 'empirical' (kriterlere bedava geçiş yok).
+export type StudyType = 'empirical' | 'theoretical' | 'mixed';
+
 export interface ExtractResult {
   detectedLanguage: 'tr' | 'en';
   thesisType: string;
+  studyType: StudyType;
   items: ExtractedItem[];
   statistics: ExtractStatistics;
   rawProcessingMs: number;
@@ -87,6 +97,10 @@ export interface CategoryResult {
   levelLabel: string;
   scoreNumeric: number;
   weightedRatio: number;
+  // false = kategorinin TÜM kriterleri not_applicable (örn. teorik tezde tamamen
+  // empirik bir kategori). Bu durumda kategori genel nottan DIŞLANIR ve UI'da
+  // "Uygulanamaz" gösterilir — 0 puanla genel notu yanlışlıkla aşağı çekmez.
+  applicable: boolean;
   itemsTotal: number;
   itemsFound: number;
   itemsPartial: number;
@@ -102,6 +116,10 @@ export interface RubricAnalysisResult {
   rubricVersion: string;
   detectedLanguage: 'tr' | 'en';
   thesisType: string;
+  studyType: StudyType;
+  // Yüklenen dosya muhtemelen tam bir tez değil (temel bölümlerin çoğu eksik).
+  // UI'da "kısmi yükleme" uyarısı gösterilir; puanı DEĞİŞTİRMEZ, sadece bağlam verir.
+  likelyPartialUpload: boolean;
   overallGrade: OverallGrade;
   gradeLabel: string;
   overallScoreNumeric: number;
@@ -154,6 +172,12 @@ function buildExtractSchema() {
       thesisType: {
         type: SchemaType.STRING,
         description: "Tez türü, örn. 'Yüksek Lisans Tezi', 'Doktora Tezi'",
+      },
+      studyType: {
+        type: SchemaType.STRING,
+        enum: ['empirical', 'theoretical', 'mixed'],
+        description:
+          "Tezin yöntemsel türü. 'empirical' = birincil veri toplayan nicel/nitel/karma çalışma (anket, deney, ölçek, görüşme, gözlem). 'theoretical' = teorik/kavramsal/derleme/hukuki/doktrinal analiz; birincil veri toplamaz. 'mixed' = hem teorik hem empirik bileşen. Emin değilsen 'empirical' seç.",
       },
       items: {
         type: SchemaType.ARRAY,
@@ -216,7 +240,7 @@ function buildExtractSchema() {
         required: ['referenceCount', 'figureCount', 'tableCount'],
       },
     },
-    required: ['detectedLanguage', 'thesisType', 'items', 'statistics'],
+    required: ['detectedLanguage', 'thesisType', 'studyType', 'items', 'statistics'],
   };
 }
 
@@ -226,6 +250,14 @@ function buildExtractPrompt(): string {
     const cat = getRubricCategory(it.categoryId);
     return `${i + 1}. [${it.id}] (${cat.title}) ${it.title}\n   Kriter: ${it.description}`;
   }).join('\n\n');
+
+  // Teorik/derleme tezlerde not_applicable işaretlenecek empirik kriterler.
+  const empiricalOnlyBlock = EMPIRICAL_ONLY_ITEM_IDS.map((id) => {
+    const it = getRubricItemById(id);
+    return it ? `   - [${it.id}] ${it.title}` : '';
+  })
+    .filter(Boolean)
+    .join('\n');
 
   return `Sen YÖK standartlarına ve uluslararası akademik kriterlere hakim, deneyimli bir tez jürisisin. (You are an experienced thesis evaluator familiar with both Turkish YÖK standards and international academic criteria.)
 
@@ -247,6 +279,17 @@ Sana ekli olarak bir Türkçe veya İngilizce yüksek lisans / doktora tezi PDF'
 7. detectedLanguage: tezin dilini "tr" veya "en" olarak belirt. thesisType: "Yüksek Lisans Tezi" / "Doktora Tezi" / "Master's Thesis" / "PhD Thesis" — tezin diline uygun olanı seç.
 8. **actionHint — SADECE status "partial" veya "not_found" olan kriterler için**: BU TEZE özel, somut, tek cümlelik, uygulanabilir bir düzeltme talimatı yaz (tezin dilinde). "Şu bölüme şunu ekleyin", "Şu sayfadaki tabloya kaynak belirtin" gibi. Genel klişe verme; tezin gerçek durumuna göre yaz. status "found" / "not_applicable" ise actionHint = "" (boş). (Write a thesis-specific one-sentence fix only for partial/not_found; empty for found/not_applicable.)
 9. **statistics — gerçekten say, tahmin etme**: referenceCount (kaynakça girdi sayısı), figureCount (şekil/grafik sayısı), tableCount (tablo/çizelge sayısı). PDF ekliyse görselleri ve kaynakça listesini doğrudan tarayarak say. İlgili bölüm yoksa 0. (Actually count; do not estimate.)
+
+**TEZ TÜRÜ VE UYGULANABİLİRLİK — ÇOK ÖNEMLİ (adil değerlendirme):**
+Önce tezin yöntem türünü (studyType) belirle:
+- "empirical": anket/deney/ölçek/görüşme/gözlem ile BİRİNCİL VERİ toplayan nicel/nitel/karma çalışma.
+- "theoretical": teorik/kavramsal/derleme/hukuki/doktrinal analiz; birincil veri TOPLAMAZ.
+- "mixed": hem teorik hem empirik bileşen içerir.
+
+Eğer tez "theoretical" ise, aşağıdaki EMPİRİK kriterler bu tez türünde UYGULANAMAZ. Bunları "not_applicable" işaretle — ASLA "not_found" değil. (Bu bir eksiklik DEĞİL; o tür için anlamsızdır. Teorik bir hukuk/derleme tezinden örneklem veya istatistik testi beklenmez.)
+${empiricalOnlyBlock}
+
+DİKKAT: Bu muafiyet SADECE gerçekten teorik/derleme tezler içindir. Eğer tez EMPİRİK (veri topluyor) ama bu kriterleri yerine getirmemişse, "not_found" işaretle (bu gerçek bir eksikliktir). Empirik bir teze bedava geçiş VERME. "mixed" tezlerde kriter ilgili bileşende varsa değerlendir, yoksa not_applicable.
 
 Değerlendirilecek 50 kriter:
 
@@ -369,14 +412,21 @@ export async function extractRubricItems(
         tableCount: toCount(rawStats.tableCount),
       };
 
+      // studyType — geçersiz/eksikse güvenli varsayılan 'empirical' (bedava geçiş yok).
+      const studyType: StudyType =
+        parsed.studyType === 'theoretical' || parsed.studyType === 'mixed'
+          ? parsed.studyType
+          : 'empirical';
+
       const elapsed = Date.now() - startMs;
       console.log(
-        `[RUBRIC EXTRACT] OK in ${elapsed}ms — ${validItems.length}/${RUBRIC_ITEMS.length} items, lang=${parsed.detectedLanguage}, refs=${statistics.referenceCount} fig=${statistics.figureCount} tbl=${statistics.tableCount}`
+        `[RUBRIC EXTRACT] OK in ${elapsed}ms — ${validItems.length}/${RUBRIC_ITEMS.length} items, lang=${parsed.detectedLanguage}, studyType=${studyType}, refs=${statistics.referenceCount} fig=${statistics.figureCount} tbl=${statistics.tableCount}`
       );
 
       return {
         detectedLanguage: parsed.detectedLanguage === 'en' ? 'en' : 'tr',
         thesisType: parsed.thesisType || 'Yüksek Lisans Tezi',
+        studyType,
         items: validItems,
         statistics,
         rawProcessingMs: elapsed,
@@ -508,6 +558,8 @@ function scoreCategory(catId: RubricCategoryId, items: ExtractedItem[]): Categor
     levelLabel: levelLabel(level),
     scoreNumeric: Math.round(ratio * 100),
     weightedRatio: ratio,
+    // totalWeight 0 ise kategorinin tüm kriterleri not_applicable → uygulanamaz.
+    applicable: totalWeight > 0,
     itemsTotal: catItemDefs.length,
     itemsFound: found,
     itemsPartial: partial,
@@ -557,10 +609,13 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
     scoreCategory(cat.id, extract.items)
   );
 
-  // Genel puan: kategori puanları weighted by category weight
+  // Genel puan: kategori puanları weighted by category weight.
+  // Tamamen not_applicable kategoriler (applicable=false) genel nota KATILMAZ —
+  // aksi halde 0 puanla genel notu haksızca aşağı çekerlerdi (teorik tez bugu).
   let totalCatWeight = 0;
   let weightedCatScore = 0;
   for (const c of categories) {
+    if (!c.applicable) continue;
     const catDef = getRubricCategory(c.id);
     totalCatWeight += catDef.weight;
     weightedCatScore += c.weightedRatio * catDef.weight;
@@ -591,12 +646,24 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
 
   const summary = buildExecutiveSummary(categories, grade, extract.detectedLanguage);
 
+  // Kısmi yükleme tespiti: temel/yapısal kriterlerin (kapak, özet, içindekiler,
+  // kaynakça, bölüm yapısı, problem tanımı, sonuç) çoğu not_found ise yüklenen
+  // dosya muhtemelen tam bir tez değil (tek bölüm/taslak). Puanı değiştirmez.
+  const extractedById = new Map(extract.items.map((i) => [i.id, i]));
+  const foundationalMissing = FOUNDATIONAL_ITEM_IDS.filter((id) => {
+    const it = extractedById.get(id);
+    return !it || it.status === 'not_found';
+  }).length;
+  const likelyPartialUpload = foundationalMissing >= 4;
+
   const elapsed = Date.now() - startMs;
 
   return {
     rubricVersion: RUBRIC_VERSION,
     detectedLanguage: extract.detectedLanguage,
     thesisType: extract.thesisType,
+    studyType: extract.studyType,
+    likelyPartialUpload,
     overallGrade: grade,
     gradeLabel: label,
     overallScoreNumeric: Math.round(overallRatio * 100),
@@ -669,7 +736,19 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
   const sectionFromCat = (catId: RubricCategoryId) => {
     const c = catMap.get(catId);
     if (!c) {
-      return { score: 50, maxScore: 100, percentage: 50, feedback: '', strengths: [], improvements: [] };
+      return { score: 50, maxScore: 100, percentage: 50, feedback: '', strengths: [], improvements: [], applicable: true };
+    }
+    // Tamamen not_applicable kategori: genel nota katılmadı, UI'da "Uygulanamaz".
+    if (!c.applicable) {
+      return {
+        score: 0,
+        maxScore: 100,
+        percentage: 0,
+        feedback: `${c.title}: Bu tez türünde uygulanmadı (kriterler bu çalışma için geçerli değil).`,
+        strengths: [],
+        improvements: [],
+        applicable: false,
+      };
     }
     return {
       score: c.scoreNumeric,
@@ -678,6 +757,7 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
       feedback: `${c.title}: ${c.levelLabel} (${c.itemsFound}/${c.itemsTotal} kriter karşılandı).`,
       strengths: c.strengths.map((s) => s.comment),
       improvements: c.improvements.map((i) => i.comment),
+      applicable: true,
     };
   };
 
@@ -754,6 +834,9 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
       color: GRADE_COLORS[rubric.overallGrade],
     },
     executiveSummary: rubric.executiveSummary,
+    // Tez türü + kısmi yükleme bayrağı (UI banner/not için).
+    studyType: rubric.studyType,
+    likelyPartialUpload: rubric.likelyPartialUpload,
     // Tüm 10 rubric kategorisi sections object'inde gösterilir.
     // UI Object.entries ile dinamik render ettiği için yeni key eklemek
     // otomatik olarak yeni section bloğu üretir.

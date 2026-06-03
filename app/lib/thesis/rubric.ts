@@ -64,6 +64,13 @@ export interface RubricItem {
   description: string; // Gemini'ye sorulan kriter — net, ölçülebilir
   evidenceType: EvidenceType;
   weight: number; // Kategori içi göreceli ağırlık (1-5)
+  // Kriterin uygulanabilirliği:
+  //   - 'all' (varsayılan): her tez türünde değerlendirilir.
+  //   - 'empirical': SADECE veri toplayan empirik (nicel/nitel/karma) tezlerde
+  //     geçerli. Teorik/derleme/kavramsal/hukuki tezlerde bu kriter
+  //     "not_applicable" işaretlenir (eksiklik DEĞİL — o tez türünde uygulanamaz).
+  //     Empirik tez bu kriteri yerine getirmemişse yine "not_found" (gerçek eksik).
+  appliesTo?: 'all' | 'empirical';
 }
 
 export interface RubricCategory {
@@ -382,6 +389,7 @@ export const RUBRIC_ITEMS: RubricItem[] = [
       'Evren ve örneklem net tanımlanmış; örneklem büyüklüğü, seçim yöntemi (rastgele/amaçlı/kümeleme) ve gerekçesi belirtilmiş.',
     evidenceType: 'objective',
     weight: 5,
+    appliesTo: 'empirical',
   },
   {
     id: 'method-data-collection',
@@ -391,6 +399,7 @@ export const RUBRIC_ITEMS: RubricItem[] = [
       'Veri toplama aracı (anket/görüşme/ölçek/gözlem) ve süreci ayrıntılı anlatılmış; başkasının tekrarlayabileceği netlikte.',
     evidenceType: 'objective',
     weight: 5,
+    appliesTo: 'empirical',
   },
   {
     id: 'method-statistical-tests',
@@ -400,6 +409,7 @@ export const RUBRIC_ITEMS: RubricItem[] = [
       'Karşılaştırma içeren nicel çalışmalarda uygun istatistiksel test (t-testi, ANOVA, χ², regresyon) yapılmış ve p değerleri raporlanmış. Sadece betimsel istatistik (ortalama/yüzde) yetersizdir.',
     evidenceType: 'binary',
     weight: 5,
+    appliesTo: 'empirical',
   },
   {
     id: 'method-validity-reliability',
@@ -409,6 +419,7 @@ export const RUBRIC_ITEMS: RubricItem[] = [
       "Veri toplama aracının geçerliliği ve güvenilirliği tartışılmış (Cronbach's α, faktör analizi, pilot çalışma vb.).",
     evidenceType: 'objective',
     weight: 4,
+    appliesTo: 'empirical',
   },
   {
     id: 'method-limitations',
@@ -467,6 +478,7 @@ export const RUBRIC_ITEMS: RubricItem[] = [
       'Her hipoteze yönelik bulgu net belirtilmiş ("H1 desteklendi/reddedildi") ve istatistiksel sonuç (test değeri, p) gösterilmiş.',
     evidenceType: 'binary',
     weight: 4,
+    appliesTo: 'empirical',
   },
   {
     id: 'findings-no-redundancy',
@@ -665,6 +677,25 @@ export function getRubricItemsByCategory(id: RubricCategoryId): RubricItem[] {
 export function getRubricItemById(id: string): RubricItem | undefined {
   return RUBRIC_ITEMS.find((it) => it.id === id);
 }
+
+// Empirik-only kriterlerin id'leri. Teorik/derleme/kavramsal/hukuki tezlerde
+// (studyType !== 'empirical') bunlar not_applicable işaretlenir.
+export const EMPIRICAL_ONLY_ITEM_IDS: string[] = RUBRIC_ITEMS
+  .filter((it) => it.appliesTo === 'empirical')
+  .map((it) => it.id);
+
+// Temel/yapısal kriterler — her TAM tezde (türü ne olursa olsun) bulunması beklenir.
+// Bunların çoğu not_found ise, yüklenen dosya muhtemelen tam bir tez değil
+// (tek bölüm, taslak, eksik döküman) → "kısmi yükleme" uyarısı tetiklenir.
+export const FOUNDATIONAL_ITEM_IDS: string[] = [
+  'format-cover-page',
+  'format-abstracts-bilingual',
+  'format-toc-complete',
+  'format-references-style',
+  'structure-hierarchy-logical',
+  'intro-problem-defined',
+  'conclude-hypothesis-link',
+];
 
 // Sanity check (dev-time): ID'ler unique, kategori ID'leri tutarlı.
 // İlk import'ta bir kez çalışır; failure crash → konfig hatası anında görünür.

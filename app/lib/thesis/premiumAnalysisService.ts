@@ -34,6 +34,13 @@ export interface PremiumAnalysisResult {
   };
   executiveSummary: string;
 
+  // Tez türü (rubric pipeline): 'empirical' | 'theoretical' | 'mixed'.
+  // UI'da teorik tezlerde "empirik kriterler uygulanmadı" notu için.
+  studyType?: string;
+  // Yüklenen dosya muhtemelen tam bir tez değil (temel bölümler eksik).
+  // UI'da "kısmi yükleme" uyarı banner'ı için. Puanı etkilemez.
+  likelyPartialUpload?: boolean;
+
   // Bölüm Bazlı Skorlar.
   // Rubric pipeline 10 kategori üretebilir; legacy pipeline 6. Her ikisini
   // de kabul edecek şekilde Record<string, SectionAnalysis> kullanılıyor;
@@ -98,6 +105,9 @@ export interface SectionAnalysis {
   feedback: string;
   strengths: string[];
   improvements: string[];
+  // false = kategori bu tez türünde uygulanmadı (tüm kriterleri not_applicable).
+  // undefined/true = normal değerlendirildi. Rubric pipeline doldurur.
+  applicable?: boolean;
 }
 
 export interface PagedIssue {

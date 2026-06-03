@@ -137,11 +137,16 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
   const stats = result.statistics || result.metadata || {};
   const strengths: string[] = result.strengths || [];
   const yok = result.yokCompliance || { score: 0, compliant: [], nonCompliant: [] };
+  const studyType: string = result.studyType || '';
+  const likelyPartialUpload: boolean = result.likelyPartialUpload === true;
 
-  // sıralı kategoriler (yüksek → düşük)
+  // sıralı kategoriler (yüksek → düşük). applicable=false → bu tez türünde uygulanmadı.
   const sortedCats = Object.entries(sections)
-    .map(([key, v]: [string, any]) => ({ key, label: sectionLabel(key), score: v?.score ?? 0, data: v }))
+    .map(([key, v]: [string, any]) => ({ key, label: sectionLabel(key), score: v?.score ?? 0, applicable: v?.applicable !== false, data: v }))
     .sort((a, b) => b.score - a.score);
+  // Genel not / en güçlü / en zayıf yalnızca UYGULANABİLİR kategorilerden hesaplanır
+  // (n/a kategori 0 puanla "en zayıf" gibi görünmesin).
+  const applicableCats = sortedCats.filter((c) => c.applicable);
 
   // tüm sorunlar (severity etiketli)
   const allIssues = [
@@ -156,12 +161,12 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
   const topActions = allIssues.filter((i) => i.severity === 'critical' || i.severity === 'major').slice(0, 3);
   const topCritical = allIssues.find((i) => i.severity === 'critical') || topActions[0] || null;
 
-  const verdict = buildVerdict(sortedCats, topCritical, grade.letter, overallScore)
+  const verdict = buildVerdict(applicableCats, topCritical, grade.letter, overallScore)
     || result.executiveSummary || result.summary || '';
 
   const filteredIssues = issueFilter === 'all' ? allIssues : allIssues.filter((i) => i.severity === issueFilter);
-  const strongCount = sortedCats.filter((c) => c.score >= 85).length;
-  const weakest = sortedCats[sortedCats.length - 1];
+  const strongCount = applicableCats.filter((c) => c.score >= 85).length;
+  const weakest = applicableCats[applicableCats.length - 1];
   const refCount = stats.referenceCount ?? 0;
   const figTab = (stats.figureCount ?? 0) + (stats.tableCount ?? 0);
 
@@ -218,6 +223,23 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
 
   return (
     <div className="space-y-6">
+      {/* ============ KISMİ YÜKLEME UYARISI ============ */}
+      {likelyPartialUpload && (
+        <div className="bg-amber-50 ring-1 ring-amber-200 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-amber-800 text-sm">Bu yükleme tam bir tez olmayabilir</p>
+            <p className="text-sm text-amber-700 mt-0.5">Kapak, özet, içindekiler veya kaynakça gibi temel bölümlerin çoğu tespit edilemedi. Yalnızca bir bölüm ya da taslak yüklediyseniz sonuçlar tezinizin tamamını yansıtmayabilir.</p>
+          </div>
+        </div>
+      )}
+      {/* ============ TEORİK TEZ NOTU ============ */}
+      {studyType === 'theoretical' && (
+        <div className="bg-sky-50 ring-1 ring-sky-200 rounded-2xl px-5 py-3 flex items-start gap-3">
+          <BookOpen className="h-5 w-5 text-sky-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-sky-800">Bu tez <b>teorik/derleme</b> türünde değerlendirildi. Örneklem, veri toplama ve istatistiksel test gibi yalnızca empirik çalışmalara özgü kriterler bu türde uygulanmadı; genel notunuz bu kriterlerden etkilenmedi.</p>
+        </div>
+      )}
       {/* ============ HERO: KARAR KARTI ============ */}
       <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
         <div className="p-6 sm:p-8 flex flex-col sm:flex-row gap-6">
@@ -246,8 +268,8 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
                 <div className="text-[11px] text-rose-500 font-medium">kritik sorun</div>
               </div>
               <div className="bg-emerald-50 rounded-xl px-3 py-2.5 text-center">
-                <div className="text-sm font-bold text-emerald-600 leading-tight mt-0.5 truncate">{sortedCats[0]?.label || '-'}</div>
-                <div className="text-[11px] text-emerald-500 font-medium">en güçlü ({sortedCats[0]?.score ?? 0})</div>
+                <div className="text-sm font-bold text-emerald-600 leading-tight mt-0.5 truncate">{applicableCats[0]?.label || '-'}</div>
+                <div className="text-[11px] text-emerald-500 font-medium">en güçlü ({applicableCats[0]?.score ?? 0})</div>
               </div>
               <div className="bg-amber-50 rounded-xl px-3 py-2.5 text-center">
                 <div className="text-sm font-bold text-amber-600 leading-tight mt-0.5 truncate">{weakest?.label || '-'}</div>
@@ -328,6 +350,18 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
             {sortedCats.map((c) => {
               const open = expandedCats.has(c.key);
               const hasDetail = (c.data?.strengths?.length || 0) + (c.data?.improvements?.length || 0) > 0;
+              // Bu tez türünde uygulanmayan kategori: puan/bar yerine "Uygulanamaz".
+              if (!c.applicable) {
+                return (
+                  <div key={c.key} className="flex items-center gap-3 py-2 px-1 opacity-70">
+                    <span className="flex items-center gap-1.5 w-40 flex-shrink-0 text-sm text-slate-400 text-left">
+                      <span className="text-slate-300">{sectionIcon(c.key)}</span>{c.label}
+                    </span>
+                    <span className="flex-1 text-xs text-slate-400 italic">Bu tez türünde uygulanmadı</span>
+                    <span className="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded flex-shrink-0">Uygulanamaz</span>
+                  </div>
+                );
+              }
               return (
                 <div key={c.key} className="rounded-lg">
                   <button
