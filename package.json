@@ -25,6 +25,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "bcryptjs": "^3.0.3",
     "iyzipay": "^2.0.64",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.541.0",
     "mammoth": "^1.10.0",
     "next": "^14.2.32",

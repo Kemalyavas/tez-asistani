@@ -89,8 +89,25 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           estimatedPagesFromSize = Math.ceil(uploadedFile.size / 25000);
         }
       } else {
-        // DOCX: ortalama 10KB per sayfa
-        estimatedPagesFromSize = Math.ceil(uploadedFile.size / 10000);
+        // DOCX: dosya BOYUTU sayfa sayısını YANSITMAZ (görseller boyutu aşırı şişirir).
+        // İçeriği oku ve analyze/start ile AYNI formülü (chars/2750) kullan →
+        // client tahmini = sunucudaki gerçek ücret, tutarlı ve doğru.
+        // (Eski size/10000 hatalıydı: görselli 28 sayfalık docx ~5MB → 498 sayfa.)
+        try {
+          const JSZip = (await import('jszip')).default;
+          const zip = await JSZip.loadAsync(uploadedFile);
+          const docXml = await zip.file('word/document.xml')?.async('string');
+          if (docXml) {
+            // <w:t> elemanlarındaki görünür metni say (görseller dahil değil)
+            const chars = (docXml.match(/<w:t[^>]*>[^<]*<\/w:t>/g) || [])
+              .reduce((sum, seg) => sum + seg.replace(/<[^>]+>/g, '').length, 0);
+            estimatedPagesFromSize = Math.max(1, Math.ceil(chars / 2750));
+          } else {
+            estimatedPagesFromSize = Math.ceil(uploadedFile.size / 10000);
+          }
+        } catch {
+          estimatedPagesFromSize = Math.ceil(uploadedFile.size / 10000);
+        }
       }
 
       // Minimum 1, maksimum 500 sayfa
@@ -418,7 +435,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
               <Globe className="h-5 w-5 text-indigo-600 mr-2" />
               <span className="font-medium text-indigo-900">Rapor Dili</span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {LANGUAGE_OPTIONS.map((option) => (
                 <button
                   key={option.value}
