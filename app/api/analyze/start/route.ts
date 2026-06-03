@@ -35,9 +35,12 @@ const supabaseAdmin = createClient(
 //                       text'ten sayılıyor (rubric pipeline'da 0 hardcode bug fix)
 //   - 'rubric-1.5'   → Extract'e actionHint (teze özel "ne yapmalısın") + Gemini'nin
 //                       multimodal saydığı referenceCount/figureCount/tableCount eklendi
+//   - 'rubric-1.6'   → studyType (empirik/teorik/karma) tespiti; teorik tezlerde
+//                       empirik kriterler not_applicable; tamamen-n/a kategori genel
+//                       nottan dışlanır; kısmi yükleme (likelyPartialUpload) tespiti
 // Pipeline değişikliğinde version bump'lanır → eski cache otomatik invalid.
 const PIPELINE_VERSION =
-  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.5' : 'legacy-1.0';
+  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.6' : 'legacy-1.0';
 
 // ============================================================================
 // Helper Functions

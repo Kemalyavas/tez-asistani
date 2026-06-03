@@ -368,6 +368,10 @@ export async function POST(request: NextRequest) {
           summary: analysisResult.executiveSummary,
           executiveSummary: analysisResult.executiveSummary,
 
+          // Tez türü + kısmi yükleme bayrağı (rubric pipeline; UI banner/not için)
+          studyType: analysisResult.studyType,
+          likelyPartialUpload: analysisResult.likelyPartialUpload,
+
           // Bölüm skorları (hem yeni hem eski format)
           sections: analysisResult.sections,
           categoryScores: {
