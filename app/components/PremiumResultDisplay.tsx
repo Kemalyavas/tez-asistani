@@ -192,6 +192,14 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
                 <p className="text-sm italic text-slate-600">&quot;{issue.originalText}&quot;</p>
               </div>
             ) : null}
+            {issue.actionHint ? (
+              <div className="mt-3 bg-emerald-50 border-l-2 border-emerald-400 rounded-r px-3 py-2">
+                <div className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide mb-0.5 flex items-center gap-1">
+                  <Lightbulb className="h-3 w-3" /> Ne yapmalısın
+                </div>
+                <p className="text-sm text-emerald-900 leading-relaxed">{issue.actionHint}</p>
+              </div>
+            ) : null}
             {issue.suggestion ? (
               <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5">
                 <span className="font-semibold">Beklenen kriter:</span> {issue.suggestion}

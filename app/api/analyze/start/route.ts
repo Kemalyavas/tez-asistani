@@ -33,9 +33,11 @@ const supabaseAdmin = createClient(
 //                       sokuldu); ExtractInput discriminated union
 //   - 'rubric-1.4'   → referenceCount/figureCount/tableCount artık extracted
 //                       text'ten sayılıyor (rubric pipeline'da 0 hardcode bug fix)
+//   - 'rubric-1.5'   → Extract'e actionHint (teze özel "ne yapmalısın") + Gemini'nin
+//                       multimodal saydığı referenceCount/figureCount/tableCount eklendi
 // Pipeline değişikliğinde version bump'lanır → eski cache otomatik invalid.
 const PIPELINE_VERSION =
-  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.4' : 'legacy-1.0';
+  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.5' : 'legacy-1.0';
 
 // ============================================================================
 // Helper Functions

@@ -289,20 +289,22 @@ export async function POST(request: NextRequest) {
         const rubricResult = scoreRubric(extract);
         analysisResult = toLegacyShape(rubricResult);
 
-        // Statistics block: rubric servisi PDF parse etmediği için route'taki
-        // gerçek değerleri buradan dolduruyoruz (truthful pageCount + wordCount).
-        // referenceCount/figureCount/tableCount extracted text'ten text-based
-        // sayım ile geliyor — hasExtractedText yoksa (PDF parse fail) 0 kalır
-        // ki bu da doğru ("bulamadık" ≠ "yok" ama gösterilecek veri yok).
+        // Statistics block: pageCount + wordCount route'tan (gerçek değerler).
+        // referenceCount/figureCount/tableCount önceliği:
+        //   1) Gemini'nin extract sırasında saydığı değerler (multimodal —
+        //      tabloları/şekilleri/kaynakçayı doğrudan görür, en güvenilir).
+        //   2) Gemini sayımı yoksa extracted text üzerinden regex sayımı.
+        //   3) İkisi de yoksa 0.
+        const gStats = rubricExtractData?.statistics;
         analysisResult.statistics = {
           pageCount,
           wordCount,
           characterCount: hasExtractedText ? text.length : 0,
           averageSentenceLength: 0,
           readabilityScore: 0,
-          referenceCount: hasExtractedText ? countReferences(text) : 0,
-          figureCount: hasExtractedText ? countFigures(text) : 0,
-          tableCount: hasExtractedText ? countTables(text) : 0,
+          referenceCount: gStats ? gStats.referenceCount : (hasExtractedText ? countReferences(text) : 0),
+          figureCount: gStats ? gStats.figureCount : (hasExtractedText ? countFigures(text) : 0),
+          tableCount: gStats ? gStats.tableCount : (hasExtractedText ? countTables(text) : 0),
         };
 
         console.log(
