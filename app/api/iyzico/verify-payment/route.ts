@@ -78,8 +78,9 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
           try {
             console.log('[VERIFY-PAYMENT] Ödeme doğrulama başarılı');
             const basketId = result.basketId;
-            // basketId format: basket_<userId8>_<packageId>_<timestamp>
+            // basketId format: basket_<userId>_<packageId>_<timestamp>
             const basketParts = basketId.split('_');
+            const userIdFromBasket = basketParts[1];
             const packageId = basketParts[2];
 
             console.log('[VERIFY-PAYMENT] Bilgiler:', {
@@ -102,17 +103,32 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
 
             const supabase = getSupabaseAdmin();
 
-            // FIXED: Get user_id directly from payment_history (stored during checkout)
-            // This avoids UUID collision risk from parsing basketId
-            const { data: pendingPayment, error: pendingError } = await supabase
+            // Pending kaydından user_id'yi al; yoksa basketId yedeğinden çöz
+            // (checkout INSERT'i başarısız olsa bile bu yedek yol krediyi ekleyebilsin).
+            // Idempotency add_credits'te (payment_id + 'purchase' unique) garanti altında.
+            const { data: pendingPayment } = await supabase
               .from('payment_history')
               .select('id, user_id, status, payment_id')
               .or(`payment_id.eq.${token},conversation_id.eq.${result.conversationId}`)
               .limit(1)
-              .single();
+              .maybeSingle();
 
-            if (pendingError || !pendingPayment) {
-              console.error('[VERIFY-PAYMENT] Ödeme kaydı bulunamadı:', { token, conversationId: result.conversationId });
+            let fullUserId: string | null = pendingPayment?.user_id ?? null;
+
+            if (!fullUserId && userIdFromBasket) {
+              const { data: prof } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('id', userIdFromBasket)
+                .maybeSingle();
+              if (prof) {
+                fullUserId = prof.id;
+                console.warn('[VERIFY-PAYMENT] Pending kaydı yok; user_id basketId yedeğinden çözüldü:', fullUserId);
+              }
+            }
+
+            if (!fullUserId) {
+              console.error('[VERIFY-PAYMENT] user_id çözülemedi:', { token, conversationId: result.conversationId, basketId });
               const failureUrl = new URL('/payment/status', siteUrl);
               failureUrl.searchParams.set('status', 'failure');
               failureUrl.searchParams.set('error', 'Ödeme kaydı bulunamadı.');
@@ -120,10 +136,8 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
               return;
             }
 
-            const fullUserId = pendingPayment.user_id;
-
             // Daha önce işlenmiş mi kontrol et (idempotency)
-            if (pendingPayment.status === 'success') {
+            if (pendingPayment?.status === 'success') {
               console.log('[VERIFY-PAYMENT] Bu ödeme zaten işlenmiş:', result.paymentId);
 
               // FIXED: Verify credits were actually added by checking credit_transactions
