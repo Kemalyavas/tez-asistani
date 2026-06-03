@@ -326,6 +326,12 @@ export async function analyzePremium(
      */
     extractedText?: string;
     reportLanguage?: 'tr' | 'en' | 'auto';
+    /**
+     * Zaman aşımı/iptal sinyali. process route 280s'de abort eder; Gemini çağrısı
+     * beklemeyi bırakır, lambda 300s Vercel limitinde öldürülmeden önce catch
+     * krediyi iade edebilir.
+     */
+    signal?: AbortSignal;
   }
 ): Promise<PremiumAnalysisResult> {
   const startTime = Date.now();
@@ -504,19 +510,25 @@ ${langForPrompt === 'tr' ? 'SADECE JSON yanıt ver, başka açıklama ekleme.' :
 
     if (isPdf && pdfBase64) {
       // PDF modunda - doğrudan PDF'i gönder (görseller dahil)
-      result = await model.generateContent([
-        {
-          inlineData: {
-            mimeType: 'application/pdf',
-            data: pdfBase64,
+      result = await model.generateContent(
+        [
+          {
+            inlineData: {
+              mimeType: 'application/pdf',
+              data: pdfBase64,
+            },
           },
-        },
-        { text: analysisPrompt },
-      ]);
+          { text: analysisPrompt },
+        ],
+        options.signal ? { signal: options.signal } : undefined
+      );
       console.log(`[PREMIUM ANALYSIS] PDF sent to Gemini for multimodal analysis`);
     } else {
       // Metin modunda
-      result = await model.generateContent(analysisPrompt);
+      result = await model.generateContent(
+        analysisPrompt,
+        options.signal ? { signal: options.signal } : undefined
+      );
     }
 
     const response = result.response.text();

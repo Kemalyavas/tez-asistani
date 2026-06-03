@@ -149,9 +149,54 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           clearInterval(pollingRef.current);
           pollingRef.current = null;
         }
+
+        // Sunucu lambda'sı bu noktada (process route maxDuration=300s) çoktan
+        // bitmiş/ölmüş olur; doküman hâlâ 'processing' ise gerçekten takılı demektir.
+        // mark-failed idempotent ve SADECE 'processing' kayda dokunur (analiz tam o
+        // an tamamlandıysa no-op), krediyi ANINDA iade eder — cron'un ~20dk'sını
+        // beklemeden. Yarış-güvenli.
+        let refunded = false;
+        try {
+          const res = await fetch('/api/analyze/mark-failed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ documentId: docId }),
+          });
+          const result = await res.json().catch(() => ({}));
+          refunded = !!result?.refunded;
+        } catch (e) {
+          console.error('mark-failed call failed:', e);
+        }
+
+        // Analiz tam zaman aşımı anında tamamlanmış olabilir (yarış): GERÇEK durumu
+        // DB'den teyit et. 'analyzed' ise mark-failed no-op kalmıştır → rapora git.
+        const { data: latest } = await supabase
+          .from('thesis_documents')
+          .select('status')
+          .eq('id', docId)
+          .single();
+
+        if (latest?.status === 'analyzed') {
+          setCurrentStep('complete');
+          setStatusMessage('Analiz tamamlandı!');
+          await refreshCredits();
+          toast.success('Analiz tamamlandı! Rapora yönlendiriliyorsunuz...');
+          setLoading(false);
+          setTimeout(() => {
+            router.push(`/analyses/${docId}`);
+          }, 1500);
+          return;
+        }
+
+        const refundConfirmed = refunded || latest?.status === 'failed';
         setCurrentStep('error');
-        setStatusMessage('Analiz zaman aşımına uğradı. Lütfen tekrar deneyin veya destek ile iletişime geçin.');
-        toast.error('Analiz zaman aşımına uğradı. Analiz başarısız olduysa kredileriniz iade edilecektir.');
+        setStatusMessage(
+          refundConfirmed
+            ? 'Analiz zaman aşımına uğradı. Krediniz iade edildi, lütfen tekrar deneyin.'
+            : 'Analiz zaman aşımına uğradı. Krediniz kısa süre içinde iade edilecektir.'
+        );
+        toast.error('Analiz zaman aşımına uğradı.');
+        if (refundConfirmed) await refreshCredits();
         setLoading(false);
         return;
       }

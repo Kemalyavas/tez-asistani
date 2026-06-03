@@ -67,12 +67,20 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
   let timeoutOccurred = false;
   let timeoutTimer: NodeJS.Timeout | null = null;
+  // Gemini çağrısını 280s'de GERÇEKTEN iptal etmek için. Eskiden setTimeout sadece
+  // `timeoutOccurred` bayrağını çeviriyordu ama uzun generateContent çağrısı bu
+  // bayrağı kontrol etmiyordu → lambda 300s'de Vercel tarafından öldürülüp doküman
+  // 'processing'te takılı kalıyor, kredi ancak ~20dk sonra cron ile iade ediliyordu.
+  // AbortController ile çağrı 280s'de iptal edilir; aşağıdaki catch krediyi ANINDA
+  // iade eder (lambda hâlâ canlıyken).
+  const abortController = new AbortController();
 
   try {
     // Set timeout guard (280s = 4m 40s, before 300s Vercel limit)
     const TIMEOUT_MS = 280000; // 280 seconds
     timeoutTimer = setTimeout(() => {
       timeoutOccurred = true;
+      abortController.abort();
     }, TIMEOUT_MS);
 
     // Authentication
@@ -284,7 +292,10 @@ export async function POST(request: NextRequest) {
 
         // Extract ve Score'u ayrı ayrı çağırıyoruz; analyzeWithRubric tek
         // adımda yapsa da extract çıktısına ihtiyacımız var (DB'ye yazmak için).
-        const extract = await extractRubricItems(extractInput, { fileName });
+        const extract = await extractRubricItems(extractInput, {
+          fileName,
+          signal: abortController.signal,
+        });
         rubricExtractData = extract;
         const rubricResult = scoreRubric(extract);
         analysisResult = toLegacyShape(rubricResult);
@@ -327,6 +338,7 @@ export async function POST(request: NextRequest) {
             extractedText: hasExtractedText ? text : undefined,
             // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
             reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
+            signal: abortController.signal,
           });
         } else {
           // TEXT MODE: Sadece metin gönder
@@ -346,6 +358,7 @@ export async function POST(request: NextRequest) {
             isPdf: false,
             // Rapor dili: 'tr', 'en', veya 'auto' (tez diliyle aynı)
             reportLanguage: reportLanguage as 'tr' | 'en' | 'auto',
+            signal: abortController.signal,
           });
         }
       }
@@ -475,6 +488,18 @@ export async function POST(request: NextRequest) {
         }
       } catch (deleteErr) {
         console.error('[ANALYZE/PROCESS] File deletion error on error:', deleteErr);
+      }
+
+      // Zaman aşımı/abort ise: timeout-özel mesaj + iade (504). 280s'de
+      // abortController.abort() tetiklendiyse generateContent burada reddeder.
+      const wasTimeout =
+        timeoutOccurred || analysisError?.name === 'AbortError';
+      if (wasTimeout) {
+        await markAsFailedWithTimeout(supabase, documentId, user.id, doc.credits_used);
+        return NextResponse.json(
+          { error: 'Analiz zaman aşımına uğradı. Krediniz iade edildi. Lütfen daha küçük bir dosyayla tekrar deneyin.' },
+          { status: 504 }
+        );
       }
 
       // Mark as failed and refund

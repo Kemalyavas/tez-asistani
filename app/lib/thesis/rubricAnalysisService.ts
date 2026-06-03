@@ -324,7 +324,7 @@ const TEXT_MODE_MAX_CHARS = 500_000;
 
 export async function extractRubricItems(
   input: ExtractInput,
-  options: { fileName: string }
+  options: { fileName: string; signal?: AbortSignal }
 ): Promise<ExtractResult> {
   const startMs = Date.now();
   const modelName = process.env.GEMINI_PRO_MODEL || 'gemini-3.1-pro-preview';
@@ -380,7 +380,10 @@ export async function extractRubricItems(
         `[RUBRIC EXTRACT] Attempt ${attempt}/${MAX_ATTEMPTS} — model=${modelName}, ${modeInfo}`
       );
 
-      const result = await model.generateContent(contentParts);
+      const result = await model.generateContent(
+        contentParts,
+        options.signal ? { signal: options.signal } : undefined
+      );
 
       const text = result.response.text();
       const parsed = JSON.parse(text);
@@ -440,6 +443,13 @@ export async function extractRubricItems(
       };
     } catch (err) {
       lastError = err;
+      // Zaman aşımı/abort → tekrar DENEME, hemen yukarı fırlat. (process route
+      // 280s'de abortController.abort() çağırır; retry yapmak boşa zaman harcar
+      // ve zaten iptal edilmiş signal'le anında tekrar reddedilir.) Üstteki
+      // timeout guard krediyi iade edip dokümanı failed yapar.
+      if (options.signal?.aborted || (err as Error)?.name === 'AbortError') {
+        throw err;
+      }
       console.warn(
         `[RUBRIC EXTRACT] Attempt ${attempt} failed:`,
         (err as Error).message

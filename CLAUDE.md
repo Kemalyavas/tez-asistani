@@ -49,9 +49,9 @@ Proje **kredi tabanlı** sistem kullanıyor. Eski abonelik sistemi **KALDIRILDI*
 ```
 citation_format: 1 kredi
 abstract_generate: 3 kredi
-thesis_basic (1-30 sayfa): 10 kredi
-thesis_standard (31-60 sayfa): 25 kredi
-thesis_comprehensive (61+ sayfa): 50 kredi
+thesis_basic (1-50 sayfa): 10 kredi
+thesis_standard (51-100 sayfa): 25 kredi
+thesis_comprehensive (101+ sayfa): 50 kredi
 ```
 
 ### Kredi Paketleri (pricing.ts)

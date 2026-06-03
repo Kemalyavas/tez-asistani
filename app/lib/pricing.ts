@@ -133,19 +133,19 @@ export const CREDIT_COSTS: Record<string, CreditCost> = {
   thesis_basic: {
     actionType: 'thesis_basic',
     creditsRequired: 10,
-    description: 'Temel analiz (< 50 sayfa) - Yapı ve kaynak kontrolü',
+    description: 'Temel analiz (1-50 sayfa) - Yapı ve kaynak kontrolü',
     category: 'thesis'
   },
   thesis_standard: {
     actionType: 'thesis_standard',
     creditsRequired: 25,
-    description: 'Standart analiz (50-150 sayfa) - Multi-Agent detaylı analiz',
+    description: 'Standart analiz (51-100 sayfa) - Multi-Agent detaylı analiz',
     category: 'thesis'
   },
   thesis_comprehensive: {
     actionType: 'thesis_comprehensive',
     creditsRequired: 50,
-    description: 'Kapsamlı analiz (150+ sayfa) - Çapraz doğrulama dahil',
+    description: 'Kapsamlı analiz (101+ sayfa) - Çapraz doğrulama dahil',
     category: 'thesis'
   },
   pdf_report: {
