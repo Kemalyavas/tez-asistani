@@ -17,7 +17,6 @@ const pages: Entry[] = [
   { path: '/akademik-formatlar', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9 },
   { path: '/ozellikler', changeFrequency: 'monthly', priority: 0.8 },
-  { path: '/universitelere-ozel', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/sss', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/hakkimizda', changeFrequency: 'yearly', priority: 0.5 },
   { path: '/iletisim', changeFrequency: 'yearly', priority: 0.4 },

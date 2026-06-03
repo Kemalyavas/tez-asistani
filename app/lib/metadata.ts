@@ -254,17 +254,6 @@ export const tezAnaliziMetadata = buildPageMetadata({
   ogSubtitle: 'Yapı • Metodoloji • Kaynak Kontrolü',
 })
 
-export const universitelereOzelMetadata = buildPageMetadata({
-  title: 'Üniversitelere ve Bölümlere Özel Tez Desteği',
-  description:
-    'Farklı üniversite ve bölüm tez yazım kılavuzlarına uygun analiz ve kaynakça. Lisans, yüksek lisans ve doktora tezleri için yapay zeka desteği.',
-  path: '/universitelere-ozel',
-  keywords:
-    'üniversite tez kılavuzu, yüksek lisans tezi, doktora tezi, lisans bitirme tezi, tez yazım kuralları',
-  ogTitle: 'Üniversitelere Özel Tez Desteği',
-  ogSubtitle: 'Lisans • Yüksek Lisans • Doktora',
-})
-
 export const hakkimizdaMetadata = buildPageMetadata({
   title: 'Hakkımızda',
   description:

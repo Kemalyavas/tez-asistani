@@ -111,8 +111,7 @@ export function generateBreadcrumbData(pathname: string) {
     'blog': 'Blog',
     'ozellikler': 'Özellikler',
     'tez-analizi': 'Tez Analizi',
-    'akademik-formatlar': 'Akademik Formatlar',
-    'universitelere-ozel': 'Üniversitelere Özel'
+    'akademik-formatlar': 'Akademik Formatlar'
   }
   
   let currentPath = ''

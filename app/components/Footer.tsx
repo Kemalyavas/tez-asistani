@@ -6,7 +6,6 @@ const productLinks = [
   { href: '/tez-analizi', label: 'Tez Analizi' },
   { href: '/akademik-formatlar', label: 'Akademik Formatlar' },
   { href: '/ozellikler', label: 'Özellikler' },
-  { href: '/universitelere-ozel', label: 'Üniversitelere Özel' },
   { href: '/pricing', label: 'Fiyatlar' },
 ];
 
