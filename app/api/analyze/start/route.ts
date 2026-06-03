@@ -38,9 +38,12 @@ const supabaseAdmin = createClient(
 //   - 'rubric-1.6'   → studyType (empirik/teorik/karma) tespiti; teorik tezlerde
 //                       empirik kriterler not_applicable; tamamen-n/a kategori genel
 //                       nottan dışlanır; kısmi yükleme (likelyPartialUpload) tespiti
+//   - 'rubric-1.7'   → KANIT TEMELLİ + seviye-duyarlı kategori ağırlıkları:
+//                       özgünlük 3→6 (YL) / 9 (Dr), format 7→4/3, analiz çekirdeği
+//                       baskın (Mullins&Kiley 2002, Lovitts/Wageningen, UFS/UNSW)
 // Pipeline değişikliğinde version bump'lanır → eski cache otomatik invalid.
 const PIPELINE_VERSION =
-  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.6' : 'legacy-1.0';
+  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.7' : 'legacy-1.0';
 
 // ============================================================================
 // Helper Functions
