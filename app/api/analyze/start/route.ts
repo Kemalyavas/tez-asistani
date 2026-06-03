@@ -133,18 +133,27 @@ export async function POST(request: NextRequest) {
     if (downloadError || !fileData) {
       console.error('File download error:', downloadError);
       return NextResponse.json(
-        { error: 'Could not download file from storage' },
+        { error: 'Dosya depodan indirilemedi. Lütfen tekrar deneyin.' },
         { status: 500 }
       );
     }
+
+    // Hata yollarında yüklenen dosyayı storage'dan sil — yetim kalmasın
+    // ("analiz sonrası silinir" gizlilik vaadi + storage maliyeti). Başarı yolunda
+    // dosya process route tarafından silinir; burada SADECE erken-return'lerde çağrılır.
+    const cleanupFile = async () => {
+      try { await supabase.storage.from('thesis-files').remove([filePath]); }
+      catch (e) { console.warn('[ANALYZE/START] orphan cleanup failed:', e); }
+    };
 
     // Validate file type by extension
     const isDocx = fileName.endsWith('.docx');
     const isPdf = fileName.endsWith('.pdf');
 
     if (!isDocx && !isPdf) {
+      await cleanupFile();
       return NextResponse.json(
-        { error: 'Please upload a PDF or DOCX file' },
+        { error: 'Lütfen PDF veya Word (.docx) dosyası yükleyin.' },
         { status: 400 }
       );
     }
@@ -163,25 +172,29 @@ export async function POST(request: NextRequest) {
 
     if (isPdf && !isPdfMagic) {
       console.error('[ANALYZE/START] Invalid PDF magic bytes:', magicBytes.toString('hex'));
+      await cleanupFile();
       return NextResponse.json(
-        { error: 'Invalid PDF file. The file content does not match PDF format.' },
+        { error: 'Geçersiz PDF dosyası. Dosya içeriği PDF formatıyla uyuşmuyor.' },
         { status: 400 }
       );
     }
 
     if (isDocx && !isZipMagic) {
       console.error('[ANALYZE/START] Invalid DOCX magic bytes:', magicBytes.toString('hex'));
+      await cleanupFile();
       return NextResponse.json(
-        { error: 'Invalid DOCX file. The file content does not match DOCX format.' },
+        { error: 'Geçersiz Word dosyası. Dosya içeriği .docx formatıyla uyuşmuyor.' },
         { status: 400 }
       );
     }
 
-    // Additional size validation (server-side)
-    const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+    // Sunucu tarafı boyut kontrolü (storage bucket limiti 10MB ile HİZALI — eskiden
+    // 15MB diyordu ama bucket 10MB'da kestiği için yanıltıcıydı).
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     if (buffer.length > MAX_FILE_SIZE) {
+      await cleanupFile();
       return NextResponse.json(
-        { error: `File too large. Maximum size is 15MB. Your file: ${(buffer.length / 1024 / 1024).toFixed(1)}MB` },
+        { error: `Dosya çok büyük. En fazla 10MB olabilir. Dosyanız: ${(buffer.length / 1024 / 1024).toFixed(1)}MB` },
         { status: 400 }
       );
     }
@@ -239,26 +252,42 @@ export async function POST(request: NextRequest) {
     let actualPdfPages = 0;
 
     if (isDocx) {
-      const mammoth = await import('mammoth');
-      const result = await mammoth.extractRawText({ buffer });
-      text = result.value;
+      try {
+        const mammoth = await import('mammoth');
+        const result = await mammoth.extractRawText({ buffer });
+        text = result.value;
+      } catch (docxError) {
+        console.error('[ANALYZE/START] DOCX parse error:', docxError);
+        await cleanupFile();
+        return NextResponse.json(
+          { error: 'Word dosyası okunamadı. Dosya bozuk veya şifreli olabilir; farklı bir dosya deneyin.' },
+          { status: 400 }
+        );
+      }
     } else if (isPdf) {
       try {
         const pdfData = await extractPdfData(buffer);
         text = pdfData.text;
         actualPdfPages = pdfData.numPages;
       } catch (pdfError) {
-        console.error('PDF parse error:', pdfError);
+        console.error('[ANALYZE/START] PDF parse error:', pdfError);
+        await cleanupFile();
         return NextResponse.json(
-          { error: 'Could not read PDF file. Please try a different file or convert to DOCX.' },
+          { error: 'PDF dosyası okunamadı. Dosya bozuk veya şifreli olabilir; farklı bir dosya deneyin ya da DOCX olarak yükleyin.' },
           { status: 400 }
         );
       }
     }
 
-    if (!text || text.length < 1000) {
+    // "Çok kısa" reddi: TARANMIŞ PDF'lerde metin katmanı boş olabilir ama gerçek
+    // sayfa sayısı (actualPdfPages) bilinir ve process route PDF Direct (multimodal
+    // Gemini) ile görüntüden okur. Bu yüzden PDF'te sayfa biliniyorsa metin-uzunluğu
+    // reddini UYGULAMA (aksi halde geçerli taranmış tez haksızca reddediliyordu).
+    const hasPdfPages = isPdf && actualPdfPages > 0;
+    if ((!text || text.length < 1000) && !hasPdfPages) {
+      await cleanupFile();
       return NextResponse.json(
-        { error: 'Document is too short or could not be read. Minimum 1000 characters required.' },
+        { error: 'Belge çok kısa veya okunamadı. En az 1000 karakter gerekiyor.' },
         { status: 400 }
       );
     }
@@ -297,17 +326,19 @@ export async function POST(request: NextRequest) {
 
       if (creditError) {
         console.error('Credit deduction error:', creditError);
+        await cleanupFile();
         return NextResponse.json(
-          { error: 'Failed to process credits. Please try again.' },
+          { error: 'Kredi işlenirken bir hata oluştu. Lütfen tekrar deneyin.' },
           { status: 500 }
         );
       }
 
       creditInfo = creditResult?.[0];
       if (!creditInfo?.success) {
+        await cleanupFile();
         return NextResponse.json(
           {
-            error: creditInfo?.error_message || 'Insufficient credits',
+            error: creditInfo?.error_message || 'Yetersiz kredi',
             creditsRequired,
             currentCredits: creditInfo?.new_balance || 0,
             analysisTier: analysisTier.name
@@ -368,8 +399,9 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      await cleanupFile();
       return NextResponse.json(
-        { error: 'Failed to create document record. If credits were deducted, they will be refunded.' },
+        { error: 'Analiz kaydı oluşturulamadı. Kredi düşüldüyse iade edilecektir.' },
         { status: 500 }
       );
     }

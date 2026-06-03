@@ -63,8 +63,10 @@ REVOKE EXECUTE ON FUNCTION public.recover_stuck_analyses() FROM PUBLIC, anon, au
 --   SELECT public.recover_stuck_analyses();  -- → 1 (ddf99eea kurtarıldı)
 
 -- ----------------------------------------------------------------------------
--- SONRAKİ ADIM — pg_cron ile otomatik kurtarma (ONAY BEKLİYOR, henüz uygulanmadı):
+-- pg_cron ile otomatik kurtarma — UYGULANDI (migration v8, 3 Haz 2026, prod):
+-- Supabase İÇİ zamanlayıcı (harici servis/Vercel cron YOK). cron.job: jobid=1,
+-- active=true, her 10 dk recover_stuck_analyses() çağırır.
 -- ----------------------------------------------------------------------------
--- CREATE EXTENSION IF NOT EXISTS pg_cron;
--- SELECT cron.schedule('recover-stuck-analyses', '*/10 * * * *',
---                      $$SELECT public.recover_stuck_analyses();$$);
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+SELECT cron.schedule('recover-stuck-analyses', '*/10 * * * *',
+                     $$SELECT public.recover_stuck_analyses();$$);
