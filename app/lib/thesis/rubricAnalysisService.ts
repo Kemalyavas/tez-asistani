@@ -128,6 +128,8 @@ export interface RubricAnalysisResult {
   overallGrade: OverallGrade;
   gradeLabel: string;
   overallScoreNumeric: number;
+  // KAPI kuralında kullanılan kritik (not_found, ağırlık≥5) kriter sayısı.
+  criticalCount: number;
   categories: CategoryResult[];
   criticalFindings: ExtractedItem[];
   partialFindings: ExtractedItem[];
@@ -628,12 +630,14 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
     weightedCatScore += c.weightedRatio * w;
   }
   const overallRatio = totalCatWeight > 0 ? weightedCatScore / totalCatWeight : 0;
-  const { grade, label } = ratioToOverallGrade(overallRatio);
 
-  // Critical / partial / strength findings — kategoriler arasında topla
+  // Critical / partial / strength findings + KAPI kuralı için kritik sayımı.
   const allCriticals: ExtractedItem[] = [];
   const allPartials: ExtractedItem[] = [];
   const allStrengths: ExtractedItem[] = [];
+  // Gerçek kritik = bir core kriter TAMAMEN karşılanmamış (UI'daki "KRİTİK"
+  // rozetiyle aynı): not_found + ağırlık≥5 + format-binary değil.
+  let criticalCount = 0;
 
   for (const ext of extract.items) {
     const def = getRubricItemById(ext.id);
@@ -641,7 +645,27 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
     if (ext.status === 'not_found' && def.weight >= 4) allCriticals.push(ext);
     else if (ext.status === 'partial') allPartials.push(ext);
     else if (ext.status === 'found' && def.weight >= 4) allStrengths.push(ext);
+
+    if (
+      ext.status === 'not_found' &&
+      def.weight >= 5 &&
+      !(def.categoryId === 'format' && def.evidenceType === 'binary')
+    ) {
+      criticalCount++;
+    }
   }
+
+  // "KAPI" KURALI (Principle A — Mullins & Kiley 2002, Lovitts/Wageningen):
+  // Saf toplama ortalaması, güçlü kategorilerin tek bir KRİTİK eksiği maskelemesine
+  // izin vermemeli ("tek 'kabul edilemez' kriter üst notları engeller"). Bir core
+  // kriter tamamen karşılanmamışsa GENEL NOT bir tavan görür:
+  //   1 kritik → max B (İyi, ≤79); 2 → max C+ (Yeterli, ≤69); 3+ → max C (≤59).
+  // Kategori puanları DEĞİŞMEZ; yalnızca genel not sınırlanır.
+  let cappedRatio = overallRatio;
+  if (criticalCount >= 3) cappedRatio = Math.min(cappedRatio, 0.59);
+  else if (criticalCount === 2) cappedRatio = Math.min(cappedRatio, 0.69);
+  else if (criticalCount === 1) cappedRatio = Math.min(cappedRatio, 0.79);
+  const { grade, label } = ratioToOverallGrade(cappedRatio);
 
   // Önceliklendirme: weight'e göre azalan sırada
   const byWeightDesc = (a: ExtractedItem, b: ExtractedItem) =>
@@ -674,7 +698,8 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
     likelyPartialUpload,
     overallGrade: grade,
     gradeLabel: label,
-    overallScoreNumeric: Math.round(overallRatio * 100),
+    overallScoreNumeric: Math.round(cappedRatio * 100),
+    criticalCount,
     categories,
     criticalFindings: allCriticals.slice(0, 5),
     partialFindings: allPartials.slice(0, 5),
