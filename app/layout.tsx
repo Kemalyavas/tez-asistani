@@ -6,6 +6,7 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ActiveAnalysisBanner from './components/ActiveAnalysisBanner';
 import { homeMetadata } from './lib/metadata';
 import { structuredData } from './lib/structuredData';
 import Script from 'next/script';
@@ -66,6 +67,8 @@ export default function RootLayout({
         <main role="main">
           {children}
         </main>
+        {/* Global: kullanıcı analiz başlattıysa, bitene kadar her sayfada görünür */}
+        <ActiveAnalysisBanner />
         <Footer />
         <Toaster 
           position="top-right"
