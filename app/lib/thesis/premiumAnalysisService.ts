@@ -110,6 +110,9 @@ export interface PagedIssue {
   location?: string;
   originalText?: string;
   suggestion: string;
+  // Teze özel, somut düzeltme talimatı ("Ne yapmalısın" yeşil kutusu).
+  // Rubric pipeline doldurur; legacy path'te undefined kalabilir.
+  actionHint?: string;
   impact: string;
 }
 

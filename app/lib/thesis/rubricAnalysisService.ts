@@ -52,12 +52,24 @@ export interface ExtractedItem {
   evidence: string;
   pageNumber: number | null;
   comment: string;
+  // Teze ÖZEL, somut, tek cümlelik düzeltme talimatı. Yalnızca partial/not_found
+  // için doludur (found/not_applicable'da boş). UI'da yeşil "Ne yapmalısın" kutusu.
+  actionHint: string;
+}
+
+// Tez genelinde Gemini'nin saydığı nicel değerler. Multimodal okuduğu için
+// (tabloları/şekilleri görür) regex tabanlı text sayımından daha güvenilir.
+export interface ExtractStatistics {
+  referenceCount: number;
+  figureCount: number;
+  tableCount: number;
 }
 
 export interface ExtractResult {
   detectedLanguage: 'tr' | 'en';
   thesisType: string;
   items: ExtractedItem[];
+  statistics: ExtractStatistics;
   rawProcessingMs: number;
 }
 
@@ -174,12 +186,37 @@ function buildExtractSchema() {
               description:
                 'Kısa açıklama (1-2 cümle). TEZİN DİLİNDE yaz — Türkçe tez için Türkçe, İngilizce tez için İngilizce. Status not_found ise eksiği, partial ise eksik kısmı, found ise neyi sağladığını söyle.',
             },
+            actionHint: {
+              type: SchemaType.STRING,
+              description:
+                'SADECE status "partial" veya "not_found" ise doldur: BU TEZE özel, somut, tek cümlelik, uygulanabilir düzeltme talimatı (tezin dilinde). Örn. "Giriş bölümünün sonuna araştırma sorusunu tek cümlede açıkça yazın." Genel klişe DEĞİL, bu tezin durumuna özgü ol. status "found" veya "not_applicable" ise boş string ("").',
+            },
           },
-          required: ['id', 'status', 'evidence', 'pageNumber', 'comment'],
+          required: ['id', 'status', 'evidence', 'pageNumber', 'comment', 'actionHint'],
         },
       },
+      statistics: {
+        type: SchemaType.OBJECT,
+        description:
+          'Tez genelinde nicel sayımlar. TAHMİN ETME — kaynakçayı, şekilleri ve tabloları gerçekten tarayıp say.',
+        properties: {
+          referenceCount: {
+            type: SchemaType.INTEGER,
+            description: 'Kaynakça/References bölümündeki kaynak girdilerinin sayısı (her girdiyi tek tek say). Bölüm yoksa 0.',
+          },
+          figureCount: {
+            type: SchemaType.INTEGER,
+            description: 'Tezdeki toplam şekil/grafik sayısı (Şekil 1, Figure 1, Grafik 1...). Yoksa 0.',
+          },
+          tableCount: {
+            type: SchemaType.INTEGER,
+            description: 'Tezdeki toplam tablo sayısı (Tablo 1, Table 1, Çizelge 1...). Yoksa 0.',
+          },
+        },
+        required: ['referenceCount', 'figureCount', 'tableCount'],
+      },
     },
-    required: ['detectedLanguage', 'thesisType', 'items'],
+    required: ['detectedLanguage', 'thesisType', 'items', 'statistics'],
   };
 }
 
@@ -208,6 +245,8 @@ Sana ekli olarak bir Türkçe veya İngilizce yüksek lisans / doktora tezi PDF'
 5. **comment: TEZİN DİLİNDE 1-2 cümle yaz.** Türkçe tez → Türkçe comment; İngilizce tez → English comment. NEYI yaptığını/yapmadığını net söyle. (Write the comment IN THE LANGUAGE OF THE THESIS. State concretely what is done or missing — no vague praise.)
 6. Tarafsız ol. "Bu çok güzel" / "Excellent" gibi övgü ya da abartı kullanma. (Stay neutral; no flattery.)
 7. detectedLanguage: tezin dilini "tr" veya "en" olarak belirt. thesisType: "Yüksek Lisans Tezi" / "Doktora Tezi" / "Master's Thesis" / "PhD Thesis" — tezin diline uygun olanı seç.
+8. **actionHint — SADECE status "partial" veya "not_found" olan kriterler için**: BU TEZE özel, somut, tek cümlelik, uygulanabilir bir düzeltme talimatı yaz (tezin dilinde). "Şu bölüme şunu ekleyin", "Şu sayfadaki tabloya kaynak belirtin" gibi. Genel klişe verme; tezin gerçek durumuna göre yaz. status "found" / "not_applicable" ise actionHint = "" (boş). (Write a thesis-specific one-sentence fix only for partial/not_found; empty for found/not_applicable.)
+9. **statistics — gerçekten say, tahmin etme**: referenceCount (kaynakça girdi sayısı), figureCount (şekil/grafik sayısı), tableCount (tablo/çizelge sayısı). PDF ekliyse görselleri ve kaynakça listesini doğrudan tarayarak say. İlgili bölüm yoksa 0. (Actually count; do not estimate.)
 
 Değerlendirilecek 50 kriter:
 
@@ -302,10 +341,16 @@ export async function extractRubricItems(
       }
 
       // Bilinmeyen item id'leri filtrele (model rubric dışında bir şey üretirse)
+      // + alanları defansif normalize et (actionHint/comment/evidence her zaman string).
       const validIds = new Set(RUBRIC_ITEM_IDS);
-      const validItems = (parsed.items as ExtractedItem[]).filter((it) =>
-        validIds.has(it.id)
-      );
+      const validItems = (parsed.items as ExtractedItem[])
+        .filter((it) => validIds.has(it.id))
+        .map((it) => ({
+          ...it,
+          comment: typeof it.comment === 'string' ? it.comment : '',
+          evidence: typeof it.evidence === 'string' ? it.evidence : '',
+          actionHint: typeof it.actionHint === 'string' ? it.actionHint : '',
+        }));
 
       if (validItems.length < RUBRIC_ITEMS.length * 0.6) {
         // Model rubric'in %60'ını bile karşılayamadıysa retry yap
@@ -314,15 +359,26 @@ export async function extractRubricItems(
         );
       }
 
+      // İstatistikleri normalize et (negatif/NaN/eksik → 0).
+      const rawStats = (parsed.statistics ?? {}) as Partial<ExtractStatistics>;
+      const toCount = (v: unknown): number =>
+        typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.round(v) : 0;
+      const statistics: ExtractStatistics = {
+        referenceCount: toCount(rawStats.referenceCount),
+        figureCount: toCount(rawStats.figureCount),
+        tableCount: toCount(rawStats.tableCount),
+      };
+
       const elapsed = Date.now() - startMs;
       console.log(
-        `[RUBRIC EXTRACT] OK in ${elapsed}ms — ${validItems.length}/${RUBRIC_ITEMS.length} items, lang=${parsed.detectedLanguage}`
+        `[RUBRIC EXTRACT] OK in ${elapsed}ms — ${validItems.length}/${RUBRIC_ITEMS.length} items, lang=${parsed.detectedLanguage}, refs=${statistics.referenceCount} fig=${statistics.figureCount} tbl=${statistics.tableCount}`
       );
 
       return {
         detectedLanguage: parsed.detectedLanguage === 'en' ? 'en' : 'tr',
         thesisType: parsed.thesisType || 'Yüksek Lisans Tezi',
         items: validItems,
+        statistics,
         rawProcessingMs: elapsed,
       };
     } catch (err) {
@@ -645,6 +701,9 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
       location: cat.title,
       pageNumber: ext.pageNumber || 0,
       description: ext.comment,
+      // Teze özel "ne yapmalısın" (yeşil kutu). Yoksa UI yeşil kutuyu gizler.
+      actionHint: ext.actionHint || '',
+      // "Beklenen kriter" (gri, bağlam) — rubric'in generic tanımı.
       suggestion: def.description,
       impact: '',
       originalText: ext.evidence,
@@ -666,7 +725,8 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
       return {
         order: idx + 1,
         action: def ? `${def.title}: ${ext.comment}` : ext.comment,
-        reason: def?.description || '',
+        // Teze özel aksiyon varsa onu, yoksa generic kriter tanımını ver.
+        reason: ext.actionHint || def?.description || '',
         relatedIssues: [],
         estimatedImpact: idx === 0 ? 'high' : ('medium' as 'high' | 'medium' | 'low'),
       };
