@@ -41,9 +41,12 @@ const supabaseAdmin = createClient(
 //   - 'rubric-1.7'   → KANIT TEMELLİ + seviye-duyarlı kategori ağırlıkları:
 //                       özgünlük 3→6 (YL) / 9 (Dr), format 7→4/3, analiz çekirdeği
 //                       baskın (Mullins&Kiley 2002, Lovitts/Wageningen, UFS/UNSW)
+//   - 'rubric-1.8'   → "KAPI" kuralı (Principle A): kritik core kriter (not_found,
+//                       ağırlık≥5) genel nota TAVAN koyar (1→B/79, 2→C+/69, 3+→C/59);
+//                       saf toplama bir KRİTİK eksiği güçlü kategorilerce maskelemesin
 // Pipeline değişikliğinde version bump'lanır → eski cache otomatik invalid.
 const PIPELINE_VERSION =
-  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.7' : 'legacy-1.0';
+  process.env.USE_RUBRIC_PIPELINE === 'true' ? 'rubric-1.8' : 'legacy-1.0';
 
 // ============================================================================
 // Helper Functions

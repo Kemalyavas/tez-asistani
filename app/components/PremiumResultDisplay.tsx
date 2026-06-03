@@ -94,9 +94,16 @@ function buildVerdict(
   if (!sortedCats.length) return '';
   const strong = sortedCats.filter((c) => c.score >= 80).slice(0, 2).map((c) => c.label);
   const weakest = sortedCats[sortedCats.length - 1];
+  // Gerçek KRİTİK (core kriter tamamen yok) — "kapı" kuralıyla tutarlı.
+  const hasCritical = topCritical?.severity === 'critical';
 
   let durum: string;
-  if (overallScore >= 80) durum = 'sağlam; küçük rötuşlarla daha da yükselir';
+  if (hasCritical) {
+    // Kritik eksik varken yüksek puan olsa bile "küçük rötuş" deme (genel not zaten tavanlı).
+    durum = overallScore >= 65
+      ? 'genelinde sağlam, ancak kritik eksik giderilmeden üst notlara çıkamaz'
+      : 'kritik eksik giderilmeden savunmaya hazır değil';
+  } else if (overallScore >= 80) durum = 'sağlam; küçük rötuşlarla daha da yükselir';
   else if (overallScore >= 65) durum = 'savunulabilir, ancak öncelikli eksikler giderilmeli';
   else if (overallScore >= 50) durum = 'ciddi revizyon gerektiriyor';
   else durum = 'kapsamlı revizyon şart';
@@ -106,7 +113,7 @@ function buildVerdict(
   if (weakest && weakest.score < 70) parts.push(`${weakest.label} (${weakest.score}/100) en zayıf alan.`);
   if (topCritical) {
     const pg = topCritical.pageNumber ? ` (S.${topCritical.pageNumber})` : '';
-    parts.push(`En öncelikli eksik: ${topCritical.title}${pg}.`);
+    parts.push(`${hasCritical ? 'Kritik eksik' : 'En öncelikli eksik'}: ${topCritical.title}${pg}.`);
   }
   parts.push(`${gradeLetter} notuyla ${durum}.`);
   return parts.join(' ');
