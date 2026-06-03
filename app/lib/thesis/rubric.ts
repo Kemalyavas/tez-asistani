@@ -81,12 +81,23 @@ export interface RubricCategory {
 }
 
 // ----------------------------------------------------------------------------
-// Kategoriler — toplam ağırlık 50 (kolay normalize edilir)
-// Ağırlıkların gerekçesi:
-//   - Methodology + Discussion en yüksek (8): tezin bilimsel çekirdeği
-//   - Format + Structure orta-yüksek (7): YÖK uyumluluğu kritik
-//   - Introduction + Literature + Findings + Writing orta (5)
-//   - Conclusion + Originality daha düşük (3-4): kısa ve subjektif
+// Kategoriler — RUBRIC_CATEGORIES[].weight = YÜKSEK LİSANS (varsayılan) ağırlığı.
+// Doktora için CATEGORY_WEIGHTS_BY_LEVEL/getCategoryWeight override eder.
+//
+// KANIT TEMELLİ ağırlıklandırma (Haz 2026 araştırması — saf-sezgi DEĞİL):
+//   - Uluslararası tez rubrikleri (UFS, UNSW, UNSW-CSE): analiz/katkı taşıyan
+//     bölümler (bulgular+tartışma+sonuç) baskın ~%50; metodoloji tek başına
+//     %10-20; format/yazım DÜŞÜK ~%10-15.
+//   - Akademik literatür (Mullins & Kiley 2002 "It's a PhD, not a Nobel Prize";
+//     Lovitts 2007 / Wageningen rubriği): jüri kararı argüman + özgünlük +
+//     metodolojik tutarlılık + eleştirel öz-değerlendirme üzerine kurulu; YAZIM
+//     CİLASI değil. Özensizlik en sık şikayet ama düşük asıl ağırlık
+//     ("özensizlik = güvensizlik" çarpanı).
+//   - SEVİYE belirleyici: Doktorada özgünlük neredeyse pass/fail kapısı; yüksek
+//     lisansta yetkin uygulama (yapı/format görece daha önemli).
+// Bu yüzden eski "format 7 > özgünlük 3" dağılımı (literatürün TERSİ) düzeltildi:
+//   - Yüksek Lisans: özgünlük 6, bulgular 6, sonuç 5; format 4, yazım 4, yapı 6.
+//   - Doktora: özgünlük 9 (en yüksek tekil), tartışma 9; format 3, yazım 3.
 // ----------------------------------------------------------------------------
 
 export const RUBRIC_CATEGORIES: RubricCategory[] = [
@@ -95,13 +106,13 @@ export const RUBRIC_CATEGORIES: RubricCategory[] = [
     title: 'Biçimsel Kurallar',
     description:
       'YÖK Lisansüstü Tez Yazım Kılavuzu uyumluluğu — kapak, etik beyan, özet, sayfa düzeni, kaynakça stili.',
-    weight: 7,
+    weight: 4,
   },
   {
     id: 'structure',
     title: 'Yapı ve Organizasyon',
     description: 'Bölüm hiyerarşisi, akıcı geçişler, ekler ve başlık numaralandırması.',
-    weight: 7,
+    weight: 6,
   },
   {
     id: 'introduction',
@@ -126,7 +137,7 @@ export const RUBRIC_CATEGORIES: RubricCategory[] = [
     id: 'findings',
     title: 'Bulgular',
     description: 'Sistematik sunum, tablo/grafik standardı, nesnellik, hipotez testi sonuçları.',
-    weight: 5,
+    weight: 6,
   },
   {
     id: 'discussion',
@@ -139,19 +150,19 @@ export const RUBRIC_CATEGORIES: RubricCategory[] = [
     id: 'conclusion',
     title: 'Sonuç ve Öneriler',
     description: 'Hipotezlerle bağlantılı sonuç, gelecek araştırma ve pratik öneriler.',
-    weight: 4,
+    weight: 5,
   },
   {
     id: 'originality',
     title: 'Özgünlük ve Katkı',
     description: 'Bilimsel yenilik, yöntem yeniliği veya alana net katkı.',
-    weight: 3,
+    weight: 6,
   },
   {
     id: 'writing',
     title: 'Akademik Yazım',
     description: 'Cümle yapısı, terminoloji, imla/dil bilgisi, akademik üslup ve zaman tutarlılığı.',
-    weight: 5,
+    weight: 4,
   },
 ];
 
@@ -696,6 +707,41 @@ export const FOUNDATIONAL_ITEM_IDS: string[] = [
   'intro-problem-defined',
   'conclude-hypothesis-link',
 ];
+
+// ----------------------------------------------------------------------------
+// Tez SEVİYESİNE göre kategori ağırlığı (kanıt: bkz. RUBRIC_CATEGORIES yorumu).
+// RUBRIC_CATEGORIES[].weight = yüksek lisans; doktora aşağıdaki map'le override.
+// ----------------------------------------------------------------------------
+
+export type ThesisLevel = 'master' | 'doctoral';
+
+// Doktora ağırlıkları (tam set). Özgün katkı doktorada baskın faktör
+// (Mullins & Kiley 2002; Lovitts/Wageningen); format/yazım daha da düşük.
+const DOCTORAL_CATEGORY_WEIGHTS: Record<RubricCategoryId, number> = {
+  format: 3,
+  structure: 5,
+  introduction: 4,
+  literature: 5,
+  methodology: 8,
+  findings: 6,
+  discussion: 9,
+  conclusion: 5,
+  originality: 9,
+  writing: 3,
+};
+
+// thesisType string'inden seviye sınıflandır. Belirsizse 'master' (yaygın + güvenli).
+export function classifyThesisLevel(thesisType: string): ThesisLevel {
+  return /doktora|doctoral|ph\.?\s*d|dissertation/i.test(thesisType || '')
+    ? 'doctoral'
+    : 'master';
+}
+
+// Bir kategorinin seviyeye göre genel-skor ağırlığı. master = RUBRIC_CATEGORIES default.
+export function getCategoryWeight(catId: RubricCategoryId, level: ThesisLevel = 'master'): number {
+  if (level === 'doctoral') return DOCTORAL_CATEGORY_WEIGHTS[catId];
+  return getRubricCategory(catId).weight;
+}
 
 // Sanity check (dev-time): ID'ler unique, kategori ID'leri tutarlı.
 // İlk import'ta bir kez çalışır; failure crash → konfig hatası anında görünür.

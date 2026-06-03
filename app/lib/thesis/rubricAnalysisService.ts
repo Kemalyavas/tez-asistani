@@ -36,6 +36,9 @@ import {
   RUBRIC_VERSION,
   EMPIRICAL_ONLY_ITEM_IDS,
   FOUNDATIONAL_ITEM_IDS,
+  classifyThesisLevel,
+  getCategoryWeight,
+  type ThesisLevel,
   type ItemStatus,
   type RubricCategoryId,
   type RubricItem,
@@ -117,6 +120,8 @@ export interface RubricAnalysisResult {
   detectedLanguage: 'tr' | 'en';
   thesisType: string;
   studyType: StudyType;
+  // Genel skor ağırlıklandırmasında kullanılan seviye (master/doctoral).
+  thesisLevel: ThesisLevel;
   // Yüklenen dosya muhtemelen tam bir tez değil (temel bölümlerin çoğu eksik).
   // UI'da "kısmi yükleme" uyarısı gösterilir; puanı DEĞİŞTİRMEZ, sadece bağlam verir.
   likelyPartialUpload: boolean;
@@ -609,16 +614,18 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
     scoreCategory(cat.id, extract.items)
   );
 
-  // Genel puan: kategori puanları weighted by category weight.
+  // Genel puan: kategori puanları SEVİYEYE GÖRE kategori ağırlığıyla weighted.
+  // (Doktora özgünlük-ağırlıklı, yüksek lisans yetkinlik-ağırlıklı — kanıt: rubric.ts)
   // Tamamen not_applicable kategoriler (applicable=false) genel nota KATILMAZ —
   // aksi halde 0 puanla genel notu haksızca aşağı çekerlerdi (teorik tez bugu).
+  const thesisLevel: ThesisLevel = classifyThesisLevel(extract.thesisType);
   let totalCatWeight = 0;
   let weightedCatScore = 0;
   for (const c of categories) {
     if (!c.applicable) continue;
-    const catDef = getRubricCategory(c.id);
-    totalCatWeight += catDef.weight;
-    weightedCatScore += c.weightedRatio * catDef.weight;
+    const w = getCategoryWeight(c.id, thesisLevel);
+    totalCatWeight += w;
+    weightedCatScore += c.weightedRatio * w;
   }
   const overallRatio = totalCatWeight > 0 ? weightedCatScore / totalCatWeight : 0;
   const { grade, label } = ratioToOverallGrade(overallRatio);
@@ -663,6 +670,7 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
     detectedLanguage: extract.detectedLanguage,
     thesisType: extract.thesisType,
     studyType: extract.studyType,
+    thesisLevel,
     likelyPartialUpload,
     overallGrade: grade,
     gradeLabel: label,
