@@ -32,7 +32,7 @@ export default function PremiumResultDisplay({
   result,
   documentId,
 }: PremiumResultDisplayProps) {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['overview', 'priority']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['priority', 'issues']));
   const [selectedIssueType, setSelectedIssueType] = useState<'all' | 'critical' | 'major' | 'minor' | 'formatting'>('all');
 
   const toggleSection = (section: string) => {
@@ -188,36 +188,41 @@ export default function PremiumResultDisplay({
         </div>
       </div>
 
-      {/* İstatistikler */}
+      {/* İstatistikler — Türkçe; PDF modunda güvenilmez olan (0) kaynak/şekil-tablo
+          değerleri gösterilmez (yanlış "0" yerine hiç gösterme, güveni korur). */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg p-4 shadow">
           <div className="flex items-center text-gray-500 mb-1">
             <FileText className="h-4 w-4 mr-2" />
-            <span className="text-sm">Pages</span>
+            <span className="text-sm">Sayfa</span>
           </div>
           <p className="text-2xl font-bold">{stats.pageCount != null ? stats.pageCount : '-'}</p>
         </div>
         <div className="bg-white rounded-lg p-4 shadow">
           <div className="flex items-center text-gray-500 mb-1">
             <PenTool className="h-4 w-4 mr-2" />
-            <span className="text-sm">Words</span>
+            <span className="text-sm">Kelime</span>
           </div>
-          <p className="text-2xl font-bold">{stats.wordCount != null ? stats.wordCount.toLocaleString() : '-'}</p>
+          <p className="text-2xl font-bold">{stats.wordCount != null ? stats.wordCount.toLocaleString('tr-TR') : '-'}</p>
         </div>
-        <div className="bg-white rounded-lg p-4 shadow">
-          <div className="flex items-center text-gray-500 mb-1">
-            <Quote className="h-4 w-4 mr-2" />
-            <span className="text-sm">References</span>
+        {stats.referenceCount > 0 && (
+          <div className="bg-white rounded-lg p-4 shadow">
+            <div className="flex items-center text-gray-500 mb-1">
+              <Quote className="h-4 w-4 mr-2" />
+              <span className="text-sm">Kaynak</span>
+            </div>
+            <p className="text-2xl font-bold">{stats.referenceCount}</p>
           </div>
-          <p className="text-2xl font-bold">{stats.referenceCount != null ? stats.referenceCount : '-'}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow">
-          <div className="flex items-center text-gray-500 mb-1">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            <span className="text-sm">Figures/Tables</span>
+        )}
+        {((stats.figureCount ?? 0) + (stats.tableCount ?? 0)) > 0 && (
+          <div className="bg-white rounded-lg p-4 shadow">
+            <div className="flex items-center text-gray-500 mb-1">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              <span className="text-sm">Şekil/Tablo</span>
+            </div>
+            <p className="text-2xl font-bold">{(stats.figureCount ?? 0) + (stats.tableCount ?? 0)}</p>
           </div>
-          <p className="text-2xl font-bold">{(stats.figureCount ?? 0) + (stats.tableCount ?? 0)}</p>
-        </div>
+        )}
       </div>
 
       {/* Öncelikli Eylemler */}
@@ -257,7 +262,11 @@ export default function PremiumResultDisplay({
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">{action.action}</p>
-                    <p className="text-sm text-gray-600 mt-1">{action.reason}</p>
+                    {action.reason && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        <span className="font-semibold">Beklenen kriter:</span> {action.reason}
+                      </p>
+                    )}
                     <span className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
                       action.estimatedImpact === 'high' ? 'bg-red-100 text-red-700' :
                       action.estimatedImpact === 'medium' ? 'bg-orange-100 text-orange-700' :
@@ -414,7 +423,7 @@ export default function PremiumResultDisplay({
             </div>
 
             {/* Sorun listesi */}
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className="space-y-3">
               {filteredIssues.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">Bu kategoride sorun bulunamadı.</p>
               ) : (
@@ -445,9 +454,8 @@ export default function PremiumResultDisplay({
                         )}
 
                         {issue.suggestion && (
-                          <div className="mt-2 flex items-start">
-                            <Lightbulb className="h-4 w-4 text-green-600 mr-1 mt-0.5 flex-shrink-0" />
-                            <p className="text-sm text-green-700">{issue.suggestion}</p>
+                          <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5">
+                            <span className="font-semibold">Beklenen kriter:</span> {issue.suggestion}
                           </div>
                         )}
 
@@ -566,9 +574,9 @@ export default function PremiumResultDisplay({
 
       {/* Meta bilgi */}
       <div className="text-center text-xs text-gray-400 mt-4">
-        Analyzed: {new Date(result.metadata?.analyzedAt || Date.now()).toLocaleString('en-US')}
+        Analiz: {new Date(result.metadata?.analyzedAt || Date.now()).toLocaleString('tr-TR')}
         {' • '}
-        Duration: {((result.metadata?.processingTimeMs || 0) / 1000).toFixed(1)}s
+        Süre: {((result.metadata?.processingTimeMs || 0) / 1000).toFixed(1)} sn
       </div>
     </div>
   );
