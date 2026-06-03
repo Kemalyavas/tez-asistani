@@ -2,578 +2,401 @@
 
 import { useState } from 'react';
 import {
-  CheckCircle,
-  AlertTriangle,
-  AlertCircle,
-  XCircle,
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  BookOpen,
-  PenTool,
-  Quote,
-  Layout,
-  Target,
-  Award,
-  TrendingUp,
-  MapPin,
-  Lightbulb,
-  Shield,
-  BarChart3
+  CheckCircle, AlertTriangle, AlertCircle, XCircle, ChevronDown, FileText,
+  PenTool, Quote, Layout, Target, Award, TrendingUp, MapPin, Lightbulb,
+  Shield, BarChart3, BookOpen, Scale,
 } from 'lucide-react';
 import RubricFeedbackButton from './RubricFeedbackButton';
 
 interface PremiumResultDisplayProps {
   result: any;
-  documentId?: string; // Rubric feedback için — verilmezse buton render olmaz
+  documentId?: string;
 }
 
-export default function PremiumResultDisplay({
-  result,
-  documentId,
-}: PremiumResultDisplayProps) {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['priority', 'issues']));
-  const [selectedIssueType, setSelectedIssueType] = useState<'all' | 'critical' | 'major' | 'minor' | 'formatting'>('all');
+// ---- Kategori meta ----
+const SECTION_LABELS: Record<string, string> = {
+  formatting: 'Biçimsel Kurallar',
+  structure: 'Yapı ve Organizasyon',
+  introduction: 'Giriş',
+  literature: 'Literatür Taraması',
+  methodology: 'Metodoloji',
+  findings: 'Bulgular',
+  discussion: 'Tartışma',
+  conclusion: 'Sonuç ve Öneriler',
+  originality: 'Özgünlük ve Katkı',
+  writingQuality: 'Akademik Yazım',
+  references: 'Kaynaklar ve Atıflar',
+};
 
-  const toggleSection = (section: string) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(section)) {
-      newExpanded.delete(section);
-    } else {
-      newExpanded.add(section);
-    }
-    setExpandedSections(newExpanded);
+function sectionLabel(key: string) {
+  return SECTION_LABELS[key] || key;
+}
+
+function sectionIcon(key: string) {
+  const cls = 'h-4 w-4';
+  switch (key) {
+    case 'formatting': return <FileText className={cls} />;
+    case 'structure': return <Layout className={cls} />;
+    case 'introduction': return <MapPin className={cls} />;
+    case 'literature': return <BookOpen className={cls} />;
+    case 'methodology': return <Target className={cls} />;
+    case 'findings': return <BarChart3 className={cls} />;
+    case 'discussion': return <Lightbulb className={cls} />;
+    case 'conclusion': return <Award className={cls} />;
+    case 'originality': return <TrendingUp className={cls} />;
+    case 'writingQuality': return <PenTool className={cls} />;
+    case 'references': return <Quote className={cls} />;
+    default: return <FileText className={cls} />;
+  }
+}
+
+// score → renk paleti
+function scoreBar(s: number) {
+  if (s >= 85) return 'bg-emerald-500';
+  if (s >= 70) return 'bg-lime-500';
+  if (s >= 55) return 'bg-amber-400';
+  if (s >= 40) return 'bg-orange-400';
+  return 'bg-rose-400';
+}
+function scoreText(s: number) {
+  if (s >= 85) return 'text-emerald-600';
+  if (s >= 70) return 'text-lime-600';
+  if (s >= 55) return 'text-amber-600';
+  if (s >= 40) return 'text-orange-600';
+  return 'text-rose-500';
+}
+
+// severity meta
+function sevBadge(sev: string) {
+  switch (sev) {
+    case 'critical': return { label: 'KRİTİK', cls: 'text-rose-600 bg-rose-100', strip: 'bg-rose-500', ring: 'ring-rose-200' };
+    case 'major': return { label: 'ÖNEMLİ', cls: 'text-amber-700 bg-amber-100', strip: 'bg-amber-400', ring: 'ring-amber-200' };
+    case 'minor': return { label: 'KÜÇÜK', cls: 'text-yellow-700 bg-yellow-100', strip: 'bg-yellow-400', ring: 'ring-yellow-200' };
+    default: return { label: 'FORMAT', cls: 'text-blue-700 bg-blue-100', strip: 'bg-blue-400', ring: 'ring-blue-200' };
+  }
+}
+function sevIcon(sev: string) {
+  switch (sev) {
+    case 'critical': return <XCircle className="h-5 w-5 text-rose-500" />;
+    case 'major': return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+    case 'minor': return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+    default: return <Layout className="h-5 w-5 text-blue-500" />;
+  }
+}
+
+// Deterministik jüri hükmü — eldeki veriden (AI yok, çelişki yok, her zaman tutarlı)
+function buildVerdict(
+  sortedCats: { key: string; label: string; score: number }[],
+  topCritical: any | null,
+  gradeLetter: string,
+  overallScore: number,
+): string {
+  if (!sortedCats.length) return '';
+  const strong = sortedCats.filter((c) => c.score >= 80).slice(0, 2).map((c) => c.label);
+  const weakest = sortedCats[sortedCats.length - 1];
+
+  let durum: string;
+  if (overallScore >= 80) durum = 'sağlam; küçük rötuşlarla daha da yükselir';
+  else if (overallScore >= 65) durum = 'savunulabilir, ancak öncelikli eksikler giderilmeli';
+  else if (overallScore >= 50) durum = 'ciddi revizyon gerektiriyor';
+  else durum = 'kapsamlı revizyon şart';
+
+  const parts: string[] = [];
+  if (strong.length) parts.push(`Tez ${strong.join(' ve ')} alanlarında güçlü.`);
+  if (weakest && weakest.score < 70) parts.push(`${weakest.label} (${weakest.score}/100) en zayıf alan.`);
+  if (topCritical) {
+    const pg = topCritical.pageNumber ? ` (S.${topCritical.pageNumber})` : '';
+    parts.push(`En öncelikli eksik: ${topCritical.title}${pg}.`);
+  }
+  parts.push(`${gradeLetter} notuyla ${durum}.`);
+  return parts.join(' ');
+}
+
+export default function PremiumResultDisplay({ result, documentId }: PremiumResultDisplayProps) {
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+  const [showAllIssues, setShowAllIssues] = useState(false);
+  const [issueFilter, setIssueFilter] = useState<'all' | 'critical' | 'major' | 'minor' | 'formatting'>('all');
+  const [showYok, setShowYok] = useState(false);
+
+  const toggleCat = (k: string) => {
+    const next = new Set(expandedCats);
+    next.has(k) ? next.delete(k) : next.add(k);
+    setExpandedCats(next);
   };
 
-  // Grade bilgisi
-  const grade = result.grade || {
-    letter: result.gradeCategory?.[0] || 'B',
-    label: result.gradeCategory || result.grade_category || 'Orta',
-    color: '#FBBF24'
-  };
-
-  // Bölüm skorları
-  const sections = result.sections || result.categoryScores || {};
-
-  // Sorunlar
+  // ---- Veri çıkarma (guard'lı, geriye uyumlu) ----
+  const overallScore: number = result.overallScore ?? result.overall_score ?? 0;
+  const grade = result.grade || { letter: 'B', label: 'Orta', color: '#FBBF24' };
+  const sections: Record<string, any> = result.sections || result.categoryScores || {};
   const issues = result.issues || {
     critical: result.criticalIssues || result.critical_issues || [],
     major: result.majorIssues || result.major_issues || [],
     minor: result.minorIssues || result.minor_issues || [],
-    formatting: result.formattingIssues || []
+    formatting: result.formattingIssues || [],
   };
-
-  // YÖK uyumluluk
-  const yokCompliance = result.yokCompliance || { score: 0, compliant: [], nonCompliant: [] };
-
-  // İstatistikler
   const stats = result.statistics || result.metadata || {};
+  const strengths: string[] = result.strengths || [];
+  const yok = result.yokCompliance || { score: 0, compliant: [], nonCompliant: [] };
 
-  // Tüm sorunları filtrele
-  const getAllIssues = () => {
-    if (selectedIssueType === 'all') {
-      return [
-        ...issues.critical.map((i: any) => ({ ...i, severity: 'critical' })),
-        ...issues.major.map((i: any) => ({ ...i, severity: 'major' })),
-        ...issues.minor.map((i: any) => ({ ...i, severity: 'minor' })),
-        ...issues.formatting.map((i: any) => ({ ...i, severity: 'formatting' })),
-      ];
-    }
-    return (issues[selectedIssueType] || []).map((i: any) => ({ ...i, severity: selectedIssueType }));
-  };
+  // sıralı kategoriler (yüksek → düşük)
+  const sortedCats = Object.entries(sections)
+    .map(([key, v]: [string, any]) => ({ key, label: sectionLabel(key), score: v?.score ?? 0, data: v }))
+    .sort((a, b) => b.score - a.score);
 
-  const filteredIssues = getAllIssues();
+  // tüm sorunlar (severity etiketli)
+  const allIssues = [
+    ...(issues.critical || []).map((i: any) => ({ ...i, severity: 'critical' })),
+    ...(issues.major || []).map((i: any) => ({ ...i, severity: 'major' })),
+    ...(issues.minor || []).map((i: any) => ({ ...i, severity: 'minor' })),
+    ...(issues.formatting || []).map((i: any) => ({ ...i, severity: 'formatting' })),
+  ];
+  const issueCount = allIssues.length;
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'critical': return <XCircle className="h-5 w-5 text-red-500" />;
-      case 'major': return <AlertTriangle className="h-5 w-5 text-orange-500" />;
-      case 'minor': return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-      case 'formatting': return <Layout className="h-5 w-5 text-blue-500" />;
-      default: return <AlertCircle className="h-5 w-5 text-gray-500" />;
-    }
-  };
+  // öncelikli kartlar: kritik + önemli, ilk 3
+  const topActions = allIssues.filter((i) => i.severity === 'critical' || i.severity === 'major').slice(0, 3);
+  const topCritical = allIssues.find((i) => i.severity === 'critical') || topActions[0] || null;
 
-  const getSeverityBg = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'bg-red-50 border-red-200';
-      case 'major': return 'bg-orange-50 border-orange-200';
-      case 'minor': return 'bg-yellow-50 border-yellow-200';
-      case 'formatting': return 'bg-blue-50 border-blue-200';
-      default: return 'bg-gray-50 border-gray-200';
-    }
-  };
+  const verdict = buildVerdict(sortedCats, topCritical, grade.letter, overallScore)
+    || result.executiveSummary || result.summary || '';
 
-  const getSectionIcon = (section: string) => {
-    switch (section) {
-      // Rubric v1.0 — 10 kategori
-      case 'formatting': return <FileText className="h-5 w-5" />;
-      case 'structure': return <Layout className="h-5 w-5" />;
-      case 'introduction': return <MapPin className="h-5 w-5" />;
-      case 'literature': return <BookOpen className="h-5 w-5" />;
-      case 'methodology': return <Target className="h-5 w-5" />;
-      case 'findings': return <BarChart3 className="h-5 w-5" />;
-      case 'discussion': return <Lightbulb className="h-5 w-5" />;
-      case 'conclusion': return <Award className="h-5 w-5" />;
-      case 'originality': return <TrendingUp className="h-5 w-5" />;
-      case 'writingQuality': return <PenTool className="h-5 w-5" />;
-      // Legacy (eski analizlerde olabilir, geriye uyum)
-      case 'references': return <Quote className="h-5 w-5" />;
-      default: return <FileText className="h-5 w-5" />;
-    }
-  };
+  const filteredIssues = issueFilter === 'all' ? allIssues : allIssues.filter((i) => i.severity === issueFilter);
+  const strongCount = sortedCats.filter((c) => c.score >= 85).length;
+  const weakest = sortedCats[sortedCats.length - 1];
+  const refCount = stats.referenceCount ?? 0;
+  const figTab = (stats.figureCount ?? 0) + (stats.tableCount ?? 0);
 
-  const getSectionLabel = (section: string) => {
-    const labels: Record<string, string> = {
-      // Rubric v1.0 — 10 kategori
-      formatting: 'Format ve Biçimlendirme',
-      structure: 'Yapı ve Organizasyon',
-      introduction: 'Giriş',
-      literature: 'Literatür Taraması',
-      methodology: 'Metodoloji',
-      findings: 'Bulgular',
-      discussion: 'Tartışma',
-      conclusion: 'Sonuç ve Öneriler',
-      originality: 'Özgünlük ve Katkı',
-      writingQuality: 'Akademik Yazım',
-      // Legacy
-      references: 'Kaynaklar ve Atıflar',
-    };
-    return labels[section] || section;
+  // tek bir kanıtlı kart (öncelikli ve tüm-sorunlar görünümünde ortak)
+  const IssueCard = ({ issue }: { issue: any }) => {
+    const b = sevBadge(issue.severity);
+    return (
+      <div className={`bg-white rounded-2xl shadow-sm ring-1 ${b.ring} overflow-hidden`}>
+        <div className="flex items-stretch">
+          <div className={`w-1.5 ${b.strip}`} />
+          <div className="flex-1 p-5">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${b.cls}`}>{b.label}</span>
+                <h3 className="font-bold text-slate-900">{issue.title}</h3>
+                {issue.location && <span className="text-xs text-slate-400">{issue.location}</span>}
+              </div>
+              {issue.pageNumber ? (
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded flex items-center gap-1 flex-shrink-0">
+                  <MapPin className="h-3 w-3" /> Sayfa {issue.pageNumber}
+                </span>
+              ) : null}
+            </div>
+            {issue.description && <p className="text-sm text-slate-700 leading-relaxed">{issue.description}</p>}
+            {issue.originalText ? (
+              <div className="mt-3 bg-slate-50 border-l-2 border-slate-300 rounded-r px-3 py-2">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">Tezinden</div>
+                <p className="text-sm italic text-slate-600">&quot;{issue.originalText}&quot;</p>
+              </div>
+            ) : null}
+            {issue.suggestion ? (
+              <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5">
+                <span className="font-semibold">Beklenen kriter:</span> {issue.suggestion}
+              </div>
+            ) : null}
+            {documentId && issue.rubricItemId ? (
+              <div className="mt-3 flex justify-end">
+                <RubricFeedbackButton documentId={documentId} rubricItemId={issue.rubricItemId} />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="space-y-6">
-      {/* Genel Skor Kartı */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Tez Analiz Raporu</h2>
-              <p className="text-blue-100">Premium AI Değerlendirmesi</p>
-            </div>
-            <div className="text-center">
-              <div
-                className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold"
-                style={{ backgroundColor: grade.color + '33', color: grade.color }}
-              >
-                {grade.letter}
-              </div>
-              <p className="mt-2 font-medium">{grade.label}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-gray-600">Genel Puan</span>
-            <span className="text-3xl font-bold" style={{ color: grade.color }}>
-              {result.overallScore || result.overall_score}/100
-            </span>
-          </div>
-
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+      {/* ============ HERO: KARAR KARTI ============ */}
+      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+        <div className="p-6 sm:p-8 flex flex-col sm:flex-row gap-6">
+          {/* Not halkası */}
+          <div className="flex-shrink-0 flex flex-col items-center justify-center">
             <div
-              className="h-3 rounded-full transition-all duration-500"
-              style={{
-                width: `${result.overallScore || result.overall_score}%`,
-                backgroundColor: grade.color
-              }}
-            />
-          </div>
-
-          <p className="text-gray-700 leading-relaxed">
-            {result.executiveSummary || result.summary}
-          </p>
-        </div>
-      </div>
-
-      {/* İstatistikler — Türkçe; PDF modunda güvenilmez olan (0) kaynak/şekil-tablo
-          değerleri gösterilmez (yanlış "0" yerine hiç gösterme, güveni korur). */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 shadow">
-          <div className="flex items-center text-gray-500 mb-1">
-            <FileText className="h-4 w-4 mr-2" />
-            <span className="text-sm">Sayfa</span>
-          </div>
-          <p className="text-2xl font-bold">{stats.pageCount != null ? stats.pageCount : '-'}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow">
-          <div className="flex items-center text-gray-500 mb-1">
-            <PenTool className="h-4 w-4 mr-2" />
-            <span className="text-sm">Kelime</span>
-          </div>
-          <p className="text-2xl font-bold">{stats.wordCount != null ? stats.wordCount.toLocaleString('tr-TR') : '-'}</p>
-        </div>
-        {stats.referenceCount > 0 && (
-          <div className="bg-white rounded-lg p-4 shadow">
-            <div className="flex items-center text-gray-500 mb-1">
-              <Quote className="h-4 w-4 mr-2" />
-              <span className="text-sm">Kaynak</span>
-            </div>
-            <p className="text-2xl font-bold">{stats.referenceCount}</p>
-          </div>
-        )}
-        {((stats.figureCount ?? 0) + (stats.tableCount ?? 0)) > 0 && (
-          <div className="bg-white rounded-lg p-4 shadow">
-            <div className="flex items-center text-gray-500 mb-1">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              <span className="text-sm">Şekil/Tablo</span>
-            </div>
-            <p className="text-2xl font-bold">{(stats.figureCount ?? 0) + (stats.tableCount ?? 0)}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Öncelikli Eylemler */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <button
-          onClick={() => toggleSection('priority')}
-          className="w-full p-4 flex items-center justify-between bg-gradient-to-r from-orange-50 to-red-50 border-b"
-        >
-          <div className="flex items-center">
-            <Target className="h-5 w-5 text-orange-600 mr-2" />
-            <span className="font-semibold text-gray-800">Öncelikli Eylemler</span>
-            <span className="ml-2 bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full">
-              {(result.priorityActions || []).length} eylem
-            </span>
-          </div>
-          {expandedSections.has('priority') ? <ChevronUp /> : <ChevronDown />}
-        </button>
-
-        {expandedSections.has('priority') && (
-          <div className="p-4 space-y-3">
-            {(result.priorityActions || []).map((action: any, index: number) => (
-              <div
-                key={index}
-                className={`p-4 rounded-lg border ${
-                  action.estimatedImpact === 'high' ? 'bg-red-50 border-red-200' :
-                  action.estimatedImpact === 'medium' ? 'bg-orange-50 border-orange-200' :
-                  'bg-yellow-50 border-yellow-200'
-                }`}
-              >
-                <div className="flex items-start">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                    action.estimatedImpact === 'high' ? 'bg-red-200 text-red-700' :
-                    action.estimatedImpact === 'medium' ? 'bg-orange-200 text-orange-700' :
-                    'bg-yellow-200 text-yellow-700'
-                  }`}>
-                    {action.order || index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-800">{action.action}</p>
-                    {action.reason && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        <span className="font-semibold">Beklenen kriter:</span> {action.reason}
-                      </p>
-                    )}
-                    <span className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
-                      action.estimatedImpact === 'high' ? 'bg-red-100 text-red-700' :
-                      action.estimatedImpact === 'medium' ? 'bg-orange-100 text-orange-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {action.estimatedImpact === 'high' ? 'Yüksek Etki' :
-                       action.estimatedImpact === 'medium' ? 'Orta Etki' : 'Düşük Etki'}
-                    </span>
-                  </div>
-                </div>
+              className="w-28 h-28 rounded-full flex items-center justify-center"
+              style={{ background: `conic-gradient(${grade.color} 0 ${overallScore}%, #e5e7eb ${overallScore}% 100%)` }}
+            >
+              <div className="w-[100px] h-[100px] bg-white rounded-full flex flex-col items-center justify-center">
+                <span className="text-3xl font-extrabold leading-none" style={{ color: grade.color }}>{grade.letter}</span>
+                <span className="text-sm font-bold text-slate-700 mt-0.5">{overallScore}<span className="text-slate-400 text-xs">/100</span></span>
               </div>
+            </div>
+            <span className="mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ color: grade.color, backgroundColor: grade.color + '1A' }}>{grade.label}</span>
+          </div>
+          {/* Jüri hükmü */}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-1.5">
+              <Scale className="w-4 h-4" /> Jüri Değerlendirmesi
+            </div>
+            <p className="text-[15px] leading-relaxed text-slate-700">{verdict}</p>
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              <div className="bg-rose-50 rounded-xl px-3 py-2.5 text-center">
+                <div className="text-xl font-bold text-rose-600">{(issues.critical || []).length}</div>
+                <div className="text-[11px] text-rose-500 font-medium">kritik sorun</div>
+              </div>
+              <div className="bg-emerald-50 rounded-xl px-3 py-2.5 text-center">
+                <div className="text-sm font-bold text-emerald-600 leading-tight mt-0.5 truncate">{sortedCats[0]?.label || '-'}</div>
+                <div className="text-[11px] text-emerald-500 font-medium">en güçlü ({sortedCats[0]?.score ?? 0})</div>
+              </div>
+              <div className="bg-amber-50 rounded-xl px-3 py-2.5 text-center">
+                <div className="text-sm font-bold text-amber-600 leading-tight mt-0.5 truncate">{weakest?.label || '-'}</div>
+                <div className="text-[11px] text-amber-500 font-medium">en zayıf ({weakest?.score ?? 0})</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Güvenilir istatistik şeridi */}
+        <div className="border-t border-slate-100 px-6 sm:px-8 py-3 flex flex-wrap gap-x-8 gap-y-1 text-sm">
+          {stats.pageCount != null && <span className="text-slate-500">Sayfa: <b className="text-slate-800">{stats.pageCount}</b></span>}
+          {stats.wordCount != null && <span className="text-slate-500">Kelime: <b className="text-slate-800">{Number(stats.wordCount).toLocaleString('tr-TR')}</b></span>}
+          {refCount > 0 && <span className="text-slate-500">Kaynak: <b className="text-slate-800">{refCount}</b></span>}
+          {figTab > 0 && <span className="text-slate-500">Şekil/Tablo: <b className="text-slate-800">{figTab}</b></span>}
+        </div>
+      </div>
+
+      {/* ============ ÖNCE BUNLARI DÜZELT ============ */}
+      {topActions.length > 0 && (
+        <div>
+          <h2 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-rose-500 rounded-full" /> Önce bunları düzelt
+            <span className="text-xs font-medium text-slate-400">en yüksek etkili {topActions.length} madde</span>
+          </h2>
+          <p className="text-sm text-slate-500 mb-4">Her maddede tezinden bir kanıt ve karşılanması beklenen kriter var.</p>
+          <div className="space-y-4">
+            {topActions.map((issue, i) => <IssueCard key={i} issue={issue} />)}
+          </div>
+          {issueCount > topActions.length && !showAllIssues && (
+            <button
+              onClick={() => setShowAllIssues(true)}
+              className="mt-4 w-full text-sm font-medium text-slate-500 bg-white ring-1 ring-slate-200 rounded-xl py-2.5 hover:bg-slate-50"
+            >
+              Kalan {issueCount - topActions.length} sorunu göster
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ============ TÜM SORUNLAR (filtreli, isteğe bağlı) ============ */}
+      {showAllIssues && (
+        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-slate-400 rounded-full" /> Tüm sorunlar ({issueCount})
+          </h2>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {([
+              ['all', `Tümü (${issueCount})`],
+              ['critical', `Kritik (${(issues.critical || []).length})`],
+              ['major', `Önemli (${(issues.major || []).length})`],
+              ['minor', `Küçük (${(issues.minor || []).length})`],
+              ['formatting', `Format (${(issues.formatting || []).length})`],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setIssueFilter(key as any)}
+                className={`px-3 py-1 rounded-full text-sm ${issueFilter === key ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
+              >
+                {label}
+              </button>
             ))}
           </div>
-        )}
-      </div>
-
-      {/* Bölüm Skorları */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <button
-          onClick={() => toggleSection('sections')}
-          className="w-full p-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border-b"
-        >
-          <div className="flex items-center">
-            <BarChart3 className="h-5 w-5 text-blue-600 mr-2" />
-            <span className="font-semibold text-gray-800">Bölüm Değerlendirmeleri</span>
+          <div className="space-y-3">
+            {filteredIssues.length === 0
+              ? <p className="text-center text-slate-400 py-6">Bu kategoride sorun yok.</p>
+              : filteredIssues.map((issue, i) => <IssueCard key={i} issue={issue} />)}
           </div>
-          {expandedSections.has('sections') ? <ChevronUp /> : <ChevronDown />}
-        </button>
+        </div>
+      )}
 
-        {expandedSections.has('sections') && (
-          <div className="p-4 space-y-4">
-            {Object.entries(sections).map(([key, section]: [string, any]) => (
-              <div key={key} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center">
-                    {getSectionIcon(key)}
-                    <span className="ml-2 font-medium">{getSectionLabel(key)}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`text-lg font-bold ${
-                      section.score >= 80 ? 'text-green-600' :
-                      section.score >= 60 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {section.score}/100
-                    </span>
-                  </div>
-                </div>
-
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                  <div
-                    className={`h-2 rounded-full ${
-                      section.score >= 80 ? 'bg-green-500' :
-                      section.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}
-                    style={{ width: `${section.score}%` }}
-                  />
-                </div>
-
-                <p className="text-sm text-gray-600 mb-3">{section.feedback}</p>
-
-                {section.strengths && section.strengths.length > 0 && (
-                  <div className="mb-2">
-                    <p className="text-xs font-medium text-green-700 mb-1">Güçlü Yönler:</p>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      {section.strengths.map((s: string, i: number) => (
-                        <li key={i} className="flex items-start">
-                          <CheckCircle className="h-3 w-3 text-green-500 mr-1 mt-0.5 flex-shrink-0" />
-                          {s}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {section.improvements && section.improvements.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-orange-700 mb-1">İyileştirme Önerileri:</p>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      {section.improvements.map((s: string, i: number) => (
-                        <li key={i} className="flex items-start">
-                          <Lightbulb className="h-3 w-3 text-orange-500 mr-1 mt-0.5 flex-shrink-0" />
-                          {s}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Sorunlar */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <button
-          onClick={() => toggleSection('issues')}
-          className="w-full p-4 flex items-center justify-between bg-gradient-to-r from-red-50 to-orange-50 border-b"
-        >
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
-            <span className="font-semibold text-gray-800">Tespit Edilen Sorunlar</span>
-            <span className="ml-2 bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
-              {issues.critical.length + issues.major.length + issues.minor.length + issues.formatting.length} sorun
-            </span>
-          </div>
-          {expandedSections.has('issues') ? <ChevronUp /> : <ChevronDown />}
-        </button>
-
-        {expandedSections.has('issues') && (
-          <div className="p-4">
-            {/* Filtre butonları */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              <button
-                onClick={() => setSelectedIssueType('all')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  selectedIssueType === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                Tümü ({issues.critical.length + issues.major.length + issues.minor.length + issues.formatting.length})
-              </button>
-              <button
-                onClick={() => setSelectedIssueType('critical')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  selectedIssueType === 'critical' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-600'
-                }`}
-              >
-                Kritik ({issues.critical.length})
-              </button>
-              <button
-                onClick={() => setSelectedIssueType('major')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  selectedIssueType === 'major' ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-600'
-                }`}
-              >
-                Önemli ({issues.major.length})
-              </button>
-              <button
-                onClick={() => setSelectedIssueType('minor')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  selectedIssueType === 'minor' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-600'
-                }`}
-              >
-                Küçük ({issues.minor.length})
-              </button>
-              <button
-                onClick={() => setSelectedIssueType('formatting')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  selectedIssueType === 'formatting' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600'
-                }`}
-              >
-                Format ({issues.formatting.length})
-              </button>
-            </div>
-
-            {/* Sorun listesi */}
-            <div className="space-y-3">
-              {filteredIssues.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">Bu kategoride sorun bulunamadı.</p>
-              ) : (
-                filteredIssues.map((issue: any, index: number) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-lg border ${getSeverityBg(issue.severity)}`}
+      {/* ============ 10 KATEGORİ (sıralı bar, tıkla-aç) ============ */}
+      {sortedCats.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-indigo-500 rounded-full" /> Kategoriler, tek bakışta
+          </h2>
+          <div className="space-y-2">
+            {sortedCats.map((c) => {
+              const open = expandedCats.has(c.key);
+              const hasDetail = (c.data?.strengths?.length || 0) + (c.data?.improvements?.length || 0) > 0;
+              return (
+                <div key={c.key} className="rounded-lg">
+                  <button
+                    onClick={() => hasDetail && toggleCat(c.key)}
+                    className={`w-full flex items-center gap-3 py-2 px-1 rounded-lg ${hasDetail ? 'hover:bg-slate-50 cursor-pointer' : 'cursor-default'}`}
                   >
-                    <div className="flex items-start">
-                      {getSeverityIcon(issue.severity)}
-                      <div className="ml-3 flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-800">{issue.title}</h4>
-                          {issue.pageNumber && (
-                            <span className="flex items-center text-xs text-gray-500 bg-white px-2 py-1 rounded">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              Sayfa {issue.pageNumber}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{issue.description}</p>
-
-                        {issue.originalText && (
-                          <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                            <p className="text-xs text-gray-500 mb-1">Orijinal metin:</p>
-                            <p className="text-sm italic text-gray-700">"{issue.originalText}"</p>
-                          </div>
-                        )}
-
-                        {issue.suggestion && (
-                          <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5">
-                            <span className="font-semibold">Beklenen kriter:</span> {issue.suggestion}
-                          </div>
-                        )}
-
-                        {/* Rubric feedback — sadece rubric pipeline analizi için
-                            (issue.rubricItemId yalnızca yeni sistemde dolar; legacy
-                            analizlerde undefined → buton render olmaz) */}
-                        {documentId && issue.rubricItemId && (
-                          <div className="mt-3 flex justify-end">
-                            <RubricFeedbackButton
-                              documentId={documentId}
-                              rubricItemId={issue.rubricItemId}
-                            />
-                          </div>
-                        )}
-                      </div>
+                    <span className="flex items-center gap-1.5 w-40 flex-shrink-0 text-sm text-slate-600 text-left">
+                      <span className="text-slate-400">{sectionIcon(c.key)}</span>{c.label}
+                    </span>
+                    <span className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <span className={`block h-2 rounded-full ${scoreBar(c.score)}`} style={{ width: `${c.score}%` }} />
+                    </span>
+                    <span className={`text-sm font-bold w-9 text-right ${scoreText(c.score)}`}>{c.score}</span>
+                    {hasDetail && <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />}
+                  </button>
+                  {open && (
+                    <div className="ml-1 pl-3 border-l-2 border-slate-100 pb-3 pt-1 space-y-2">
+                      {(c.data?.strengths || []).map((s: string, i: number) => (
+                        <p key={`s${i}`} className="text-xs text-slate-600 flex items-start gap-1.5">
+                          <CheckCircle className="h-3.5 w-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />{s}
+                        </p>
+                      ))}
+                      {(c.data?.improvements || []).map((s: string, i: number) => (
+                        <p key={`i${i}`} className="text-xs text-slate-600 flex items-start gap-1.5">
+                          <Lightbulb className="h-3.5 w-3.5 text-amber-500 mt-0.5 flex-shrink-0" />{s}
+                        </p>
+                      ))}
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* YÖK Uyumluluk */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <button
-          onClick={() => toggleSection('yok')}
-          className="w-full p-4 flex items-center justify-between bg-gradient-to-r from-green-50 to-teal-50 border-b"
-        >
-          <div className="flex items-center">
-            <Shield className="h-5 w-5 text-green-600 mr-2" />
-            <span className="font-semibold text-gray-800">YÖK Standartları Uyumluluğu</span>
-            <span className={`ml-2 text-xs px-2 py-1 rounded-full ${
-              yokCompliance.score >= 80 ? 'bg-green-100 text-green-700' :
-              yokCompliance.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-              'bg-red-100 text-red-700'
-            }`}>
-              %{yokCompliance.score}
+      {/* ============ GÜÇLÜ YÖNLER ============ */}
+      {strengths.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-emerald-500 rounded-full" /> Tezinin güçlü yanları
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {strengths.map((s, i) => (
+              <span key={i} className="text-sm bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg">{s}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ============ YÖK UYUMLULUĞU ============ */}
+      {(yok.compliant?.length > 0 || yok.nonCompliant?.length > 0) && (
+        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+          <button onClick={() => setShowYok(!showYok)} className="w-full p-4 flex items-center justify-between hover:bg-slate-50">
+            <span className="font-semibold text-slate-800 flex items-center gap-2">
+              <Shield className="h-5 w-5 text-emerald-600" /> YÖK Standartları Uyumluluğu
+              <span className={`text-xs px-2 py-0.5 rounded-full ${yok.score >= 80 ? 'bg-emerald-100 text-emerald-700' : yok.score >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>%{yok.score}</span>
             </span>
-          </div>
-          {expandedSections.has('yok') ? <ChevronUp /> : <ChevronDown />}
-        </button>
-
-        {expandedSections.has('yok') && (
-          <div className="p-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Uyulan standartlar */}
-              <div className="border rounded-lg p-4 bg-green-50">
-                <h4 className="font-medium text-green-800 mb-3 flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Uyulan Standartlar ({yokCompliance.compliant?.length || 0})
-                </h4>
-                <ul className="space-y-2">
-                  {(yokCompliance.compliant || []).map((item: string, index: number) => (
-                    <li key={index} className="text-sm text-green-700 flex items-start">
-                      <CheckCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+            <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${showYok ? 'rotate-180' : ''}`} />
+          </button>
+          {showYok && (
+            <div className="p-4 pt-0 grid sm:grid-cols-2 gap-4">
+              <div className="border rounded-lg p-4 bg-emerald-50">
+                <h4 className="font-medium text-emerald-800 mb-2 text-sm flex items-center gap-1.5"><CheckCircle className="h-4 w-4" /> Uyulan ({yok.compliant?.length || 0})</h4>
+                <ul className="space-y-1.5">{(yok.compliant || []).map((it: string, i: number) => <li key={i} className="text-sm text-emerald-700">{it}</li>)}</ul>
               </div>
-
-              {/* Uyulmayan standartlar */}
-              <div className="border rounded-lg p-4 bg-red-50">
-                <h4 className="font-medium text-red-800 mb-3 flex items-center">
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Eksik Standartlar ({yokCompliance.nonCompliant?.length || 0})
-                </h4>
-                <ul className="space-y-2">
-                  {(yokCompliance.nonCompliant || []).map((item: string, index: number) => (
-                    <li key={index} className="text-sm text-red-700 flex items-start">
-                      <XCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+              <div className="border rounded-lg p-4 bg-rose-50">
+                <h4 className="font-medium text-rose-800 mb-2 text-sm flex items-center gap-1.5"><XCircle className="h-4 w-4" /> Eksik ({yok.nonCompliant?.length || 0})</h4>
+                <ul className="space-y-1.5">{(yok.nonCompliant || []).map((it: string, i: number) => <li key={i} className="text-sm text-rose-700">{it}</li>)}</ul>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
-      {/* Güçlü Yönler */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <button
-          onClick={() => toggleSection('strengths')}
-          className="w-full p-4 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-green-50 border-b"
-        >
-          <div className="flex items-center">
-            <Award className="h-5 w-5 text-emerald-600 mr-2" />
-            <span className="font-semibold text-gray-800">Güçlü Yönler</span>
-            <span className="ml-2 bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-full">
-              {(result.strengths || []).length}
-            </span>
-          </div>
-          {expandedSections.has('strengths') ? <ChevronUp /> : <ChevronDown />}
-        </button>
-
-        {expandedSections.has('strengths') && (
-          <div className="p-4">
-            <ul className="space-y-2">
-              {(result.strengths || []).map((strength: string, index: number) => (
-                <li
-                  key={index}
-                  className="flex items-start p-3 bg-emerald-50 rounded-lg border border-emerald-200"
-                >
-                  <TrendingUp className="h-5 w-5 text-emerald-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">{strength}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {/* Meta bilgi */}
-      <div className="text-center text-xs text-gray-400 mt-4">
+      {/* ============ META ============ */}
+      <div className="text-center text-xs text-slate-400">
         Analiz: {new Date(result.metadata?.analyzedAt || Date.now()).toLocaleString('tr-TR')}
         {' • '}
         Süre: {((result.metadata?.processingTimeMs || 0) / 1000).toFixed(1)} sn
