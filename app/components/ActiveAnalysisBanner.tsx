@@ -70,24 +70,48 @@ export default function ActiveAnalysisBanner() {
     });
   }, []);
 
-  // İşlenmekte olan dokümanları çek (mount + keşif).
-  const fetchProcessing = useCallback(async () => {
+  // İşlenmekte olan dokümanları KEŞFET + takip ettiklerimizin TAMAMLANMASINI yakala.
+  // ÖNEMLİ: Realtime bu projede güvenilir teslim etmiyor (uygulamanın geri kalanı da
+  // polling kullanıyor) — bu yüzden keşif Realtime'a DEĞİL periyodik poll'a dayanır.
+  const reconcile = useCallback(async () => {
     if (!userId) return;
     const since = new Date(Date.now() - RECENT_WINDOW_MS).toISOString();
-    const { data } = await supabase
+    // 1) Keşif: kullanıcının işlenmekte olan dokümanları
+    const { data: processing } = await supabase
       .from('thesis_documents')
       .select(SELECT_COLS)
       .eq('user_id', userId)
       .eq('status', 'processing')
       .gte('created_at', since)
       .order('created_at', { ascending: false });
-    if (data) for (const row of data as TrackedDoc[]) upsert(row);
+    const processingIds = new Set((processing ?? []).map((d: any) => d.id));
+    if (processing) for (const row of processing as TrackedDoc[]) upsert(row);
+    // 2) Tamamlanma: takip ettiğimiz ama artık processing OLMAYAN dokümanların son durumu
+    const stale = docsRef.current.filter((d) => d.status === 'processing' && !processingIds.has(d.id));
+    if (stale.length) {
+      const { data: finals } = await supabase
+        .from('thesis_documents')
+        .select(SELECT_COLS)
+        .in('id', stale.map((d) => d.id));
+      if (finals) {
+        for (const row of finals as TrackedDoc[]) {
+          if (!dismissedRef.current.has(row.id)) {
+            setDocs((prev) => prev.map((d) => (d.id === row.id ? { ...d, ...row } : d)));
+          }
+        }
+      }
+    }
   }, [userId, supabase, upsert]);
 
+  // Keşif + tamamlanma poll'u: userId varken SÜREKLI. Processing varken sık,
+  // boştayken seyrek. Realtime'a bağımlı değil — banner her durumda görünür.
+  const hasProcessing = docs.some((d) => d.status === 'processing');
   useEffect(() => {
     if (!userId) { setDocs([]); return; }
-    fetchProcessing();
-  }, [userId, fetchProcessing]);
+    reconcile();
+    const interval = setInterval(reconcile, hasProcessing ? POLL_MS : 12000);
+    return () => clearInterval(interval);
+  }, [userId, hasProcessing, reconcile]);
 
   // --- Realtime: kullanıcının satırlarındaki INSERT (yeni analiz) + UPDATE (tamamlanma) ---
   useEffect(() => {
@@ -113,24 +137,6 @@ export default function ActiveAnalysisBanner() {
       .subscribe();
     return () => { if (channel) supabase.removeChannel(channel); };
   }, [userId, supabase, upsert]);
-
-  // --- Yedek poll: processing varken (Realtime kaçırırsa) tamamlanmayı yakala ---
-  const hasProcessing = docs.some((d) => d.status === 'processing');
-  useEffect(() => {
-    if (!userId || !hasProcessing) return;
-    const interval = setInterval(async () => {
-      const ids = docsRef.current.filter((d) => d.status === 'processing').map((d) => d.id);
-      if (ids.length === 0) return;
-      const { data } = await supabase.from('thesis_documents').select(SELECT_COLS).in('id', ids);
-      if (data) {
-        setDocs((prev) => prev.map((d) => {
-          const fresh = (data as TrackedDoc[]).find((x) => x.id === d.id);
-          return fresh ? { ...d, ...fresh } : d;
-        }));
-      }
-    }, POLL_MS);
-    return () => clearInterval(interval);
-  }, [userId, hasProcessing, supabase]);
 
   const dismiss = (id: string) => {
     dismissedRef.current.add(id);
