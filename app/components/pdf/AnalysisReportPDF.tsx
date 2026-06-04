@@ -84,20 +84,20 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 56,
     paddingHorizontal: 44,
-    lineHeight: 1.5,
+    lineHeight: 1.45,
   },
   // Header
   header: { marginBottom: 18, borderBottomWidth: 2, borderBottomColor: '#E5E7EB', paddingBottom: 12 },
-  logo: { fontSize: 20, fontWeight: 'bold', color: '#2563EB' },
-  headerSub: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+  logo: { fontSize: 20, fontWeight: 'bold', color: '#2563EB', lineHeight: 1.15, marginBottom: 2 },
+  headerSub: { fontSize: 11, color: '#6B7280', marginTop: 0, lineHeight: 1.2 },
   headerMeta: { fontSize: 9, color: '#9CA3AF', marginTop: 4 },
 
   // Score block
   scoreRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, padding: 16, backgroundColor: '#F9FAFB', borderRadius: 8 },
-  scoreCircle: { width: 78, height: 78, borderRadius: 39, borderWidth: 4, alignItems: 'center', justifyContent: 'center', marginRight: 18 },
-  scoreValue: { fontSize: 26, fontWeight: 'bold' },
-  scoreOutOf: { fontSize: 9, color: '#6B7280' },
-  gradeBadge: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 6, alignSelf: 'flex-start' },
+  scoreCircle: { width: 82, height: 82, borderRadius: 41, borderWidth: 4, alignItems: 'center', justifyContent: 'center', marginRight: 18 },
+  scoreValue: { fontSize: 24, fontWeight: 'bold', lineHeight: 1 },
+  scoreOutOf: { fontSize: 9, color: '#6B7280', lineHeight: 1, marginTop: 3 },
+  gradeBadge: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6, alignSelf: 'flex-start', lineHeight: 1 },
   gradeLabel: { fontSize: 12, color: '#374151', marginTop: 4, fontWeight: 'medium' },
 
   // Verdict
@@ -108,12 +108,12 @@ const styles = StyleSheet.create({
 
   // Section
   section: { marginBottom: 16 },
-  sectionTitle: { fontSize: 13, fontWeight: 'bold', color: '#111827', marginBottom: 8, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  sectionTitle: { fontSize: 13, fontWeight: 'bold', color: '#111827', marginBottom: 8, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: '#E5E7EB', lineHeight: 1.3 },
 
   // Stats
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statBox: { width: '18%', minWidth: 70, alignItems: 'center', paddingVertical: 8, backgroundColor: '#F3F4F6', borderRadius: 6 },
-  statValue: { fontSize: 15, fontWeight: 'bold', color: '#111827' },
+  statValue: { fontSize: 15, fontWeight: 'bold', color: '#111827', lineHeight: 1.1 },
   statLabel: { fontSize: 8, color: '#6B7280', marginTop: 2 },
 
   // Category row
