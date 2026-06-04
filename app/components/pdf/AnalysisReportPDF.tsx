@@ -37,6 +37,13 @@ Font.register({
       src: 'https://cdn.jsdelivr.net/npm/@expo-google-fonts/roboto@0.2.3/Roboto_700Bold.ttf',
       fontWeight: 'bold',
     },
+    {
+      // issueQuote (tezinden alıntı) fontStyle:'italic' kullanıyor — bu varyant
+      // register edilmezse @react-pdf "Could not resolve font ... italic" hatası
+      // verir. HEAD ile 200 doğrulandı.
+      src: 'https://cdn.jsdelivr.net/npm/@expo-google-fonts/roboto@0.2.3/Roboto_400Regular_Italic.ttf',
+      fontStyle: 'italic',
+    },
   ],
 });
 // Uzun kelimelerde satır kaydırma sorununu azalt
