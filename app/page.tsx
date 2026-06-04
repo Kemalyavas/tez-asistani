@@ -6,7 +6,7 @@ import FileUploader from './components/FileUploader';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
 import { Zap, CheckCircle, BookOpen, FileSearch, Check, Coins, Gift, Sparkles } from 'lucide-react';
-import { CREDIT_PACKAGES, CREDIT_COSTS } from './lib/pricing';
+import { CREDIT_PACKAGES, CREDIT_COSTS, ANALYSIS_TIERS } from './lib/pricing';
 import { structuredData } from './lib/structuredData';
 import Script from 'next/script';
 import toast from 'react-hot-toast';
@@ -59,9 +59,13 @@ export default function Home() {
   const creditCostInfo = [
     { action: 'Kaynak Formatlama', credits: CREDIT_COSTS.citation_format.creditsRequired, note: 'APA, MLA, Chicago, IEEE' },
     { action: 'Özet Oluşturma', credits: CREDIT_COSTS.abstract_generate.creditsRequired, note: 'Türkçe, İngilizce veya Her İkisi' },
-    { action: 'Tez Analizi (1-30 sayfa)', credits: CREDIT_COSTS.thesis_basic.creditsRequired, note: 'Temel' },
-    { action: 'Tez Analizi (31-60 sayfa)', credits: CREDIT_COSTS.thesis_standard.creditsRequired, note: 'Standart' },
-    { action: 'Tez Analizi (60+ sayfa)', credits: CREDIT_COSTS.thesis_comprehensive.creditsRequired, note: 'Kapsamlı' },
+    // Sayfa aralıkları TEK KAYNAKTAN (ANALYSIS_TIERS) türetiliyor — landing ile
+    // gerçek ücretlendirme her zaman tutarlı (eskiden 1-30/31-60/60+ hardcode'du, yanlıştı).
+    ...ANALYSIS_TIERS.map((t) => ({
+      action: `Tez Analizi (${t.maxPages >= 999 ? `${t.minPages}+` : `${t.minPages}-${t.maxPages}`} sayfa)`,
+      credits: t.credits,
+      note: t.name.replace(' Analiz', ''),
+    })),
   ];
 
   const handleSelectPackage = async (packageId: string) => {
@@ -473,7 +477,7 @@ export default function Home() {
                   Başlamak için kredi kartı gerekiyor mu?
                 </h3>
                 <p className="text-gray-600">
-                  Hayır! Kayıt olunca anında <strong>10 ücretsiz kredi</strong> kazanırsın. Bu, tam bir tez analizi veya birden fazla kaynak ve özet için yeterli.
+                  Hayır! Kayıt olunca anında <strong>10 ücretsiz kredi</strong> kazanırsın. Bu, kısa bir tezin temel analizine ya da birkaç kaynak ve özet denemesine yeter.
                 </p>
               </div>
 
@@ -491,7 +495,7 @@ export default function Home() {
                   Hangi kredi paketini seçmeliyim?
                 </h3>
                 <p className="text-gray-600">
-                  Tek bir tez için <strong>Başlangıç</strong> veya <strong>Standart</strong> paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, <strong>Pro</strong> paketi 500 kredi sunuyor.
+                  Tek bir tez için <strong>Starter</strong> veya <strong>Standart</strong> paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, <strong>Pro</strong> paketi 500 kredi sunuyor.
                 </p>
               </div>
 
