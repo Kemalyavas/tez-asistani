@@ -1,20 +1,29 @@
+// app/api/reports/pdf/route.ts
+// ============================================================================
+// Analiz raporunu profesyonel, VEKTÖREL PDF olarak üretir (@react-pdf/renderer).
+// Server-side renderToBuffer → application/pdf attachment. Ücretsiz (pricing.ts
+// pdf_report = 0). IDOR guard: yalnız kullanıcının kendi analiz edilmiş dokümanı.
+// ============================================================================
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { isAdmin } from '@/app/lib/adminUtils';
+import React from 'react';
+import { renderToBuffer } from '@react-pdf/renderer';
+import { AnalysisReportPDF } from '@/app/components/pdf/AnalysisReportPDF';
 
-// Supabase admin client
+// @react-pdf fontkit/zlib gibi Node API'leri kullanır → Node runtime şart (Edge değil).
+export const runtime = 'nodejs';
+export const maxDuration = 30; // font fetch + render için güvenli pay
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const PDF_CREDIT_COST = 5;
-
 export async function POST(request: NextRequest) {
   try {
-    // Auth kontrolü (getUser validates server-side; getSession only reads cookie)
+    // Auth (getUser server-side doğrular)
     const cookieStore = await cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     const {
@@ -26,54 +35,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Oturum açmanız gerekiyor' }, { status: 401 });
     }
 
-    const userId = user.id;
-    const userIsAdmin = isAdmin(userId);
-
     const body = await request.json();
     const { documentId } = body;
-
     if (!documentId) {
       return NextResponse.json({ error: 'documentId gerekli' }, { status: 400 });
     }
 
-    // Dökümanı al
+    // IDOR guard: yalnız kullanıcının kendi dokümanı (user_id eşleşmesi)
     const { data: document, error: docError } = await supabaseAdmin
       .from('thesis_documents')
-      .select('*')
+      .select('id, user_id, filename, status, analysis_result')
       .eq('id', documentId)
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .single();
 
     if (docError || !document) {
       return NextResponse.json({ error: 'Döküman bulunamadı' }, { status: 404 });
     }
-
-    if (document.status !== 'analyzed') {
-      return NextResponse.json(
-        { error: 'Döküman henüz analiz edilmedi' },
-        { status: 400 }
-      );
+    if (document.status !== 'analyzed' || !document.analysis_result) {
+      return NextResponse.json({ error: 'Döküman henüz analiz edilmedi' }, { status: 400 });
     }
 
-    // NOT: PDF rapor şu an HTML olarak döndürülüyor, gerçek PDF üretimi henüz implementasyonda.
-    // Kredi düşürme devre dışı — gerçek PDF üretimi tamamlanınca aktif edilecek.
-
-    // PDF HTML içeriği oluştur
-    const result = document.analysis_result;
-    const pdfHtml = generatePDFHTML(result, document.filename);
-
-    // PDF metadata
-    const pdfData = {
-      html: pdfHtml,
-      documentId,
+    // PDF üret (ücretsiz — kredi düşürülmez)
+    const element = React.createElement(AnalysisReportPDF, {
+      result: document.analysis_result,
       filename: document.filename,
-      generatedAt: new Date().toISOString(),
-    };
+    });
+    const buffer = await renderToBuffer(element as any);
 
-    return NextResponse.json({
-      success: true,
-      pdfData,
-      message: 'PDF verisi oluşturuldu. Tarayıcıda yazdırabilirsiniz.',
+    // Content-Disposition için ASCII-güvenli dosya adı (Türkçe karakterler → _)
+    const safeName =
+      (document.filename || 'rapor')
+        .replace(/\.(pdf|docx)$/i, '')
+        .replace(/[^\w.-]+/g, '_')
+        .slice(0, 60) || 'rapor';
+
+    return new NextResponse(buffer as any, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="TezAI-${safeName}.pdf"`,
+        'Cache-Control': 'no-store',
+      },
     });
   } catch (error) {
     console.error('[PDF Report] Error:', error);
@@ -82,357 +85,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * HTML escape — Gemini AI'dan gelen kullanıcı tezi içeriği (issue.description,
- * suggestion, strengths text, vs.) HTML'e raw interpolate edilmemeli. Aksi
- * halde kötü-niyetli ya da prompt-injection edilmiş içerik script enjekte
- * edebilir. PDF kullanıcının kendi browser'ında render edildiği için risk
- * self-XSS düzeyinde ama yine de iyi pratik.
- */
-function esc(value: unknown): string {
-  if (value === null || value === undefined) return '';
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function generatePDFHTML(result: any, filename: string): string {
-  const date = new Date().toLocaleDateString('tr-TR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const gradeColors: Record<string, string> = {
-    'A+': '#10B981',
-    'A': '#34D399',
-    'A-': '#6EE7B7',
-    'B+': '#FCD34D',
-    'B': '#FBBF24',
-    'B-': '#F59E0B',
-    'C+': '#F97316',
-    'C': '#EF4444',
-    'F': '#DC2626',
-  };
-
-  const categoryLabels: Record<string, string> = {
-    structure: 'Yapı & Organizasyon',
-    methodology: 'Metodoloji',
-    writing_quality: 'Yazım Kalitesi',
-    references: 'Kaynaklar',
-    originality: 'Özgünlük',
-  };
-
-  return `
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <title>TezAI Analiz Raporu - ${esc(filename)}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.6;
-      color: #1f2937;
-      background: white;
-      padding: 40px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #e5e7eb;
-    }
-    .logo {
-      font-size: 28px;
-      font-weight: bold;
-      color: #3b82f6;
-      margin-bottom: 10px;
-    }
-    .title { font-size: 20px; color: #6b7280; }
-    .date { font-size: 14px; color: #9ca3af; margin-top: 5px; }
-
-    .score-section {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 40px 0;
-      padding: 30px;
-      background: #f9fafb;
-      border-radius: 12px;
-    }
-    .score-circle {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: white;
-      border: 4px solid ${gradeColors[result.grade?.letter] || '#3b82f6'};
-    }
-    .score-value { font-size: 36px; font-weight: bold; }
-    .score-label { font-size: 14px; color: #6b7280; }
-    .grade-info {
-      margin-left: 30px;
-      text-align: left;
-    }
-    .grade-letter {
-      font-size: 24px;
-      font-weight: bold;
-      padding: 8px 16px;
-      border-radius: 8px;
-      display: inline-block;
-      color: white;
-      background: ${gradeColors[result.grade?.letter] || '#3b82f6'};
-    }
-    .grade-label { font-size: 18px; color: #374151; margin-top: 8px; }
-
-    .section { margin: 30px 0; }
-    .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #1f2937;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .metadata-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 15px;
-      margin: 20px 0;
-    }
-    .metadata-item {
-      text-align: center;
-      padding: 15px;
-      background: #f3f4f6;
-      border-radius: 8px;
-    }
-    .metadata-value { font-size: 24px; font-weight: bold; color: #1f2937; }
-    .metadata-label { font-size: 12px; color: #6b7280; }
-
-    .category-list { list-style: none; }
-    .category-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #f3f4f6;
-    }
-    .category-name { font-weight: 500; }
-    .category-score {
-      font-weight: bold;
-      padding: 4px 12px;
-      background: #e5e7eb;
-      border-radius: 4px;
-    }
-
-    .issue-list { list-style: none; }
-    .issue-item {
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border-left: 4px solid;
-    }
-    .issue-critical {
-      background: #fef2f2;
-      border-color: #ef4444;
-    }
-    .issue-major {
-      background: #fff7ed;
-      border-color: #f97316;
-    }
-    .issue-minor {
-      background: #eff6ff;
-      border-color: #3b82f6;
-    }
-    .issue-severity {
-      font-weight: bold;
-      font-size: 12px;
-      text-transform: uppercase;
-    }
-    .issue-description { margin-top: 4px; }
-    .issue-suggestion {
-      font-size: 13px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-
-    .strength-list { list-style: none; }
-    .strength-item {
-      padding: 8px 0;
-      padding-left: 24px;
-      position: relative;
-    }
-    .strength-item::before {
-      content: "✓";
-      position: absolute;
-      left: 0;
-      color: #10b981;
-      font-weight: bold;
-    }
-
-    .footer {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 2px solid #e5e7eb;
-      text-align: center;
-      font-size: 12px;
-      color: #9ca3af;
-    }
-
-    @media print {
-      body { padding: 20px; }
-      .section { page-break-inside: avoid; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div class="logo">TezAI</div>
-    <div class="title">Tez Analiz Raporu</div>
-    <div class="date">${date}</div>
-  </div>
-
-  <div class="score-section">
-    <div class="score-circle">
-      <div class="score-value">${esc(result.overallScore)}</div>
-      <div class="score-label">/ 100</div>
-    </div>
-    <div class="grade-info">
-      <div class="grade-letter">${esc(result.grade?.letter || 'N/A')}</div>
-      <div class="grade-label">${esc(result.grade?.label || 'Değerlendirilmedi')}</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Döküman Bilgileri</h2>
-    <div class="metadata-grid">
-      <div class="metadata-item">
-        <div class="metadata-value">${esc(result.metadata?.pageCount ?? 'N/A')}</div>
-        <div class="metadata-label">Sayfa</div>
-      </div>
-      <div class="metadata-item">
-        <div class="metadata-value">${esc(result.metadata?.wordCount?.toLocaleString() ?? 'N/A')}</div>
-        <div class="metadata-label">Kelime</div>
-      </div>
-      <div class="metadata-item">
-        <div class="metadata-value">${esc(result.metadata?.referenceCount ?? 'N/A')}</div>
-        <div class="metadata-label">Toplam Kaynak</div>
-      </div>
-      <div class="metadata-item">
-        <div class="metadata-value">${esc(result.metadata?.recentReferenceCount ?? 'N/A')}</div>
-        <div class="metadata-label">Güncel Kaynak</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Kategori Puanları</h2>
-    <ul class="category-list">
-      ${Object.entries(result.categoryScores || {})
-        .map(
-          ([key, data]: [string, any]) => `
-        <li class="category-item">
-          <span class="category-name">${esc(categoryLabels[key] || key)}</span>
-          <span class="category-score">${esc(data?.score ?? '-')}/100</span>
-        </li>
-      `
-        )
-        .join('')}
-    </ul>
-  </div>
-
-  ${
-    result.issues?.critical?.length > 0 ||
-    result.issues?.major?.length > 0 ||
-    result.issues?.minor?.length > 0
-      ? `
-  <div class="section">
-    <h2 class="section-title">Tespit Edilen Sorunlar (${esc(result.issues?.total ?? 0)})</h2>
-    <ul class="issue-list">
-      ${(result.issues?.critical || [])
-        .map(
-          (issue: any) => `
-        <li class="issue-item issue-critical">
-          <div class="issue-severity" style="color: #ef4444;">Kritik</div>
-          <div class="issue-description">${esc(issue.description)}</div>
-          ${issue.suggestion ? `<div class="issue-suggestion">💡 ${esc(issue.suggestion)}</div>` : ''}
-        </li>
-      `
-        )
-        .join('')}
-      ${(result.issues?.major || [])
-        .map(
-          (issue: any) => `
-        <li class="issue-item issue-major">
-          <div class="issue-severity" style="color: #f97316;">Önemli</div>
-          <div class="issue-description">${esc(issue.description)}</div>
-          ${issue.suggestion ? `<div class="issue-suggestion">💡 ${esc(issue.suggestion)}</div>` : ''}
-        </li>
-      `
-        )
-        .join('')}
-      ${(result.issues?.minor || [])
-        .slice(0, 5)
-        .map(
-          (issue: any) => `
-        <li class="issue-item issue-minor">
-          <div class="issue-severity" style="color: #3b82f6;">Küçük</div>
-          <div class="issue-description">${esc(issue.description)}</div>
-        </li>
-      `
-        )
-        .join('')}
-    </ul>
-  </div>
-  `
-      : ''
-  }
-
-  ${
-    result.strengths?.length > 0
-      ? `
-  <div class="section">
-    <h2 class="section-title">Güçlü Yönler</h2>
-    <ul class="strength-list">
-      ${result.strengths
-        .slice(0, 8)
-        .map((s: string) => `<li class="strength-item">${esc(s)}</li>`)
-        .join('')}
-    </ul>
-  </div>
-  `
-      : ''
-  }
-
-  ${
-    result.recommendations?.length > 0
-      ? `
-  <div class="section">
-    <h2 class="section-title">Geliştirme Önerileri</h2>
-    <ul class="strength-list">
-      ${result.recommendations.map((r: string) => `<li class="strength-item">${esc(r)}</li>`).join('')}
-    </ul>
-  </div>
-  `
-      : ''
-  }
-
-  <div class="footer">
-    <p>Bu rapor TezAI tarafından otomatik olarak oluşturulmuştur.</p>
-    <p>© ${new Date().getFullYear()} TezAI - Yapay Zeka Destekli Tez Analiz Platformu</p>
-  </div>
-</body>
-</html>
-`;
 }

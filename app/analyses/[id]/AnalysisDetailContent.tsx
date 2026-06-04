@@ -27,6 +27,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import PremiumResultDisplay from '@/app/components/PremiumResultDisplay';
+import toast from 'react-hot-toast';
 
 interface CategoryScore {
   score: number;
@@ -90,6 +91,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedIssues, setExpandedIssues] = useState<Set<string>>(new Set());
+  const [downloading, setDownloading] = useState(false);
 
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -131,6 +133,42 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
     fetchAnalysis();
   }, [analysisId, supabase, router]);
+
+  const handleDownloadPdf = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    const t = toast.loading('PDF hazırlanıyor...');
+    try {
+      const res = await fetch('/api/reports/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: analysisId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'PDF oluşturulamadı');
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const safe =
+        (analysis?.filename || 'rapor')
+          .replace(/\.(pdf|docx)$/i, '')
+          .replace(/[^\w.-]+/g, '_')
+          .slice(0, 60) || 'rapor';
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = `TezAI-${safe}.pdf`;
+      window.document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('PDF indirildi', { id: t });
+    } catch (e: any) {
+      toast.error(e?.message || 'PDF indirilemedi', { id: t });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const toggleIssue = (issueId: string) => {
     const newExpanded = new Set(expandedIssues);
@@ -230,7 +268,22 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
               <span>Analizlere Dön</span>
             </Link>
             <h1 className="text-xl font-bold text-gray-900 truncate max-w-md">{analysis.filename}</h1>
-            <div className="w-32"></div>
+            {analysis.status === 'analyzed' ? (
+              <button
+                onClick={handleDownloadPdf}
+                disabled={downloading}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {downloading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4" />
+                )}
+                <span>{downloading ? 'Hazırlanıyor...' : 'PDF İndir'}</span>
+              </button>
+            ) : (
+              <div className="w-32"></div>
+            )}
           </div>
         </div>
       </div>
