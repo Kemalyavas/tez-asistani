@@ -96,7 +96,7 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50/60 to-white py-12">
       <Script
         id="breadcrumbs-pricing"
         type="application/ld+json"
@@ -114,7 +114,7 @@ export default function PricingPage() {
         {/* Başlık */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Tezin İçin <span className="text-blue-600">Kredi</span> Satın Al
+            Tezin İçin <span className="text-primary-600">Kredi</span> Satın Al
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Sadece kullandığın kadar öde. Abonelik yok, aylık ücret yok.
@@ -123,9 +123,9 @@ export default function PricingPage() {
 
           {/* Mevcut Kredi Bakiyesi */}
           {user && (
-            <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-300 rounded-full px-6 py-3 shadow-sm">
-              <Coins className="h-6 w-6 text-blue-600 mr-2" />
-              <span className="text-lg text-blue-800">
+            <div className="inline-flex items-center bg-gradient-to-r from-primary-100 to-primary-50 border border-primary-300 rounded-full px-6 py-3 shadow-sm">
+              <Coins className="h-6 w-6 text-primary-600 mr-2" />
+              <span className="text-lg text-primary-800">
                 Bakiyeniz: <strong className="text-2xl">{creditsLoading ? '...' : currentCredits}</strong> kredi
               </span>
             </div>
@@ -134,8 +134,8 @@ export default function PricingPage() {
 
         {/* Çok turlu analiz değer önerisi */}
         <div className="max-w-3xl mx-auto mb-12">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6 flex items-start gap-4">
-            <Sparkles className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="bg-gradient-to-r from-primary-50 to-primary-50/40 border border-primary-200 rounded-2xl p-6 flex items-start gap-4">
+            <Sparkles className="h-6 w-6 text-primary-600 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="font-semibold text-gray-900 mb-1">
                 En iyi sonuç için birden fazla analiz turu
@@ -157,13 +157,13 @@ export default function PricingPage() {
               key={pkg.id}
               className={`relative rounded-2xl bg-white shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
                 pkg.popular
-                  ? 'border-blue-500 scale-105 z-10'
-                  : 'border-gray-200 hover:border-blue-300'
+                  ? 'border-primary-500 scale-105 z-10'
+                  : 'border-gray-200 hover:border-primary-300'
               }`}
             >
               {pkg.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg flex items-center">
+                  <span className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg flex items-center">
                     <Sparkles className="h-4 w-4 mr-1" />
                     En İyi Değer
                   </span>
@@ -181,11 +181,11 @@ export default function PricingPage() {
                   </div>
 
                   {/* Krediler */}
-                  <div className="bg-blue-50 rounded-lg py-3 px-4">
+                  <div className="bg-primary-50 rounded-lg py-3 px-4">
                     <div className="flex items-center justify-center">
-                      <Coins className="h-5 w-5 text-blue-600 mr-2" />
-                      <span className="text-2xl font-bold text-blue-600">{pkg.credits}</span>
-                      <span className="text-blue-600 ml-1">kredi</span>
+                      <Coins className="h-5 w-5 text-primary-600 mr-2" />
+                      <span className="text-2xl font-bold text-primary-600">{pkg.credits}</span>
+                      <span className="text-primary-600 ml-1">kredi</span>
                     </div>
                     {pkg.bonusCredits > 0 && (
                       <div className="flex items-center justify-center mt-1 text-green-600 text-sm">
@@ -213,7 +213,7 @@ export default function PricingPage() {
                   disabled={loading === pkg.id}
                   className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${
                     pkg.popular
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                      ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 shadow-lg hover:shadow-xl'
                       : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
@@ -254,7 +254,7 @@ export default function PricingPage() {
                     <td className="px-6 py-4 text-gray-900 font-medium">{action.name}</td>
                     <td className="px-6 py-4 text-gray-600">{action.description}</td>
                     <td className="px-6 py-4 text-right">
-                      <span className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold">
+                      <span className="inline-flex items-center bg-primary-100 text-primary-800 px-3 py-1 rounded-full font-semibold">
                         <Coins className="h-4 w-4 mr-1" />
                         {action.credits}
                       </span>
@@ -268,7 +268,7 @@ export default function PricingPage() {
 
         {/* Ücretsiz Kredi Bölümü */}
         <div className="max-w-3xl mx-auto mb-16">
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-8 border border-green-200 text-center">
+          <div className="bg-gradient-to-r from-green-50 to-primary-50 rounded-2xl p-8 border border-green-200 text-center">
             <Gift className="h-12 w-12 text-green-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Yeni Kullanıcılara 10 Ücretsiz Kredi!

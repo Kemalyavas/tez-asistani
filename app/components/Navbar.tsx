@@ -64,31 +64,31 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <button
               onClick={() => scrollToSection('features')}
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
+              className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
             >
               Özellikler
             </button>
             <button
               onClick={() => scrollToSection('how-it-works')}
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
+              className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
             >
               Nasıl Çalışır
             </button>
             <button
               onClick={() => scrollToSection('pricing')}
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
+              className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
             >
               Fiyatlar
             </button>
             <button
               onClick={() => scrollToSection('app')}
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
+              className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
             >
               Araçlar
             </button>
             <Link
               href="/privacy-policy"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
+              className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
             >
               Gizlilik Politikası
             </Link>
@@ -98,14 +98,14 @@ export default function Navbar() {
               <div className="flex items-center space-x-4">
                 <Link
                   href="/analyses"
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium">Analizlerim</span>
                 </Link>
                 <Link
                   href="/profile"
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
@@ -121,7 +121,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth"
-                className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                className="flex items-center space-x-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <LogIn className="h-4 w-4" />
                 <span>Giriş Yap</span>
@@ -132,7 +132,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             aria-label={isMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -145,31 +145,31 @@ export default function Navbar() {
             <div className="flex flex-col space-y-4">
               <button
                 onClick={() => scrollToSection('features')}
-                className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
+                className="text-left text-gray-600 hover:text-primary-600 font-medium transition-colors duration-300 py-2"
               >
                 Özellikler
               </button>
               <button
                 onClick={() => scrollToSection('how-it-works')}
-                className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
+                className="text-left text-gray-600 hover:text-primary-600 font-medium transition-colors duration-300 py-2"
               >
                 Nasıl Çalışır
               </button>
               <button
                 onClick={() => scrollToSection('pricing')}
-                className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
+                className="text-left text-gray-600 hover:text-primary-600 font-medium transition-colors duration-300 py-2"
               >
                 Fiyatlar
               </button>
               <button
                 onClick={() => scrollToSection('app')}
-                className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300 py-2"
+                className="text-left text-gray-600 hover:text-primary-600 font-medium transition-colors duration-300 py-2"
               >
                 Araçlar
               </button>
               <Link
                 href="/privacy-policy"
-                className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 py-2"
+                className="text-left text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Gizlilik Politikası
@@ -182,7 +182,7 @@ export default function Navbar() {
                     <Link
                       href="/analyses"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300 py-2"
+                      className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-colors duration-300 py-2"
                     >
                       <BarChart3 className="h-4 w-4" />
                       <span className="text-sm font-medium">Analizlerim</span>
@@ -190,7 +190,7 @@ export default function Navbar() {
                     <Link
                       href="/profile"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300 py-2"
+                      className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-colors duration-300 py-2"
                     >
                       <User className="h-4 w-4" />
                       <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
@@ -206,7 +206,7 @@ export default function Navbar() {
                   <Link
                     href="/auth"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block text-blue-600 hover:bg-blue-50 font-medium transition-colors duration-200 py-2"
+                    className="block text-primary-600 hover:bg-primary-50 font-medium transition-colors duration-200 py-2"
                   >
                     Giriş Yap / Kayıt Ol
                   </Link>

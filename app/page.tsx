@@ -112,12 +112,7 @@ export default function Home() {
     <main className="min-h-screen">
       {/* Hero Section */}
       <section className="gradient-bg py-24 relative overflow-hidden">
-        {/* Background Decorations */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
-        </div>
+        {/* Sade arka plan — gradient-bg yeterli (eski blur-blob dekorasyonları kaldırıldı) */}
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-fade-in">
@@ -155,7 +150,7 @@ export default function Home() {
                   Tez dosyaların SSL şifrelemesiyle korunur, analiz sonrası otomatik silinir ve hiçbir üçüncü tarafla paylaşılmaz.{' '}
                   <button
                     onClick={() => document.getElementById('privacy-policy')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200 cursor-pointer underline"
+                    className="font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-200 cursor-pointer underline"
                   >
                     Gizlilik Politikası
                   </button>
@@ -196,8 +191,8 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="feature-card text-center group">
-                <div className="text-blue-600 flex justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <div className="p-4 bg-blue-50 rounded-xl">
+                <div className="text-primary-600 flex justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="p-4 bg-primary-50 rounded-xl">
                     {feature.icon}
                   </div>
                 </div>
@@ -222,32 +217,32 @@ export default function Home() {
 
               <div className="text-center group animate-slide-in">
                 <div className="mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-500 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
                     1
                   </div>
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-gray-800">Tezini yükle</h3>
                 <p className="text-gray-600 leading-relaxed">
                   Tez belgenini PDF veya DOCX formatında güvenli sistemimize yükle.
-                  <span className="text-blue-600 font-semibold"> Otomatik format tespiti</span> hızlıca başlatır.
+                  <span className="text-primary-600 font-semibold"> Otomatik format tespiti</span> hızlıca başlatır.
                 </p>
               </div>
 
               <div className="text-center group animate-slide-in animation-delay-200">
                 <div className="mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
                     2
                   </div>
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-gray-800">Yapay zeka ile incele</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Gelişmiş yapay zeka tezini <span className="text-purple-600 font-semibold">akademik standartlara</span> göre ayrıntılı olarak analiz eder ve format kontrolü yapar.
+                  Gelişmiş yapay zeka tezini <span className="text-primary-600 font-semibold">akademik standartlara</span> göre ayrıntılı olarak analiz eder ve format kontrolü yapar.
                 </p>
               </div>
 
               <div className="text-center group animate-slide-in animation-delay-400">
                 <div className="mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
                     3
                   </div>
                 </div>
@@ -311,8 +306,8 @@ export default function Home() {
                 onClick={() => setActiveTab('upload')}
                 className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
                   activeTab === 'upload'
-                    ? 'bg-white text-blue-600 shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
+                    ? 'bg-white text-primary-600 shadow-lg transform scale-105'
+                    : 'text-gray-600 hover:text-primary-600 hover:bg-white/50'
                 }`}
               >
                 Tez Yükle
@@ -321,8 +316,8 @@ export default function Home() {
                 onClick={() => setActiveTab('citation')}
                 className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
                   activeTab === 'citation'
-                    ? 'bg-white text-blue-600 shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
+                    ? 'bg-white text-primary-600 shadow-lg transform scale-105'
+                    : 'text-gray-600 hover:text-primary-600 hover:bg-white/50'
                 }`}
               >
                 Kaynak Formatla
@@ -331,8 +326,8 @@ export default function Home() {
                 onClick={() => setActiveTab('abstract')}
                 className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
                   activeTab === 'abstract'
-                    ? 'bg-white text-blue-600 shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
+                    ? 'bg-white text-primary-600 shadow-lg transform scale-105'
+                    : 'text-gray-600 hover:text-primary-600 hover:bg-white/50'
                 }`}
               >
                 Özet Oluştur
@@ -384,12 +379,12 @@ export default function Home() {
               <div
                 key={pkg.id}
                 className={`relative bg-white rounded-2xl shadow-xl p-6 ${
-                  pkg.popular ? 'ring-2 ring-blue-600 transform scale-105 z-10' : 'hover:shadow-2xl transition-shadow'
+                  pkg.popular ? 'ring-2 ring-primary-600 transform scale-105 z-10' : 'hover:shadow-2xl transition-shadow'
                 }`}
               >
                 {pkg.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1.5 rounded-full text-sm font-semibold flex items-center">
+                    <span className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 py-1.5 rounded-full text-sm font-semibold flex items-center">
                       <Sparkles className="h-4 w-4 mr-1" />
                       En İyi Değer
                     </span>
@@ -403,11 +398,11 @@ export default function Home() {
                   <div className="text-4xl font-bold mb-2">₺{pkg.priceUsd}</div>
 
                   {/* Credits */}
-                  <div className="bg-blue-50 rounded-lg py-3 px-4">
+                  <div className="bg-primary-50 rounded-lg py-3 px-4">
                     <div className="flex items-center justify-center">
-                      <Coins className="h-5 w-5 text-blue-600 mr-2" />
-                      <span className="text-2xl font-bold text-blue-600">{pkg.credits}</span>
-                      <span className="text-blue-600 ml-1">kredi</span>
+                      <Coins className="h-5 w-5 text-primary-600 mr-2" />
+                      <span className="text-2xl font-bold text-primary-600">{pkg.credits}</span>
+                      <span className="text-primary-600 ml-1">kredi</span>
                     </div>
                     {pkg.bonusCredits > 0 && (
                       <div className="flex items-center justify-center mt-1 text-green-600 text-sm">
@@ -434,7 +429,7 @@ export default function Home() {
                   disabled={loadingPlan === pkg.id}
                   className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
                     pkg.popular
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                      ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600'
                       : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
@@ -454,7 +449,7 @@ export default function Home() {
                     <span className="text-gray-700">{item.action}</span>
                     {item.note && <span className="text-xs text-gray-400 ml-2">({item.note})</span>}
                   </div>
-                  <span className="font-semibold text-blue-600">{item.credits} kredi</span>
+                  <span className="font-semibold text-primary-600">{item.credits} kredi</span>
                 </div>
               ))}
             </div>
@@ -466,7 +461,7 @@ export default function Home() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="inline-flex items-center bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            <div className="inline-flex items-center bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
               <Sparkles className="h-4 w-4 mr-2" />
               Erken Erişim
             </div>
@@ -526,7 +521,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div id="privacy-policy" className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+              <div id="privacy-policy" className="bg-gradient-to-r from-green-50 to-primary-50 border border-green-200 rounded-lg p-6">
                 <h3 className="font-semibold mb-2 text-green-800 flex items-center">
                   🔒 Tezim güvende mi? Gizliliğim korunuyor mu?
                 </h3>
@@ -540,7 +535,7 @@ export default function Home() {
                   <li>• SSL şifrelemesiyle korunur</li>
                 </ul>
                 <p className="text-sm text-gray-600">
-                  Daha fazla bilgi için <a href="/privacy-policy" className="text-blue-600 hover:underline font-medium">Gizlilik Politikası</a>&apos;na bakabilirsin.
+                  Daha fazla bilgi için <a href="/privacy-policy" className="text-primary-600 hover:underline font-medium">Gizlilik Politikası</a>&apos;na bakabilirsin.
                 </p>
               </div>
             </div>
@@ -549,17 +544,17 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-500">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Tez Yazımına Bugün Başla
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-primary-100 mb-8">
             Ücretsiz analizini hemen kullan
           </p>
           <button
             onClick={scrollToApp}
-            className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition text-lg"
+            className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition text-lg"
           >
             Ücretsiz Başla
           </button>
