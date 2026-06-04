@@ -23,6 +23,7 @@ import {
   extractRubricItems,
   scoreRubric,
   toLegacyShape,
+  groundPageNumbers,
   type ExtractResult,
 } from '../../../lib/thesis/rubricAnalysisService';
 
@@ -190,6 +191,8 @@ export async function POST(request: NextRequest) {
     // PDF metadata'sından gelen GERÇEK fiziksel sayfa sayısı.
     // 0 = bilinmiyor (DOCX veya extraction fail). 0 ise chars/2750 tahminine fallback.
     let actualPdfPages = 0;
+    // PDF'in sayfa-bazlı metni (evidence→gerçek sayfa doğrulaması için). DOCX'te boş.
+    let pdfPages: string[] = [];
 
     try {
       if (isDocx) {
@@ -210,6 +213,7 @@ export async function POST(request: NextRequest) {
             const pdfData = await extractPdfData(buffer);
             text = pdfData.text;
             actualPdfPages = pdfData.numPages;
+            pdfPages = pdfData.pages;
           } catch {
             // Metin çıkarılamasa bile devam et - Gemini okuyacak
             text = '[PDF içeriği Gemini tarafından doğrudan okunacak]';
@@ -221,6 +225,7 @@ export async function POST(request: NextRequest) {
           const pdfData = await extractPdfData(buffer);
           text = pdfData.text;
           actualPdfPages = pdfData.numPages;
+          pdfPages = pdfData.pages;
         }
       }
     } catch (parseError) {
@@ -296,6 +301,10 @@ export async function POST(request: NextRequest) {
           fileName,
           signal: abortController.signal,
         });
+        // Sayfa numaralarını evidence'tan DOĞRULA (Gemini'nin tahminini tamamen ez):
+        // her bulgunun birebir alıntısı tezin sayfa-bazlı metninde aranır → gerçek
+        // sayfa. pdfPages yoksa (DOCX/taranmış PDF) sayfa null → UI göstermez.
+        extract.items = groundPageNumbers(extract.items, pdfPages);
         rubricExtractData = extract;
         const rubricResult = scoreRubric(extract);
         analysisResult = toLegacyShape(rubricResult);

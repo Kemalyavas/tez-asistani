@@ -210,7 +210,8 @@ function buildExtractSchema() {
             },
             pageNumber: {
               type: SchemaType.INTEGER,
-              description: 'Evidence bulunan sayfa numarası. Bilinmiyorsa 0.',
+              description:
+                '0 BIRAK. Sayfayı sen tahmin etme — sistem, evidence alıntısını tezin metninde arayarak doğru sayfayı otomatik hesaplar. (Yanlış/uydurma sayfa güveni bozduğu için bu alan yok sayılır.)',
             },
             comment: {
               type: SchemaType.STRING,
@@ -279,13 +280,14 @@ Sana ekli olarak bir Türkçe veya İngilizce yüksek lisans / doktora tezi PDF'
    - "partial": Kısmen karşılanmış. / Partially met.
    - "not_found": Karşılanmamış / bulunamadı. / Not met / not present.
    - "not_applicable": Bu tez tipi için geçerli değil (ör. teorik tezde etik kurul onayı). / Not applicable for this thesis type.
-3. evidence alanına tezdeki ORİJİNAL metni alıntıla (en fazla 200 karakter). / Quote the original text from the thesis (max 200 chars).
-4. pageNumber: alıntının bulunduğu sayfa numarası, bilinmiyorsa 0. / Page where the evidence appears, 0 if unknown.
+3. **evidence — BİREBİR alıntı (KRİTİK):** Tezden KELİMESİ KELİMESİNE, hiç değiştirmeden alıntı yap (en fazla 200 karakter). Sistem bu alıntıyı tez metninde arayıp sayfa numarasını OTOMATİK bulur; bu yüzden parafraz etme/özetleme/düzeltme yapma. Ayırt edici, en az ~20 karakterlik bir cümle parçası seç. Gerçek alıntı yoksa boş string bırak. / Quote VERBATIM (the system locates the page by searching this exact quote — do not paraphrase).
+4. **pageNumber: 0 BIRAK.** Sayfayı SEN verme; sistem evidence'tan doğru sayfayı hesaplar. (Do NOT guess the page — leave 0; the system computes it from the verbatim evidence.)
 5. **comment: TEZİN DİLİNDE 1-2 cümle yaz.** Türkçe tez → Türkçe comment; İngilizce tez → English comment. NEYI yaptığını/yapmadığını net söyle. (Write the comment IN THE LANGUAGE OF THE THESIS. State concretely what is done or missing — no vague praise.)
 6. Tarafsız ol. "Bu çok güzel" / "Excellent" gibi övgü ya da abartı kullanma. (Stay neutral; no flattery.)
 7. detectedLanguage: tezin dilini "tr" veya "en" olarak belirt. thesisType: "Yüksek Lisans Tezi" / "Doktora Tezi" / "Master's Thesis" / "PhD Thesis" — tezin diline uygun olanı seç.
 8. **actionHint — SADECE status "partial" veya "not_found" olan kriterler için**: BU TEZE özel, somut, tek cümlelik, uygulanabilir bir düzeltme talimatı yaz (tezin dilinde). "Şu bölüme şunu ekleyin", "Şu sayfadaki tabloya kaynak belirtin" gibi. Genel klişe verme; tezin gerçek durumuna göre yaz. status "found" / "not_applicable" ise actionHint = "" (boş). (Write a thesis-specific one-sentence fix only for partial/not_found; empty for found/not_applicable.)
 9. **statistics — gerçekten say, tahmin etme**: referenceCount (kaynakça girdi sayısı), figureCount (şekil/grafik sayısı), tableCount (tablo/çizelge sayısı). PDF ekliyse görselleri ve kaynakça listesini doğrudan tarayarak say. İlgili bölüm yoksa 0. (Actually count; do not estimate.)
+10. **GERÇEK YAPIYA ATIF — UYDURMA (KRİTİK):** comment ve actionHint'te SADECE tezde GERÇEKTEN var olan bölüm/başlıklara atıf yap. Standart makale şablonunu (Giriş/Yöntem/Bulgular/Tartışma/Sonuç) VARSAYMA — tez farklı yapıda olabilir. Tezde "Tartışma" diye AYRI bir bölüm yoksa "Tartışma bölümü eksik / sayfa X'te yok" gibi ifade KULLANMA; eksikliği gerçek yapıya atıfla anlat (örn. "Sonuç bölümünde bulgular literatürle karşılaştırılmamış"). Var olmayan bölüm adı veya sayfa numarası ÜRETME. NOT: Rubric kategori adları (ör. "Tartışma/Discussion") bir DEĞERLENDİRME EKSENİDİR; tezde aynı adla bir bölüm olmak ZORUNDA değildir. (Refer ONLY to sections that actually exist in this thesis; never invent section names or page numbers; rubric category names are evaluation axes, not required thesis sections.)
 
 **TEZ TÜRÜ VE UYGULANABİLİRLİK — ÇOK ÖNEMLİ (adil değerlendirme):**
 Önce tezin yöntem türünü (studyType) belirle:
@@ -464,6 +466,44 @@ export async function extractRubricItems(
   throw new Error(
     `Rubric extract failed after ${MAX_ATTEMPTS} attempts: ${(lastError as Error)?.message}`
   );
+}
+
+// ----------------------------------------------------------------------------
+// EVIDENCE-BASED PAGE GROUNDING
+// Gemini PDF'i multimodal okurken sayfa numarasını TAHMİN ediyor (halüsinasyon —
+// "sayfa 57"de olmayan bölüm gibi). Çözüm: Gemini'nin verdiği pageNumber'ı YOK
+// SAY; bunun yerine her bulgunun BİREBİR alıntısını (evidence) tezin sayfa-bazlı
+// metninde ara ve GERÇEK sayfayı bul. Bulunamazsa null → UI sayfa göstermez
+// (yanlış sayfa vermekten KESİNLİKLE iyi). pages yoksa (DOCX/taranmış PDF) hepsi null.
+// ----------------------------------------------------------------------------
+function normalizeForMatch(s: string): string {
+  return (s || '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ') // noktalama/işaret → boşluk (harf+rakam kalsın)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function groundPageNumbers(
+  items: ExtractedItem[],
+  pages: string[] | undefined | null
+): ExtractedItem[] {
+  // Sayfa metni yoksa Gemini'nin (güvenilmez) sayfasına GÜVENME → null.
+  if (!pages || pages.length === 0) {
+    return items.map((it) => ({ ...it, pageNumber: null }));
+  }
+  const normPages = pages.map(normalizeForMatch);
+  return items.map((it) => {
+    const ev = normalizeForMatch(it.evidence || '');
+    if (ev.length < 15) return { ...it, pageNumber: null }; // çok kısa/boş = güvenilmez
+    // Önce ayırt edici uzun bir parça (ilk ~80 char), bulunamazsa daha kısa (~40).
+    const probes = [ev.slice(0, 80), ev.slice(0, 40)].filter((p) => p.length >= 20);
+    for (const probe of probes) {
+      const idx = normPages.findIndex((p) => p.includes(probe));
+      if (idx >= 0) return { ...it, pageNumber: idx + 1 };
+    }
+    return { ...it, pageNumber: null }; // alıntı metinde yok → muhtemelen halüsinasyon
+  });
 }
 
 // ----------------------------------------------------------------------------
