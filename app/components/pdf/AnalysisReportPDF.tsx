@@ -162,7 +162,7 @@ function IssueCard({ issue }: { issue: IssueLike }) {
       <View style={styles.issueHead}>
         <Text style={[styles.issueSev, { backgroundColor: sev.color }]}>{sev.label}</Text>
         <Text style={styles.issueTitle}>{issue.title || 'Bulgu'}</Text>
-        {issue.pageNumber ? <Text style={styles.issuePage}>Sayfa {issue.pageNumber}</Text> : null}
+        {issue.pageNumber ? <Text style={styles.issuePage}>Kanıt: s.{issue.pageNumber}</Text> : null}
       </View>
       {issue.originalText ? <Text style={styles.issueQuote}>&ldquo;{issue.originalText}&rdquo;</Text> : null}
       {issue.description ? <Text style={styles.issueDesc}>{issue.description}</Text> : null}

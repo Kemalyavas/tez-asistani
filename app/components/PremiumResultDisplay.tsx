@@ -193,7 +193,7 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
               </div>
               {issue.pageNumber ? (
                 <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded flex items-center gap-1 flex-shrink-0">
-                  <MapPin className="h-3 w-3" /> Sayfa {issue.pageNumber}
+                  <MapPin className="h-3 w-3" /> Kanıt: s.{issue.pageNumber}
                 </span>
               ) : null}
             </div>
