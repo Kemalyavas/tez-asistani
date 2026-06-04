@@ -8,46 +8,48 @@ export default function ConfirmEmailPage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState<string>("Confirming your email…");
+  const [message, setMessage] = useState<string>("E-postanız doğrulanıyor…");
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const run = async () => {
       try {
-        // 1) If the link contains a `code` query param (PKCE/OTP-style), exchange it for a session first
+        // 1) Bağlantıda `code` query param'ı varsa (PKCE/OTP) önce session'a çevir
         const searchParams = new URLSearchParams(window.location.search);
         const code = searchParams.get("code");
 
         if (code) {
-          const { data: codeData, error: codeError } = await (supabase.auth as any).exchangeCodeForSession(code);
+          const { error: codeError } = await (supabase.auth as any).exchangeCodeForSession(code);
           if (codeError) {
+            console.error("[confirm] code exchange error:", codeError);
             setStatus("error");
-            setMessage(`Code exchange error: ${codeError.message}`);
-            toast.error(`Code exchange error: ${codeError.message}`);
+            setMessage("Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen tekrar giriş yapmayı deneyin.");
+            toast.error("Doğrulama bağlantısı geçersiz veya süresi dolmuş.");
             router.replace("/auth");
             return;
           }
-          // Clean the query from the URL
+          // Query'yi URL'den temizle
           window.history.replaceState({}, document.title, window.location.pathname);
           setStatus("success");
-          setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-          toast.success("Email confirmed! Welcome.");
+          setMessage("E-postanız doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+          toast.success("E-postanız doğrulandı! Hoş geldiniz.");
           timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
           return;
         }
 
-        // 2) Supabase may also include tokens in the URL hash after clicking the email link
+        // 2) Token'lar URL hash'inde de gelebilir
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
+          console.error("[confirm] session error:", error);
           setStatus("error");
-          setMessage(`Session error: ${error.message}`);
-          toast.error(`Session error: ${error.message}`);
+          setMessage("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
+          toast.error("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
           router.replace("/auth");
           return;
         }
 
-        // If no session yet, attempt to parse and set from URL hash
+        // Henüz session yoksa URL hash'inden ayrıştırıp kurmayı dene
         if (!data.session) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           const access_token = hashParams.get("access_token");
@@ -55,68 +57,70 @@ export default function ConfirmEmailPage() {
           const type = hashParams.get("type");
           const token_hash = hashParams.get("token_hash");
 
-          // 2a) Access/refresh tokens present
+          // 2a) access/refresh token mevcut
           if (type === "signup" && access_token && refresh_token) {
-            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            const { error: sessionError } = await supabase.auth.setSession({
               access_token,
               refresh_token,
             });
             if (sessionError) {
+              console.error("[confirm] setSession error:", sessionError);
               setStatus("error");
-              setMessage(`Session error: ${sessionError.message}`);
-              toast.error(`Session error: ${sessionError.message}`);
+              setMessage("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
+              toast.error("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
               router.replace("/auth");
               return;
             }
-            // Clean the hash from the URL
             window.history.replaceState({}, document.title, window.location.pathname);
             setStatus("success");
-            setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-            toast.success("Email confirmed! Welcome.");
+            setMessage("E-postanız doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+            toast.success("E-postanız doğrulandı! Hoş geldiniz.");
             timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
             return;
           }
 
-          // 2b) Token-hash style (older links or email_change)
+          // 2b) token_hash tipi (eski bağlantılar veya email_change)
           if (token_hash && type) {
-            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+            const { error: verifyError } = await supabase.auth.verifyOtp({
               type: type as any,
               token_hash,
             } as any);
             if (verifyError) {
+              console.error("[confirm] verifyOtp error:", verifyError);
               setStatus("error");
-              setMessage(`Verification error: ${verifyError.message}`);
-              toast.error(`Verification error: ${verifyError.message}`);
+              setMessage("Doğrulama başarısız. Lütfen tekrar deneyin.");
+              toast.error("Doğrulama başarısız. Lütfen tekrar deneyin.");
               router.replace("/auth");
               return;
             }
             window.history.replaceState({}, document.title, window.location.pathname);
             setStatus("success");
-            setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-            toast.success("Email confirmed! Welcome.");
+            setMessage("E-postanız doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+            toast.success("E-postanız doğrulandı! Hoş geldiniz.");
             timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
             return;
           }
         }
 
-        // If we already have a session, great
+        // Zaten session varsa
         if (data.session) {
           setStatus("success");
-          setMessage("Email confirmed. You will be redirected to the homepage in 3 seconds.");
-          toast.success("Email confirmed! Welcome.");
+          setMessage("E-postanız doğrulandı. 3 saniye içinde ana sayfaya yönlendirileceksiniz.");
+          toast.success("E-postanız doğrulandı! Hoş geldiniz.");
           timeoutRef.current = window.setTimeout(() => router.replace("/"), 3000);
           return;
         }
 
-        // Fallback
+        // Hiçbiri tutmadıysa
         setStatus("error");
-        setMessage("Invalid confirmation link. Please sign in.");
-        toast.error("Invalid confirmation link. Please sign in.");
+        setMessage("Geçersiz doğrulama bağlantısı. Lütfen giriş yapın.");
+        toast.error("Geçersiz doğrulama bağlantısı. Lütfen giriş yapın.");
         router.replace("/auth");
       } catch (e: any) {
+        console.error("[confirm] unexpected error:", e);
         setStatus("error");
-        setMessage("Unexpected error during confirmation.");
-        toast.error("Unexpected error during confirmation.");
+        setMessage("Doğrulama sırasında beklenmedik bir hata oluştu.");
+        toast.error("Doğrulama sırasında beklenmedik bir hata oluştu.");
         router.replace("/auth");
       }
     };
@@ -136,7 +140,7 @@ export default function ConfirmEmailPage() {
         <p className="text-sm text-gray-600">{message}</p>
         {status === "success" && (
           <p className="mt-2 text-xs text-gray-500">
-            If you are not redirected, <a className="text-blue-600 hover:underline" href="/">click here</a>.
+            Yönlendirilmediyseniz <a className="text-blue-600 hover:underline" href="/">buraya tıklayın</a>.
           </p>
         )}
       </div>

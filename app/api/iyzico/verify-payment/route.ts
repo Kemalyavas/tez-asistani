@@ -65,8 +65,14 @@ async function handlePaymentVerification(request: NextRequest): Promise<NextResp
 
     return new Promise<NextResponse>((resolve, reject) => {
       iyzipay.checkoutForm.retrieve({ token: token as string }, async (err: any, result: any) => {
-        console.log('Iyzico retrieve result:', result)
-        console.log('Error:', err)
+        // Güvenlik: tüm result'ı loglama (maskeli kart/buyer bilgisi içerebilir) —
+        // yalnızca akış için gerekli güvenli alanlar.
+        console.log('[VERIFY-PAYMENT] retrieve:', {
+          status: result?.status,
+          paymentStatus: result?.paymentStatus,
+          basketId: result?.basketId,
+          paymentId: result?.paymentId,
+        });
         if (err) {
           console.error('Iyzico retrieve error:', err);
           const failureUrl = new URL('/payment/status', siteUrl);

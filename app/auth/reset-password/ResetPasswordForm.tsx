@@ -37,6 +37,23 @@ export default function ResetPasswordForm() {
           return;
         }
 
+        // PKCE akışı: bağlantı ?code= ile gelir (auth-helpers v0.10 varsayılanı
+        // PKCE'dir). Eski implicit akış #access_token (hash) ile gelir. İKİSİNİ DE
+        // destekle ki Supabase hangi formatı gönderirse göndersin sıfırlama çalışsın.
+        const code = new URLSearchParams(window.location.search).get('code');
+        if (code) {
+          const { error: codeError } = await (supabase.auth as any).exchangeCodeForSession(code);
+          if (codeError) {
+            console.error('Reset code exchange error:', codeError);
+            toast.error('Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeniden talep edin.');
+            router.push('/auth');
+            return;
+          }
+          window.history.replaceState({}, document.title, window.location.pathname);
+          toast.success('Yeni şifrenizi belirleyebilirsiniz');
+          return;
+        }
+
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');

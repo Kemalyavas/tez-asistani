@@ -170,6 +170,16 @@ export default function AuthComponent() {
           throw error;
         }
 
+        // Supabase enumeration korumasıyla, ZATEN KAYITLI bir e-posta için signup
+        // hata DÖNDÜRMEZ ama `identities` boş gelir. Bunu yakalayıp net mesaj ver
+        // (yoksa kullanıcı "doğrulama maili neden gelmedi" döngüsünde kalıyordu).
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          toast.error('Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapın veya şifrenizi sıfırlayın.');
+          setFormData({ email: formData.email, password: '', confirmPassword: '', username: '' });
+          setIsSignUp(false);
+          return;
+        }
+
         if (data.user && !data.user.email_confirmed_at) {
           toast.success('Kayıt başarılı! Lütfen e-posta adresinize gönderilen bağlantıyla hesabınızı doğrulayın.');
         } else {
@@ -204,7 +214,16 @@ export default function AuthComponent() {
 
         recordAttempt(formData.email, 'auth', true);
         toast.success('Giriş başarılı!');
-        router.push('/');
+        // Korumalı sayfadan yönlendirildiyse (middleware ?redirect= ekler) oraya
+        // geri dön. Open-redirect guard: yalnız tek '/' ile başlayan göreli yol;
+        // '//' (protocol-relative) ve mutlak URL'ler reddedilir.
+        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        const safeRedirect =
+          redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
+            ? redirectParam
+            : '/';
+        router.push(safeRedirect);
+        router.refresh();
       }
     } catch (error: any) {
       console.error('Auth error:', error);
