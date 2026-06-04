@@ -5,9 +5,11 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import FileUploader from './components/FileUploader';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
+import PremiumResultDisplay from './components/PremiumResultDisplay';
 import { Zap, CheckCircle, BookOpen, FileSearch, Check, Coins, Gift, Sparkles } from 'lucide-react';
 import { CREDIT_PACKAGES, CREDIT_COSTS, ANALYSIS_TIERS } from './lib/pricing';
 import { structuredData } from './lib/structuredData';
+import { SAMPLE_REPORT } from './lib/sampleReport';
 import Script from 'next/script';
 import toast from 'react-hot-toast';
 
@@ -265,6 +267,31 @@ export default function Home() {
                 Ücretsiz Başla
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sample Report Showcase — değer kanıtı: ürünün çıktısını ödeme öncesi göster */}
+      <section className="py-24 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12 animate-fade-in">
+            <div className="inline-flex items-center bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Örnek Rapor
+            </div>
+            <h2 className="text-4xl font-bold mb-4">Raporun aynen böyle görünür</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Her bulguda tezinden bir alıntı, sorunun ne olduğu ve &quot;ne yapmalısın&quot; adımı yer alır.
+              Aşağıdaki, TezAI&apos;nin bir teze ürettiği çıktının temsili bir örneğidir.
+            </p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <PremiumResultDisplay result={SAMPLE_REPORT} />
+          </div>
+          <div className="text-center mt-10">
+            <button onClick={scrollToApp} className="btn-primary text-lg px-8 py-4">
+              Kendi tezini analiz et
+            </button>
           </div>
         </div>
       </section>
