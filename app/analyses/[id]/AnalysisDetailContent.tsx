@@ -577,6 +577,23 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
         )}
           </>
         )}
+
+        {/* Tekrar analiz köprüsü (tekrar-gelir): yalnız tamamlanmış raporlarda */}
+        {analysis.status === 'analyzed' && (
+          <div className="mt-8 bg-white rounded-2xl shadow-sm ring-1 ring-primary-100 p-6 sm:p-8 text-center">
+            <h3 className="text-lg font-bold text-slate-900 mb-1">Eksikleri düzelttin mi?</h3>
+            <p className="text-sm text-slate-500 mb-4 max-w-xl mx-auto">
+              Rapordaki önerileri uygula, gözden geçirilmiş tezini tekrar analiz et. Her tur, tezini jüri ve YÖK standartlarına biraz daha yaklaştırır.
+            </p>
+            <Link
+              href="/#app"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition"
+            >
+              <TrendingUp className="h-5 w-5" />
+              Tezini Tekrar Analiz Et
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
