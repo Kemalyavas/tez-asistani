@@ -469,6 +469,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
             <button
               onClick={removeFile}
               className="text-red-500 hover:text-red-700"
+              aria-label="Seçili dosyayı kaldır"
             >
               <X className="h-5 w-5" />
             </button>

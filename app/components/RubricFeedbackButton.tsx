@@ -11,7 +11,7 @@
 // (DB UNIQUE + upsert).
 // ============================================================================
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Flag, X, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -57,6 +57,41 @@ export default function RubricFeedbackButton({
   const [selectedType, setSelectedType] = useState<FeedbackType>('false_positive');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Modal erişilebilirliği: Esc ile kapatma, açılışta odak yönetimi, focus-trap (WCAG 2.1.2 / 2.4.3)
+  useEffect(() => {
+    if (!open) return;
+    const modal = modalRef.current;
+    const focusables = modal
+      ? Array.from(
+          modal.querySelectorAll<HTMLElement>(
+            'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((el) => !el.hasAttribute('disabled'))
+      : [];
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    first?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
+      if (e.key === 'Tab' && focusables.length > 0) {
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
 
   const handleSubmit = async () => {
     if (loading) return;
@@ -121,10 +156,16 @@ export default function RubricFeedbackButton({
             if (e.target === e.currentTarget) setOpen(false);
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4">
+          <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rubric-feedback-title"
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4"
+          >
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Geri Bildirim</h3>
+                <h3 id="rubric-feedback-title" className="text-lg font-semibold text-gray-900">Geri Bildirim</h3>
                 <p className="text-sm text-gray-500 mt-1">
                   Bu bulguyu nasıl değerlendirirsiniz?
                 </p>

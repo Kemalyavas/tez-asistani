@@ -227,6 +227,7 @@ export default function CitationFormatter() {
             <button
               onClick={copyToClipboard}
               className="text-primary-600 hover:text-primary-700"
+              aria-label={copied ? 'Panoya kopyalandı' : 'Formatlanan kaynağı panoya kopyala'}
             >
               {copied ? (
                 <Check className="h-5 w-5" />
