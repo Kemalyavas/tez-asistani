@@ -244,18 +244,18 @@ export default function ProfileContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Profil bulunamadı</h1>
-          <Link href="/" className="text-blue-600 hover:text-blue-800">
+          <Link href="/" className="text-primary-600 hover:text-primary-800">
             Ana Sayfaya Dön
           </Link>
         </div>
@@ -264,14 +264,14 @@ export default function ProfileContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <Link 
               href="/"
-              className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
               <span>Ana Sayfaya Dön</span>
@@ -290,25 +290,25 @@ export default function ProfileContent() {
             {/* Profile Card */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <div className="text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="h-12 w-12 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">{profile.full_name || profile.username}</h2>
                 <p className="text-gray-600">{profile.email}</p>
 
                 {/* Credit Balance */}
-                <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
+                <div className="mt-4 bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl p-4">
                   <div className="flex items-center justify-center space-x-2">
-                    <Coins className="h-6 w-6 text-blue-600" />
-                    <span className="text-3xl font-bold text-blue-600">{displayCredits}</span>
+                    <Coins className="h-6 w-6 text-primary-600" />
+                    <span className="text-3xl font-bold text-primary-600">{displayCredits}</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">Mevcut Kredi</p>
                   {isAdminUser && (
-                    <p className="text-xs text-blue-500 mt-1">Admin sınırsız</p>
+                    <p className="text-xs text-primary-500 mt-1">Admin sınırsız</p>
                   )}
                   <Link
                     href="/pricing"
-                    className="mt-3 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+                    className="mt-3 inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
                   >
                     <Zap className="h-4 w-4 mr-1" />
                     Kredi Satın Al
@@ -323,14 +323,14 @@ export default function ProfileContent() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-blue-600" />
+                    <FileText className="h-4 w-4 text-primary-600" />
                     <span className="text-sm text-gray-600">Analiz Edilen Tez</span>
                   </div>
                   <span className="font-semibold text-gray-900">{profile.thesis_analyses_count}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Award className="h-4 w-4 text-purple-600" />
+                    <Award className="h-4 w-4 text-primary-600" />
                     <span className="text-sm text-gray-600">Oluşturulan Özet</span>
                   </div>
                   <span className="font-semibold text-gray-900">{profile.abstracts_count}</span>
@@ -383,7 +383,7 @@ export default function ProfileContent() {
                 {!editing ? (
                   <button
                     onClick={() => setEditing(true)}
-                    className="flex items-center space-x-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="flex items-center space-x-1 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                   >
                     <Edit3 className="h-4 w-4" />
                     <span>Düzenle</span>
@@ -393,7 +393,7 @@ export default function ProfileContent() {
                     <button
                       onClick={handleSaveProfile}
                       disabled={saving}
-                      className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      className="flex items-center space-x-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                     >
                       <Save className="h-4 w-4" />
                       <span>{saving ? 'Kaydediliyor...' : 'Kaydet'}</span>
@@ -425,7 +425,7 @@ export default function ProfileContent() {
                       type="text"
                       value={editForm.username}
                       onChange={(e) => setEditForm({...editForm, username: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   ) : (
                     <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.username}</p>
@@ -441,7 +441,7 @@ export default function ProfileContent() {
                       type="text"
                       value={editForm.full_name}
                       onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   ) : (
                     <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.full_name || 'Belirtilmemiş'}</p>
@@ -470,7 +470,7 @@ export default function ProfileContent() {
                       type={showPasswords.new ? 'text' : 'password'}
                       value={passwordForm.new_password}
                       onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Yeni şifrenizi girin"
                     />
                     <button
@@ -492,7 +492,7 @@ export default function ProfileContent() {
                       type={showPasswords.confirm ? 'text' : 'password'}
                       value={passwordForm.confirm_password}
                       onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Yeni şifrenizi tekrar girin"
                     />
                     <button
@@ -509,7 +509,7 @@ export default function ProfileContent() {
                   <button
                     onClick={handleChangePassword}
                     disabled={changingPassword || !passwordForm.new_password || !passwordForm.confirm_password}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {changingPassword ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
                   </button>
@@ -520,18 +520,18 @@ export default function ProfileContent() {
             {/* Credit Purchase History Link */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Krediler</h3>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+              <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-blue-600">{displayCredits} kredi</p>
+                    <p className="text-2xl font-bold text-primary-600">{displayCredits} kredi</p>
                     <p className="text-sm text-gray-600">Mevcut bakiye</p>
                     {isAdminUser && (
-                      <p className="text-xs text-blue-500 mt-1">Admin sınırsız</p>
+                      <p className="text-xs text-primary-500 mt-1">Admin sınırsız</p>
                     )}
                   </div>
                   <Link
                     href="/pricing"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center"
                   >
                     <Zap className="h-4 w-4 mr-2" />
                     Kredi Satın Al
@@ -550,7 +550,7 @@ export default function ProfileContent() {
                 {recentAnalyses.length > 0 && (
                   <Link
                     href="/analyses"
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                    className="text-primary-600 hover:text-primary-800 text-sm font-medium flex items-center"
                   >
                     Tümünü Gör
                     <ChevronRight className="h-4 w-4 ml-1" />
@@ -560,7 +560,7 @@ export default function ProfileContent() {
 
               {analysesLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
                 </div>
               ) : recentAnalyses.length === 0 ? (
                 <div className="text-center py-8">
@@ -568,7 +568,7 @@ export default function ProfileContent() {
                   <p className="text-gray-500 mb-4">Henüz analiz yok</p>
                   <Link
                     href="/"
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+                    className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     İlk Tezini Analiz Et

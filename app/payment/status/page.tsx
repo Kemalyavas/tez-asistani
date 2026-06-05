@@ -53,16 +53,16 @@ function PaymentStatusContent() {
             <div className="space-y-4 mb-6">
               {/* Credits Added */}
               {credits && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
+                <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-xl p-4">
                   <div className="flex items-center justify-center space-x-3">
-                    <Coins className="h-8 w-8 text-blue-600" />
+                    <Coins className="h-8 w-8 text-primary-600" />
                     <div>
-                      <span className="text-3xl font-bold text-blue-700">+{credits}</span>
-                      <span className="text-blue-600 ml-2">kredi</span>
+                      <span className="text-3xl font-bold text-primary-700">+{credits}</span>
+                      <span className="text-primary-600 ml-2">kredi</span>
                     </div>
                   </div>
                   {packageName && (
-                    <p className="text-sm text-blue-600 mt-2">
+                    <p className="text-sm text-primary-600 mt-2">
                       {packageName} Paketi
                     </p>
                   )}
@@ -137,7 +137,7 @@ function PaymentStatusContent() {
         {!isSuccess && (
           <p className="text-center text-sm text-gray-500 mt-6">
             Ücretlendirildiyseniz ancak kredi almadıysanız lütfen{' '}
-            <a href="mailto:kemalyavaas@outlook.com" className="text-blue-600 hover:underline">
+            <a href="mailto:kemalyavaas@outlook.com" className="text-primary-600 hover:underline">
               kemalyavaas@outlook.com
             </a>{' '}
             ile iletişime geçin.
@@ -152,7 +152,7 @@ export default function PaymentStatusPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     }>
       <PaymentStatusContent />

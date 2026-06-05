@@ -82,8 +82,8 @@ export default function OzelliklerPage() {
               const Icon = f.icon
               return (
                 <div key={f.title} className="feature-card">
-                  <div className="text-blue-600 mb-4">
-                    <div className="inline-flex p-3 bg-blue-50 rounded-xl">
+                  <div className="text-primary-600 mb-4">
+                    <div className="inline-flex p-3 bg-primary-50 rounded-xl">
                       <Icon className="h-6 w-6" />
                     </div>
                   </div>
@@ -92,7 +92,7 @@ export default function OzelliklerPage() {
                   {f.href && (
                     <Link
                       href={f.href}
-                      className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-800"
+                      className="inline-block mt-4 text-primary-600 font-semibold hover:text-primary-800"
                     >
                       {f.cta} →
                     </Link>
@@ -118,11 +118,11 @@ export default function OzelliklerPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-center">
+      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-white mb-4">Tezini bugün geliştirmeye başla</h2>
-          <p className="text-blue-100 mb-8">Kayıt olana 10 ücretsiz kredi. Kredi kartı gerekmez.</p>
-          <Link href="/#app" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
+          <p className="text-primary-100 mb-8">Kayıt olana 10 ücretsiz kredi. Kredi kartı gerekmez.</p>
+          <Link href="/#app" className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
             Ücretsiz Başla
           </Link>
         </div>

@@ -151,7 +151,7 @@ export default function ActiveAnalysisBanner() {
         <div key={d.id} className="bg-white rounded-xl shadow-lg ring-1 ring-slate-200 p-4">
           <div className="flex items-start gap-3">
             {d.status === 'processing' ? (
-              <Loader2 className="h-5 w-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
+              <Loader2 className="h-5 w-5 text-primary-600 animate-spin flex-shrink-0 mt-0.5" />
             ) : d.status === 'analyzed' ? (
               <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             ) : (
@@ -169,7 +169,7 @@ export default function ActiveAnalysisBanner() {
                 <Link
                   href={`/analyses/${d.id}`}
                   onClick={() => dismiss(d.id)}
-                  className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+                  className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-primary-600 hover:text-primary-700"
                 >
                   <BarChart3 className="h-4 w-4" /> Raporu gör{d.overall_score != null ? ` · ${d.overall_score}/100` : ''}
                 </Link>

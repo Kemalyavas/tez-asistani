@@ -194,7 +194,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
   const getGradeColor = (grade: string) => {
     if (grade.startsWith('A')) return 'text-green-600 bg-green-100';
-    if (grade.startsWith('B')) return 'text-blue-600 bg-blue-100';
+    if (grade.startsWith('B')) return 'text-primary-600 bg-primary-100';
     if (grade.startsWith('C')) return 'text-yellow-600 bg-yellow-100';
     return 'text-red-600 bg-red-100';
   };
@@ -221,9 +221,9 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary-600 mx-auto mb-4" />
           <p className="text-gray-600">Analiz yükleniyor...</p>
         </div>
       </div>
@@ -232,14 +232,14 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
 
   if (error || !analysis) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">{error || 'Analiz bulunamadı'}</h2>
           <p className="text-gray-500 mb-6">Aradığınız analiz mevcut değil veya erişim izniniz yok.</p>
           <Link
             href="/analyses"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
             Analizlere Dön
@@ -255,14 +255,14 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
   const isPremiumFormat = result && (result.sections || result.yokCompliance || result.priorityActions);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <Link
               href="/analyses"
-              className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
               <span>Analizlere Dön</span>
@@ -272,7 +272,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
               <button
                 onClick={handleDownloadPdf}
                 disabled={downloading}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {downloading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -386,7 +386,7 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                     <div key={category} className="bg-gray-50 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          <Icon className="h-5 w-5 text-blue-600 mr-2" />
+                          <Icon className="h-5 w-5 text-primary-600 mr-2" />
                           <span className="font-medium text-gray-900">{getCategoryLabel(category)}</span>
                         </div>
                         <span className={`text-xl font-bold ${getScoreColor(data.score)}`}>
@@ -460,8 +460,8 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                 {result.minor_issues.length > 0 && (
                   <div>
                     <div className="flex items-center mb-4">
-                      <Info className="h-5 w-5 text-blue-600 mr-2" />
-                      <h4 className="font-semibold text-blue-600">Küçük Sorunlar ({result.minor_issues.length})</h4>
+                      <Info className="h-5 w-5 text-primary-600 mr-2" />
+                      <h4 className="font-semibold text-primary-600">Küçük Sorunlar ({result.minor_issues.length})</h4>
                     </div>
                     <div className="space-y-3">
                       {result.minor_issues.map((issue, index) => (
@@ -521,13 +521,13 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
             {result.recommendations.length > 0 && (
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
                 <div className="flex items-center mb-4">
-                  <Lightbulb className="h-5 w-5 text-purple-600 mr-2" />
+                  <Lightbulb className="h-5 w-5 text-primary-600 mr-2" />
                   <h3 className="text-lg font-semibold text-gray-900">Öneriler</h3>
                 </div>
                 <ul className="space-y-2">
                   {result.recommendations.map((rec, index) => (
                     <li key={index} className="flex items-start">
-                      <div className="bg-purple-100 text-purple-700 w-2 h-2 rounded-full mr-3 flex-shrink-0 mt-2" />
+                      <div className="bg-primary-100 text-primary-700 w-2 h-2 rounded-full mr-3 flex-shrink-0 mt-2" />
                       <span className="text-gray-700">{rec}</span>
                     </li>
                   ))}
@@ -596,7 +596,7 @@ function IssueCard({
 }) {
   const bgColor = type === 'critical' ? 'bg-red-50 border-red-200' :
                   type === 'major' ? 'bg-orange-50 border-orange-200' :
-                  'bg-blue-50 border-blue-200';
+                  'bg-primary-50 border-primary-200';
 
   return (
     <div className={`border rounded-lg ${bgColor}`}>

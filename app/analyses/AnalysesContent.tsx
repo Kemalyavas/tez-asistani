@@ -162,9 +162,9 @@ export default function AnalysesContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary-600 mx-auto mb-4" />
           <p className="text-gray-600">Analizleriniz yükleniyor...</p>
         </div>
       </div>
@@ -172,14 +172,14 @@ export default function AnalysesContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
               <span>Ana Sayfaya Dön</span>
@@ -195,8 +195,8 @@ export default function AnalysesContent() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-4">
             <div className="flex items-center">
-              <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                <FileText className="h-5 w-5 text-blue-600" />
+              <div className="bg-primary-100 p-2 rounded-lg mr-3">
+                <FileText className="h-5 w-5 text-primary-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{analyses.length}</p>
@@ -219,8 +219,8 @@ export default function AnalysesContent() {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-4">
             <div className="flex items-center">
-              <div className="bg-purple-100 p-2 rounded-lg mr-3">
-                <BarChart3 className="h-5 w-5 text-purple-600" />
+              <div className="bg-primary-100 p-2 rounded-lg mr-3">
+                <BarChart3 className="h-5 w-5 text-primary-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
@@ -263,7 +263,7 @@ export default function AnalysesContent() {
                 placeholder="Dosya adına göre ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
 
@@ -286,7 +286,7 @@ export default function AnalysesContent() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="newest">En Yeni</option>
                   <option value="oldest">En Eski</option>
@@ -299,7 +299,7 @@ export default function AnalysesContent() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="all">Tüm Durumlar</option>
                   <option value="analyzed">Tamamlanan</option>
@@ -321,7 +321,7 @@ export default function AnalysesContent() {
                 <p className="text-gray-500 mb-6">İlk tezinizi analiz ederek başlayın!</p>
                 <Link
                   href="/"
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition"
                 >
                   <FileText className="h-5 w-5 mr-2" />
                   Tez Analiz Et
@@ -345,8 +345,8 @@ export default function AnalysesContent() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
-                        <FileText className="h-6 w-6 text-blue-600" />
+                      <div className="bg-primary-100 p-2 rounded-lg flex-shrink-0">
+                        <FileText className="h-6 w-6 text-primary-600" />
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">

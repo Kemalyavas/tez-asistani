@@ -68,7 +68,7 @@ export default function AkademikFormatlarPage() {
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {formats.map((f) => (
               <div key={f.name} className="card">
-                <h2 className="text-2xl font-bold text-blue-600 mb-1">{f.name}</h2>
+                <h2 className="text-2xl font-bold text-primary-600 mb-1">{f.name}</h2>
                 <p className="text-sm text-gray-500 mb-4">{f.full}</p>
                 <p className="text-gray-700 leading-relaxed mb-4">{f.detail}</p>
                 <p className="text-sm text-gray-600">
@@ -90,7 +90,7 @@ export default function AkademikFormatlarPage() {
           </p>
           <p className="text-gray-600 text-center">
             Tezinin tamamını kaynak tutarlılığı açısından kontrol ettirmek mi istiyorsun?{' '}
-            <Link href="/tez-analizi" className="text-blue-600 font-semibold hover:underline">
+            <Link href="/tez-analizi" className="text-primary-600 font-semibold hover:underline">
               Tez analizi sayfasına göz at
             </Link>
             .
@@ -98,11 +98,11 @@ export default function AkademikFormatlarPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-center">
+      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-white mb-4">Doğru kaynakça, tek tıkla</h2>
-          <p className="text-blue-100 mb-8">Kayıt olana 10 ücretsiz kredi.</p>
-          <Link href="/#app" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
+          <p className="text-primary-100 mb-8">Kayıt olana 10 ücretsiz kredi.</p>
+          <Link href="/#app" className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
             Hemen Dene
           </Link>
         </div>

@@ -162,7 +162,7 @@ export default function ResetPasswordForm() {
         <div>
           <Link
             href="/auth"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+            className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
           >
             ← Giriş Sayfasına Dön
           </Link>

@@ -10,7 +10,7 @@ export default function PaymentSuccessClient() {
   const packageName = searchParams.get('package')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-primary-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <Check className="w-10 h-10 text-green-600" />
@@ -24,14 +24,14 @@ export default function PaymentSuccessClient() {
 
         {/* Credit Info */}
         {credits && (
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-center space-x-2 text-blue-700">
+          <div className="bg-primary-50 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-center space-x-2 text-primary-700">
               <Coins className="h-6 w-6" />
               <span className="text-2xl font-bold">+{credits}</span>
               <span className="text-lg">kredi</span>
             </div>
             {balance && (
-              <p className="text-sm text-blue-600 mt-2">
+              <p className="text-sm text-primary-600 mt-2">
                 Yeni bakiye: <strong>{balance}</strong> kredi
               </p>
             )}

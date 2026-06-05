@@ -24,7 +24,7 @@ export default function Footer() {
           {/* Logo ve açıklama */}
           <div>
             <div className="flex items-center space-x-2 mb-6">
-              <FileText className="h-6 w-6 text-blue-400" />
+              <FileText className="h-6 w-6 text-primary-400" />
               <span className="font-bold text-xl text-white">TezAI</span>
             </div>
             <p className="text-sm max-w-sm mb-6">
@@ -47,7 +47,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               {productLinks.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="hover:text-blue-400 transition">
+                  <Link href={l.href} className="hover:text-primary-400 transition">
                     {l.label}
                   </Link>
                 </li>
@@ -61,7 +61,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               {companyLinks.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="hover:text-blue-400 transition">
+                  <Link href={l.href} className="hover:text-primary-400 transition">
                     {l.label}
                   </Link>
                 </li>
@@ -74,24 +74,24 @@ export default function Footer() {
             <h2 className="font-semibold text-white mb-4">Yasal</h2>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/privacy-policy" className="hover:text-blue-400 transition flex items-center">
+                <Link href="/privacy-policy" className="hover:text-primary-400 transition flex items-center">
                   <Shield className="h-3 w-3 mr-1" />
                   Gizlilik Politikası
                 </Link>
               </li>
               <li>
-                <Link href="/mesafeli-satis-sozlesmesi" className="hover:text-blue-400 transition">
+                <Link href="/mesafeli-satis-sozlesmesi" className="hover:text-primary-400 transition">
                   Mesafeli Satış Sözleşmesi
                 </Link>
               </li>
               <li>
-                <Link href="/delivery-returns" className="hover:text-blue-400 transition">
+                <Link href="/delivery-returns" className="hover:text-primary-400 transition">
                   Teslimat ve İade
                 </Link>
               </li>
               <li className="flex items-center pt-2">
                 <Mail className="h-3 w-3 mr-2" />
-                <a href="mailto:kemalyavaas@outlook.com" className="hover:text-blue-400 transition break-all">
+                <a href="mailto:kemalyavaas@outlook.com" className="hover:text-primary-400 transition break-all">
                   kemalyavaas@outlook.com
                 </a>
               </li>

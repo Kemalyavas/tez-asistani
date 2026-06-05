@@ -140,7 +140,7 @@ export default function ConfirmEmailPage() {
         <p className="text-sm text-gray-600">{message}</p>
         {status === "success" && (
           <p className="mt-2 text-xs text-gray-500">
-            Yönlendirilmediyseniz <a className="text-blue-600 hover:underline" href="/">buraya tıklayın</a>.
+            Yönlendirilmediyseniz <a className="text-primary-600 hover:underline" href="/">buraya tıklayın</a>.
           </p>
         )}
       </div>

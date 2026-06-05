@@ -257,7 +257,7 @@ export default function AuthComponent() {
             <button
               type="button"
               onClick={() => setIsForgotPassword(false)}
-              className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+              className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Geri Dön
@@ -380,7 +380,7 @@ export default function AuthComponent() {
               <button
                 type="button"
                 onClick={toggleMode}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-primary-600 hover:text-primary-700 text-sm font-medium"
               >
                 {isSignUp ? 'Zaten hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}
               </button>

@@ -390,26 +390,26 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
     <div className="space-y-6">
       {/* Credit Balance Indicator */}
       {user && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Coins className="h-5 w-5 text-blue-600 mr-2" />
-              <span className="text-sm text-blue-800">
+              <Coins className="h-5 w-5 text-primary-600 mr-2" />
+              <span className="text-sm text-primary-800">
                 Krediniz: <strong className="text-lg">{creditsLoading ? '...' : currentCredits}</strong>
               </span>
             </div>
             <button
               onClick={() => router.push('/pricing')}
-              className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition flex items-center"
+              className="text-sm bg-primary-600 text-white px-4 py-1.5 rounded-full hover:bg-primary-700 transition flex items-center"
             >
               <Zap className="h-4 w-4 mr-1" />
               Kredi Satın Al
             </button>
           </div>
           {file && (
-            <div className="mt-3 pt-3 border-t border-blue-200">
+            <div className="mt-3 pt-3 border-t border-primary-200">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-blue-700">
+                <span className="text-primary-700">
                   Tahmini: ~{estimatedPages} sayfa → <strong>{estimatedCredits} kredi</strong>
                 </span>
                 <span className={`font-medium ${currentCredits >= estimatedCredits ? 'text-green-600' : 'text-red-600'}`}>
@@ -436,13 +436,13 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'
+          isDragActive ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:border-primary-400'
         }`}
       >
         <input {...getInputProps()} />
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
         {isDragActive ? (
-          <p className="text-blue-600">Dosyanızı buraya bırakın...</p>
+          <p className="text-primary-600">Dosyanızı buraya bırakın...</p>
         ) : (
           <div>
             <p className="text-gray-700 mb-2">
@@ -458,7 +458,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           {/* Selected File */}
           <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <File className="h-8 w-8 text-blue-600" />
+              <File className="h-8 w-8 text-primary-600" />
               <div>
                 <p className="font-medium">{file.name}</p>
                 <p className="text-sm text-gray-500">
@@ -475,10 +475,10 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
           </div>
 
           {/* Report Language Selector */}
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-lg p-4">
             <div className="flex items-center mb-3">
-              <Globe className="h-5 w-5 text-indigo-600 mr-2" />
-              <span className="font-medium text-indigo-900">Rapor Dili</span>
+              <Globe className="h-5 w-5 text-primary-600 mr-2" />
+              <span className="font-medium text-primary-900">Rapor Dili</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {LANGUAGE_OPTIONS.map((option) => (
@@ -488,15 +488,15 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
                   disabled={loading}
                   className={`p-3 rounded-lg border-2 transition-all text-left ${
                     reportLanguage === option.value
-                      ? 'border-indigo-500 bg-white shadow-sm'
-                      : 'border-transparent bg-white/50 hover:bg-white hover:border-indigo-200'
+                      ? 'border-primary-500 bg-white shadow-sm'
+                      : 'border-transparent bg-white/50 hover:bg-white hover:border-primary-200'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
                     <span className="text-lg">{option.flag}</span>
                     <div>
                       <p className={`font-medium text-sm ${
-                        reportLanguage === option.value ? 'text-indigo-700' : 'text-gray-700'
+                        reportLanguage === option.value ? 'text-primary-700' : 'text-gray-700'
                       }`}>
                         {option.label}
                       </p>
@@ -506,7 +506,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-indigo-600/70">
+            <p className="mt-2 text-xs text-primary-600/70">
               💡 Otomatik tespit, tezinizi analiz edip raporu aynı dilde oluşturur
             </p>
           </div>
@@ -525,13 +525,13 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
                 <div key={step.id} className="flex items-center">
                   <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 transition-all ${
                     status === 'completed' ? 'bg-green-100' :
-                    status === 'active' ? 'bg-blue-100' :
+                    status === 'active' ? 'bg-primary-100' :
                     'bg-gray-100'
                   }`}>
                     {status === 'completed' ? (
                       <CheckCircle className="h-5 w-5 text-green-600" />
                     ) : status === 'active' ? (
-                      <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                      <Loader2 className="h-5 w-5 text-primary-600 animate-spin" />
                     ) : (
                       <Icon className="h-5 w-5 text-gray-400" />
                     )}
@@ -539,7 +539,7 @@ export default function FileUploader({ onAnalysisComplete }: FileUploaderProps) 
                   <div className="flex-1">
                     <p className={`font-medium ${
                       status === 'completed' ? 'text-green-600' :
-                      status === 'active' ? 'text-blue-600' :
+                      status === 'active' ? 'text-primary-600' :
                       'text-gray-400'
                     }`}>
                       {step.label}

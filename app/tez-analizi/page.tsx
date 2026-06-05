@@ -76,7 +76,7 @@ export default function TezAnaliziPage() {
           <div className="grid md:grid-cols-3 gap-10">
             {steps.map((s) => (
               <div key={s.n} className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold mb-4">
                   {s.n}
                 </div>
                 <h3 className="text-xl font-bold mb-2 text-gray-800">{s.title}</h3>
@@ -99,7 +99,7 @@ export default function TezAnaliziPage() {
               <div key={tier.id} className="card flex flex-col">
                 <h3 className="text-xl font-bold text-gray-900">{tier.name}</h3>
                 <p className="text-sm text-gray-500 mb-2">{rangeLabel(tier.minPages, tier.maxPages)}</p>
-                <p className="text-blue-600 font-semibold mb-4">{tier.credits} kredi</p>
+                <p className="text-primary-600 font-semibold mb-4">{tier.credits} kredi</p>
                 <ul className="space-y-2 text-sm text-gray-600">
                   {tier.features.map((feat) => (
                     <li key={feat} className="flex items-start gap-2">
@@ -113,7 +113,7 @@ export default function TezAnaliziPage() {
           </div>
           <p className="text-center text-gray-600 mt-10">
             Kredi paketlerinin tamamını{' '}
-            <Link href="/pricing" className="text-blue-600 font-semibold hover:underline">
+            <Link href="/pricing" className="text-primary-600 font-semibold hover:underline">
               fiyatlar sayfasında
             </Link>{' '}
             görebilirsin.
@@ -121,11 +121,11 @@ export default function TezAnaliziPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-center">
+      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-white mb-4">Jüri öncesi son kontrolünü yap</h2>
-          <p className="text-blue-100 mb-8">Kayıt olana 10 ücretsiz kredi. Kredi kartı gerekmez.</p>
-          <Link href="/#app" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
+          <p className="text-primary-100 mb-8">Kayıt olana 10 ücretsiz kredi. Kredi kartı gerekmez.</p>
+          <Link href="/#app" className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
             Ücretsiz Analiz Başlat
           </Link>
         </div>

@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
       {/* Başlık */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
+          <Link href="/" className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Ana Sayfaya Dön
           </Link>
@@ -36,7 +36,7 @@ export default function PrivacyPolicy() {
         <div className="max-w-4xl mx-auto">
 
           {/* Güvenlik Özeti */}
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-8 mb-8">
+          <div className="bg-gradient-to-r from-green-50 to-primary-50 border border-green-200 rounded-xl p-8 mb-8">
             <div className="flex items-center mb-4">
               <Shield className="h-8 w-8 text-green-600 mr-3" />
               <h2 className="text-2xl font-bold text-green-800">Güvenlik Taahhüdümüz</h2>
@@ -79,7 +79,7 @@ export default function PrivacyPolicy() {
             {/* 1. Toplanan Veriler */}
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <Server className="h-5 w-5 mr-2 text-blue-600" />
+                <Server className="h-5 w-5 mr-2 text-primary-600" />
                 1. Hangi Verileri Topluyoruz?
               </h2>
               <div className="prose max-w-none text-gray-700">
@@ -108,9 +108,9 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4">2. Verilerinizi Nasıl Kullanıyoruz?</h2>
               <div className="prose max-w-none text-gray-700">
-                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-                  <p className="font-semibold text-blue-800">Tek Amaç: Tez Analizi</p>
-                  <p className="text-blue-700 text-sm mt-1">Tez dosyalarınız yalnızca analiz hizmetini sunmak amacıyla kullanılır.</p>
+                <div className="bg-primary-50 border-l-4 border-primary-400 p-4 mb-4">
+                  <p className="font-semibold text-primary-800">Tek Amaç: Tez Analizi</p>
+                  <p className="text-primary-700 text-sm mt-1">Tez dosyalarınız yalnızca analiz hizmetini sunmak amacıyla kullanılır.</p>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Tez Dosyaları:</h3>
                 <ul className="list-disc pl-6 mb-4 space-y-1">
@@ -235,7 +235,7 @@ export default function PrivacyPolicy() {
             {/* 7. İletişim */}
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4">7. İletişim</h2>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="bg-primary-50 border border-primary-200 rounded-lg p-6">
                 <p className="text-gray-700 mb-4">
                   Kişisel verilerinizle ilgili soru, talep veya şikayetleriniz için:
                 </p>
@@ -244,8 +244,8 @@ export default function PrivacyPolicy() {
                   <p><strong>Adres:</strong> Kocaeli/İzmit</p>
                   <p><strong>Veri Sorumlusu:</strong> Ali Kemal Yavaş</p>
                 </div>
-                <div className="mt-4 p-3 bg-blue-100 rounded">
-                  <p className="text-sm text-blue-800">
+                <div className="mt-4 p-3 bg-primary-100 rounded">
+                  <p className="text-sm text-primary-800">
                     <strong>Yanıt Süresi:</strong> Talepleriniz en geç 2 hafta içinde yanıtlanır.
                   </p>
                 </div>
@@ -256,7 +256,7 @@ export default function PrivacyPolicy() {
 
           {/* Alt Navigasyon */}
           <div className="mt-12 text-center">
-            <Link href="/" className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <Link href="/" className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Ana Sayfaya Dön
             </Link>

@@ -24,7 +24,7 @@ export default function DeliveryReturns() {
       {/* Başlık */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
+          <Link href="/" className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Ana Sayfaya Dön
           </Link>
@@ -37,11 +37,11 @@ export default function DeliveryReturns() {
         <div className="max-w-4xl mx-auto">
 
           {/* Özet */}
-          <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-blue-800 mb-6">Kısa Özet</h2>
+          <div className="bg-gradient-to-r from-primary-50 to-green-50 border border-primary-200 rounded-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-primary-800 mb-6">Kısa Özet</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="flex items-start space-x-3">
-                <Zap className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
+                <Zap className="h-6 w-6 text-primary-600 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-gray-800">Anında Teslimat</h3>
                   <p className="text-gray-600 text-sm">Ödeme sonrası krediler hesabınıza anında eklenir</p>
@@ -55,7 +55,7 @@ export default function DeliveryReturns() {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <Clock className="h-6 w-6 text-purple-600 mt-1 flex-shrink-0" />
+                <Clock className="h-6 w-6 text-primary-600 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-gray-800">Sona Ermez</h3>
                   <p className="text-gray-600 text-sm">Kredileriniz hiçbir zaman sona ermez, istediğinizde kullanın</p>
@@ -70,7 +70,7 @@ export default function DeliveryReturns() {
             {/* Teslimat */}
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <Zap className="h-5 w-5 mr-2 text-blue-600" />
+                <Zap className="h-5 w-5 mr-2 text-primary-600" />
                 1. Teslimat
               </h2>
               <div className="prose max-w-none text-gray-700">
@@ -84,8 +84,8 @@ export default function DeliveryReturns() {
                   <li>Krediler hemen kullanıma hazırdır</li>
                   <li>Hizmetimiz 7/24 erişilebilirdir</li>
                 </ul>
-                <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-                  <p className="text-blue-800 text-sm">
+                <div className="bg-primary-50 border-l-4 border-primary-400 p-4">
+                  <p className="text-primary-800 text-sm">
                     <strong>Not:</strong> Ödeme sonrası 5 dakika içinde krediler görünmezse kemalyavaas@outlook.com adresinden bize ulaşın.
                   </p>
                 </div>
@@ -141,7 +141,7 @@ export default function DeliveryReturns() {
             {/* İade Politikası */}
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <RefreshCw className="h-5 w-5 mr-2 text-purple-600" />
+                <RefreshCw className="h-5 w-5 mr-2 text-primary-600" />
                 3. İade Politikası
               </h2>
               <div className="prose max-w-none text-gray-700">
@@ -184,10 +184,10 @@ export default function DeliveryReturns() {
             {/* İletişim */}
             <section>
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <Mail className="h-5 w-5 mr-2 text-blue-600" />
+                <Mail className="h-5 w-5 mr-2 text-primary-600" />
                 4. Bize Ulaşın
               </h2>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="bg-primary-50 border border-primary-200 rounded-lg p-6">
                 <p className="text-gray-700 mb-4">
                   Teslimat, kredi veya iade konularındaki sorularınız için:
                 </p>
@@ -202,7 +202,7 @@ export default function DeliveryReturns() {
 
           {/* Alt Navigasyon */}
           <div className="mt-12 text-center">
-            <Link href="/" className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <Link href="/" className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Ana Sayfaya Dön
             </Link>

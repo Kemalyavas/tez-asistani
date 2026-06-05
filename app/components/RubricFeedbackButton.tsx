@@ -145,7 +145,7 @@ export default function RubricFeedbackButton({
                   key={opt.value}
                   className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
                     selectedType === opt.value
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary-500 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -175,7 +175,7 @@ export default function RubricFeedbackButton({
                 rows={3}
                 maxLength={1000}
                 placeholder="Detay eklemek isterseniz..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <div className="text-xs text-gray-400 text-right mt-1">
                 {note.length}/1000
@@ -194,7 +194,7 @@ export default function RubricFeedbackButton({
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 rounded-lg"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 rounded-lg"
               >
                 {loading ? 'Gönderiliyor...' : 'Gönder'}
               </button>

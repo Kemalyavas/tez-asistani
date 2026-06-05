@@ -57,7 +57,7 @@ export default function HakkimizdaPage() {
               Tezin sana aittir. Yüklenen dosyalar SSL ile şifrelenir, analiz sonrası otomatik
               silinir, yapay zeka modellerini eğitmek için kullanılmaz ve hiçbir üçüncü tarafla
               paylaşılmaz. Tüm süreç KVKK ve GDPR ilkelerine uygun yürütülür. Ayrıntılar için{' '}
-              <Link href="/privacy-policy" className="text-blue-600 font-semibold hover:underline">
+              <Link href="/privacy-policy" className="text-primary-600 font-semibold hover:underline">
                 Gizlilik Politikası
               </Link>{' '}
               sayfasına bakabilirsin.

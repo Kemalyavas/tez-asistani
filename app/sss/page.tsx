@@ -73,7 +73,7 @@ export default function SssPage() {
           <h1 className="text-4xl md:text-5xl font-bold mb-6">Sık Sorulan Sorular</h1>
           <p className="text-lg text-gray-700">
             TezAI hakkında en çok merak edilenler. Aradığını bulamazsan{' '}
-            <Link href="/iletisim" className="text-blue-600 font-semibold hover:underline">
+            <Link href="/iletisim" className="text-primary-600 font-semibold hover:underline">
               iletişim
             </Link>{' '}
             sayfasından bize ulaşabilirsin.

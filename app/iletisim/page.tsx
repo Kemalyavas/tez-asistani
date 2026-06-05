@@ -34,19 +34,19 @@ export default function IletisimPage() {
           <div className="grid sm:grid-cols-3 gap-6 mb-12">
             <a
               href="mailto:kemalyavaas@outlook.com"
-              className="card text-center hover:border-blue-200"
+              className="card text-center hover:border-primary-200"
             >
-              <Mail className="h-7 w-7 text-blue-600 mx-auto mb-3" />
+              <Mail className="h-7 w-7 text-primary-600 mx-auto mb-3" />
               <h2 className="font-bold text-gray-800 mb-1">E-posta</h2>
               <p className="text-sm text-gray-600 break-all">kemalyavaas@outlook.com</p>
             </a>
             <div className="card text-center">
-              <Phone className="h-7 w-7 text-blue-600 mx-auto mb-3" />
+              <Phone className="h-7 w-7 text-primary-600 mx-auto mb-3" />
               <h2 className="font-bold text-gray-800 mb-1">Telefon</h2>
               <p className="text-sm text-gray-600">554 969 00 11</p>
             </div>
             <div className="card text-center">
-              <MapPin className="h-7 w-7 text-blue-600 mx-auto mb-3" />
+              <MapPin className="h-7 w-7 text-primary-600 mx-auto mb-3" />
               <h2 className="font-bold text-gray-800 mb-1">Konum</h2>
               <p className="text-sm text-gray-600">Kocaeli / İzmit, Türkiye</p>
             </div>

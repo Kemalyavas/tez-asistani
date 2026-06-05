@@ -77,7 +77,7 @@ export default function CitationFormatter() {
               onClick={() => setType(t)}
               className={`py-2 px-4 rounded-lg border ${
                 type === t
-                  ? 'border-blue-500 bg-blue-50 text-blue-600'
+                  ? 'border-primary-500 bg-primary-50 text-primary-600'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
@@ -128,14 +128,14 @@ export default function CitationFormatter() {
       {user && (
         <div className={`rounded-lg p-4 ${
           checkCredits('citation_format').allowed
-            ? 'bg-blue-50'
+            ? 'bg-primary-50'
             : 'bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500'
         }`}>
           {checkCredits('citation_format').allowed ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Coins className="h-5 w-5 text-blue-600" />
-                <span className="text-sm text-blue-800">
+                <Coins className="h-5 w-5 text-primary-600" />
+                <span className="text-sm text-primary-800">
                   <strong>{credits.credits}</strong> krediniz var • Bu işlem <strong>{creditCost}</strong> kredi harcar
                 </span>
               </div>
@@ -154,7 +154,7 @@ export default function CitationFormatter() {
               </div>
               <button
                 onClick={() => window.location.href = '/#pricing'}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-medium rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 Kredi Satın Al
               </button>
@@ -197,7 +197,7 @@ export default function CitationFormatter() {
             </label>
             <button
               onClick={copyToClipboard}
-              className="text-blue-600 hover:text-blue-700"
+              className="text-primary-600 hover:text-primary-700"
             >
               {copied ? (
                 <Check className="h-5 w-5" />

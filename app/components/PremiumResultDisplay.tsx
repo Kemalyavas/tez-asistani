@@ -72,7 +72,7 @@ function sevBadge(sev: string) {
     case 'critical': return { label: 'KRİTİK', cls: 'text-rose-600 bg-rose-100', strip: 'bg-rose-500', ring: 'ring-rose-200' };
     case 'major': return { label: 'ÖNEMLİ', cls: 'text-amber-700 bg-amber-100', strip: 'bg-amber-400', ring: 'ring-amber-200' };
     case 'minor': return { label: 'KÜÇÜK', cls: 'text-yellow-700 bg-yellow-100', strip: 'bg-yellow-400', ring: 'ring-yellow-200' };
-    default: return { label: 'FORMAT', cls: 'text-blue-700 bg-blue-100', strip: 'bg-blue-400', ring: 'ring-blue-200' };
+    default: return { label: 'FORMAT', cls: 'text-primary-700 bg-primary-100', strip: 'bg-primary-400', ring: 'ring-primary-200' };
   }
 }
 function sevIcon(sev: string) {
@@ -80,7 +80,7 @@ function sevIcon(sev: string) {
     case 'critical': return <XCircle className="h-5 w-5 text-rose-500" />;
     case 'major': return <AlertTriangle className="h-5 w-5 text-amber-500" />;
     case 'minor': return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-    default: return <Layout className="h-5 w-5 text-blue-500" />;
+    default: return <Layout className="h-5 w-5 text-primary-500" />;
   }
 }
 
@@ -242,9 +242,9 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
       )}
       {/* ============ TEORİK TEZ NOTU ============ */}
       {studyType === 'theoretical' && (
-        <div className="bg-sky-50 ring-1 ring-sky-200 rounded-2xl px-5 py-3 flex items-start gap-3">
-          <BookOpen className="h-5 w-5 text-sky-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-sky-800">Bu tez <b>teorik/derleme</b> türünde değerlendirildi. Örneklem, veri toplama ve istatistiksel test gibi yalnızca empirik çalışmalara özgü kriterler bu türde uygulanmadı; genel notunuz bu kriterlerden etkilenmedi.</p>
+        <div className="bg-primary-50 ring-1 ring-primary-200 rounded-2xl px-5 py-3 flex items-start gap-3">
+          <BookOpen className="h-5 w-5 text-primary-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-primary-800">Bu tez <b>teorik/derleme</b> türünde değerlendirildi. Örneklem, veri toplama ve istatistiksel test gibi yalnızca empirik çalışmalara özgü kriterler bu türde uygulanmadı; genel notunuz bu kriterlerden etkilenmedi.</p>
         </div>
       )}
       {/* ============ HERO: KARAR KARTI ============ */}
@@ -265,7 +265,7 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
           </div>
           {/* Jüri hükmü */}
           <div className="flex-1">
-            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-1.5">
+            <div className="flex items-center gap-2 text-xs font-semibold text-primary-500 uppercase tracking-wide mb-1.5">
               <Scale className="w-4 h-4" /> Jüri Değerlendirmesi
             </div>
             <p className="text-[15px] leading-relaxed text-slate-700">{verdict}</p>
@@ -351,7 +351,7 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
       {sortedCats.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-5 sm:p-6">
           <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-5 bg-indigo-500 rounded-full" /> Kategoriler, tek bakışta
+            <span className="w-1.5 h-5 bg-primary-500 rounded-full" /> Kategoriler, tek bakışta
           </h2>
           <div className="space-y-2">
             {sortedCats.map((c) => {

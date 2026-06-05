@@ -74,7 +74,7 @@ export default function MesafeliSatisSozlesmesi() {
             <h2 className="text-xl font-semibold mb-3">6. GİZLİLİK VE VERİ GÜVENLİĞİ</h2>
             <p className="text-gray-700">
               Kişisel verileriniz, Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında korunmaktadır. Ayrıntılar için
-              <a href="/privacy-policy" className="text-blue-600 hover:underline ml-1">Gizlilik Politikamızı</a> inceleyiniz.
+              <a href="/privacy-policy" className="text-primary-600 hover:underline ml-1">Gizlilik Politikamızı</a> inceleyiniz.
             </p>
           </section>
 

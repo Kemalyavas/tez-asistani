@@ -112,7 +112,7 @@ function PaymentFailContent() {
 
             <a
               href="mailto:kemalyavaas@outlook.com"
-              className="w-full text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center py-2"
+              className="w-full text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center justify-center py-2"
             >
               <HelpCircle className="h-4 w-4 mr-2" />
               Destek Ekibine Ulaş

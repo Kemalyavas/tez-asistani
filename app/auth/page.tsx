@@ -9,7 +9,7 @@ export default function AuthPage() {
         <div>
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+            className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Ana Sayfaya Dön
@@ -25,7 +25,7 @@ export default function AuthPage() {
         <AuthComponent />
 
         <div className="text-center text-sm text-gray-500">
-          Kayıt olarak <Link href="/privacy-policy" className="text-blue-600 hover:underline">Gizlilik Politikamızı</Link> kabul etmiş olursunuz.
+          Kayıt olarak <Link href="/privacy-policy" className="text-primary-600 hover:underline">Gizlilik Politikamızı</Link> kabul etmiş olursunuz.
         </div>
       </div>
     </div>
