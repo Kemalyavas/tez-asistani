@@ -35,7 +35,7 @@
   }
   
   .feature-card {
-    @apply bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-6 transition-all duration-200 hover:shadow-md hover:ring-primary-200;
+    @apply bg-white rounded-2xl shadow-md ring-1 ring-slate-100 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:ring-primary-200;
   }
 
   .input-modern {
@@ -43,7 +43,7 @@
   }
 
   .gradient-bg {
-    @apply bg-gradient-to-b from-primary-50/60 to-white;
+    @apply bg-gradient-to-b from-primary-50 to-white;
   }
 
   .text-gradient {

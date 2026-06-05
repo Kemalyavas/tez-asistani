@@ -112,7 +112,12 @@ export default function Home() {
     <main className="min-h-screen">
       {/* Hero Section */}
       <section className="gradient-bg py-24 relative overflow-hidden">
-        {/* Sade arka plan — gradient-bg yeterli (eski blur-blob dekorasyonları kaldırıldı) */}
+        {/* Zarif modern arka plan: yumuşak indigo ışıma + ince ızgara deseni
+            (eski generic 3-blob yerine; derinlik verir ama sade kalır) */}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[820px] h-[520px] bg-primary-200/45 rounded-full blur-3xl"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_75%_60%_at_50%_20%,#000_55%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_75%_60%_at_50%_20%,#000_55%,transparent_100%)]"></div>
+        </div>
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-fade-in">
