@@ -16,6 +16,7 @@ const pages: Entry[] = [
   { path: '/', changeFrequency: 'weekly', priority: 1.0 },
   { path: '/tez-analizi', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/akademik-formatlar', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/apa-kaynakca-olusturucu', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9 },
   { path: '/ozellikler', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/blog', changeFrequency: 'weekly', priority: 0.8 },
