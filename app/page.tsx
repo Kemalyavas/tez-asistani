@@ -462,29 +462,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Early Access */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="inline-flex items-center bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Erken Erişim
-            </div>
-            <h2 className="text-3xl font-bold mb-4">İlk kullanıcılarımızın arasına katıl</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              TezAI henüz yeni. Erken kullanıcıların geri bildirimleriyle geliştiriyoruz.
-              Ücretsiz başla, farkı kendin gör ve platformun şekillenmesine katkıda bulun.
-            </p>
-            <button
-              onClick={scrollToApp}
-              className="btn-primary text-lg px-8 py-4"
-            >
-              Ücretsiz Dene
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ Section */}
       <section className="py-16 bg-white">
         <Script
