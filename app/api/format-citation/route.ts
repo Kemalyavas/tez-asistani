@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { rateLimit, getClientIP } from '../../lib/rateLimit';
+import { citationAnonRateLimiter } from '../../lib/queue/qstash';
 import openai from "../../lib/openai";
 import { CREDIT_COSTS } from '../../lib/pricing';
 import { isAdmin } from '../../lib/adminUtils';
@@ -57,51 +58,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Supabase auth check
+    // Supabase auth — ARTIK ZORUNLU DEĞİL. Girişli: kredi düş. Girişsiz: günlük IP kotası.
     const supabase = createRouteHandlerClient({ cookies });
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Please sign in to continue' },
-        { status: 401 }
-      );
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    const isAnon = !user;
 
-    // Admin bypass - skip credit deduction
-    const userIsAdmin = isAdmin(user.id);
+    let userIsAdmin = false;
     let result: any = null;
+    let anonRemaining = 0;
 
-    if (userIsAdmin) {
-      console.log('[ADMIN] Credit check bypassed for user:', user.id);
-      result = { success: true, new_balance: 999999 };
-    } else {
-      // Deduct credits using the database function
-      const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
-        p_user_id: user.id,
-        p_amount: CREDITS_REQUIRED,
-        p_action_type: ACTION_TYPE,
-        p_description: `Format citation: ${format.toUpperCase()} - ${type}`
-      });
-
-      if (creditError) {
-        console.error('Credit deduction error:', creditError);
+    if (isAnon) {
+      // Girişsiz ücretsiz deneme: fail-CLOSED günlük IP kotası.
+      // Redis erişilemezse denemeyi REDDET (abuse engeli); kayıtlı akış bundan etkilenmez.
+      let anonCheck;
+      try {
+        anonCheck = await citationAnonRateLimiter.limit(`anon_${clientIP}`);
+      } catch (e) {
+        console.error('[FormatCitation] anon ratelimit error, fail-closed:', e);
         return NextResponse.json(
-          { error: 'Failed to process credits' },
-          { status: 500 }
+          { error: 'Ücretsiz deneme şu an kullanılamıyor. Lütfen üye olun.', requireAuth: true },
+          { status: 503 }
         );
       }
-
-      result = creditResult?.[0];
-      if (!result?.success) {
+      if (!anonCheck.success) {
         return NextResponse.json(
-          {
-            error: result?.error_message || 'Insufficient credits',
-            creditsRequired: CREDITS_REQUIRED,
-            currentCredits: result?.new_balance || 0
-          },
-          { status: 402 } // Payment Required
+          { error: 'Günlük ücretsiz deneme hakkınız doldu. Sınırsız formatlama için üye olun.', requireAuth: true, remainingFree: 0 },
+          { status: 429 }
         );
+      }
+      anonRemaining = anonCheck.remaining;
+    } else {
+      // Admin bypass - skip credit deduction
+      userIsAdmin = isAdmin(user.id);
+      if (userIsAdmin) {
+        console.log('[ADMIN] Credit check bypassed for user:', user.id);
+        result = { success: true, new_balance: 999999 };
+      } else {
+        // Deduct credits using the database function
+        const { data: creditResult, error: creditError } = await supabase.rpc('use_credits', {
+          p_user_id: user.id,
+          p_amount: CREDITS_REQUIRED,
+          p_action_type: ACTION_TYPE,
+          p_description: `Format citation: ${format.toUpperCase()} - ${type}`
+        });
+
+        if (creditError) {
+          console.error('Credit deduction error:', creditError);
+          return NextResponse.json(
+            { error: 'Failed to process credits' },
+            { status: 500 }
+          );
+        }
+
+        result = creditResult?.[0];
+        if (!result?.success) {
+          return NextResponse.json(
+            {
+              error: result?.error_message || 'Insufficient credits',
+              creditsRequired: CREDITS_REQUIRED,
+              currentCredits: result?.new_balance || 0
+            },
+            { status: 402 } // Payment Required
+          );
+        }
       }
     }
 
@@ -134,19 +153,19 @@ Return ONLY the formatted citation, no explanations.`
       });
     } catch (aiError) {
       console.error('OpenAI API error:', aiError);
-      // AI başarısız oldu — krediyi iade et (service-role gerekli)
-      if (!userIsAdmin) {
+      // AI başarısız oldu — yalnız kayıtlı (admin olmayan) kullanıcıya kredi iade et.
+      if (!isAnon && !userIsAdmin) {
         try {
           await supabaseAdmin.rpc('add_credits', {
-            p_user_id: user.id,
+            p_user_id: user!.id,
             p_amount: CREDITS_REQUIRED,
             p_bonus: 0,
             p_payment_id: null,
             p_package_id: null,
-            p_idempotency_key: `refund_citation_${user.id}_${Date.now()}`,
+            p_idempotency_key: `refund_citation_${user!.id}_${Date.now()}`,
             p_transaction_type: 'refund'
           });
-          console.log(`[FormatCitation] Refunded ${CREDITS_REQUIRED} credits to user ${user.id}`);
+          console.log(`[FormatCitation] Refunded ${CREDITS_REQUIRED} credits to user ${user!.id}`);
         } catch (refundError) {
           console.error('[CRITICAL] Credit refund failed:', refundError);
         }
@@ -159,8 +178,9 @@ Return ONLY the formatted citation, no explanations.`
 
     return NextResponse.json({
       formatted: response.choices[0].message.content,
-      creditsUsed: CREDITS_REQUIRED,
-      remainingCredits: result?.new_balance ?? 0
+      ...(isAnon
+        ? { anonymous: true, remainingFree: anonRemaining }
+        : { creditsUsed: userIsAdmin ? 0 : CREDITS_REQUIRED, remainingCredits: result?.new_balance ?? 0 }),
     });
 
   } catch (error) {

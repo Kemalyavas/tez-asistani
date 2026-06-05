@@ -35,6 +35,15 @@ export const citationRateLimiter = new Ratelimit({
   prefix: 'ratelimit:citation',
 });
 
+// Girişsiz (anonim) ücretsiz atıf denemesi: IP başına günde 3.
+// fail-closed kullanımı route tarafında (Redis hatasında deneme reddedilir).
+export const citationAnonRateLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, '1 d'),
+  analytics: true,
+  prefix: 'ratelimit:citation-anon',
+});
+
 export const apiRateLimiter = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(60, '1 m'), // Dakikada 60 genel API
