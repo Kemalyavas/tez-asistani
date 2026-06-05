@@ -87,6 +87,12 @@ export default function Navbar() {
               Araçlar
             </button>
             <Link
+              href="/blog"
+              className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
+            >
+              Blog
+            </Link>
+            <Link
               href="/privacy-policy"
               className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
             >
@@ -167,6 +173,13 @@ export default function Navbar() {
               >
                 Araçlar
               </button>
+              <Link
+                href="/blog"
+                className="text-left text-gray-600 hover:text-primary-600 font-medium transition-colors duration-300 py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Blog
+              </Link>
               <Link
                 href="/privacy-policy"
                 className="text-left text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200 py-2"

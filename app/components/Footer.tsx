@@ -10,6 +10,7 @@ const productLinks = [
 ];
 
 const companyLinks = [
+  { href: '/blog', label: 'Blog' },
   { href: '/hakkimizda', label: 'Hakkımızda' },
   { href: '/sss', label: 'Sık Sorulan Sorular' },
   { href: '/iletisim', label: 'İletişim' },
