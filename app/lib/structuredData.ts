@@ -13,14 +13,8 @@ export const structuredData = {
     description:
       'Yapay zeka destekli akademik yazım asistanı: tez analizi, atıf biçimlendirme (APA, MLA, Chicago), özet oluşturma ve kaynak yönetimi.',
     inLanguage: 'tr-TR',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${siteUrl}/?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
+    // NOT: SearchAction kaldırıldı — site içi arama motoru yok; çalışmayan bir
+    // SearchAction Google'a yanlış sinyal verir (kaldırmak doğru).
     publisher: {
       '@type': 'Organization',
       name: 'TezAI',
@@ -28,8 +22,8 @@ export const structuredData = {
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logo.png`,
-        width: '600',
-        height: '60',
+        width: 600,
+        height: 60,
       },
     },
   },
@@ -44,24 +38,21 @@ export const structuredData = {
     logo: {
       '@type': 'ImageObject',
       url: `${siteUrl}/logo.png`,
-      width: '600',
-      height: '60',
+      width: 600,
+      height: 60,
     },
     description: 'Yapay zeka destekli akademik yazım platformu',
     sameAs: [
       'https://x.com/tezasistani',
     ],
     foundingDate: '2024',
-    founders: [
-      {
-        '@type': 'Person',
-        name: 'TezAI Team',
-      },
-    ],
+    // NOT: founders kaldırıldı — "TezAI Team" gerçek bir kişi adı değil; schema'da
+    // sahte Person yerine hiç koymamak doğru. Gerçek kurucu adı eklenirse E-E-A-T artar.
     address: {
       '@type': 'PostalAddress',
       addressCountry: 'TR',
-      addressRegion: 'Istanbul',
+      addressRegion: 'Kocaeli',
+      addressLocality: 'İzmit',
     },
   },
 
@@ -90,6 +81,7 @@ export const structuredData = {
         price: '149',
         priceCurrency: 'TRY',
         category: 'Credits',
+        availability: 'https://schema.org/InStock',
         url: `${siteUrl}/pricing`,
       },
       {
@@ -98,6 +90,7 @@ export const structuredData = {
         price: '449',
         priceCurrency: 'TRY',
         category: 'Credits',
+        availability: 'https://schema.org/InStock',
         url: `${siteUrl}/pricing`,
       },
       {
@@ -106,6 +99,7 @@ export const structuredData = {
         price: '749',
         priceCurrency: 'TRY',
         category: 'Credits',
+        availability: 'https://schema.org/InStock',
         url: `${siteUrl}/pricing`,
       },
       {
@@ -114,6 +108,7 @@ export const structuredData = {
         price: '1499',
         priceCurrency: 'TRY',
         category: 'Credits',
+        availability: 'https://schema.org/InStock',
         url: `${siteUrl}/pricing`,
       },
     ],

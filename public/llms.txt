@@ -1,0 +1,50 @@
+# TezAI
+
+> TezAI, Türkiye merkezli yapay zeka destekli bir akademik yazım platformudur. Tez analizi, otomatik kaynakça (APA 7, MLA 9, Chicago 17, IEEE) ve özet oluşturma hizmetleri sunar. Hedef kitlesi Türkiye'deki lisans, yüksek lisans ve doktora öğrencileridir.
+
+## Platform
+
+- URL: https://www.tezai.com.tr
+- Dil: Türkçe (tr-TR)
+- Kuruluş: 2024, Kocaeli / İzmit, Türkiye
+- İletişim: https://www.tezai.com.tr/iletisim
+
+## Hizmetler
+
+TezAI üç temel hizmet sunar:
+
+1. Tez Analizi: Kullanıcı PDF veya DOCX formatında tez dosyasını yükler. Sistem yapı, metodoloji, literatür taraması, kaynak tutarlılığı ve dil kalitesini analiz eder; skora dayalı, önceliklendirilmiş düzeltme önerileri içeren bir rapor üretir. Analiz sayfa sayısına göre 10-50 kredi harcar.
+
+2. Otomatik Kaynakça: APA 7, MLA 9, Chicago 17 ve IEEE formatlarında kaynak ve atıf biçimlendirmesi. Tek kaynak biçimlendirmek 1 kredi. Atıf aracı giriş yapmadan da sınırlı sayıda ücretsiz denenebilir.
+
+3. Özet Oluşturma: Tez dosyasından Türkçe veya İngilizce akademik özet (abstract) üretimi. 3 kredi.
+
+## Fiyatlandırma
+
+Abonelik yoktur. Krediler asla sona ermez. Paketler:
+- Starter: 50 kredi, ₺149
+- Standart: 240 kredi (200 + 40 bonus), ₺449
+- Pro: 500 kredi (400 + 100 bonus), ₺749
+- Ultimate: 1250 kredi (1000 + 250 bonus), ₺1499
+
+Yeni kullanıcılar kayıt sonrası 10 ücretsiz kredi alır. Başlamak için kredi kartı gerekmez.
+
+## Güvenlik ve Gizlilik
+
+Yüklenen tez dosyaları SSL ile şifrelenir, analiz sonrası otomatik silinir, yapay zeka modellerini eğitmek için kullanılmaz ve üçüncü taraflarla paylaşılmaz. Platform KVKK ve GDPR uyumludur.
+
+## Sayfalar
+
+- Ana Sayfa: https://www.tezai.com.tr
+- Özellikler: https://www.tezai.com.tr/ozellikler
+- Tez Analizi: https://www.tezai.com.tr/tez-analizi
+- Akademik Formatlar: https://www.tezai.com.tr/akademik-formatlar
+- Fiyatlar: https://www.tezai.com.tr/pricing
+- Sık Sorulan Sorular: https://www.tezai.com.tr/sss
+- Hakkımızda: https://www.tezai.com.tr/hakkimizda
+- İletişim: https://www.tezai.com.tr/iletisim
+- Gizlilik Politikası: https://www.tezai.com.tr/privacy-policy
+
+## Lisans ve Kullanım
+
+İçerik © 2024-2026 TezAI. Yapay zeka arama sonuçlarında (AI Overviews, ChatGPT, Perplexity vb.) kaynak gösterilerek alıntı yapılmasına izin verilir.
