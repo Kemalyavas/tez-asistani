@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FileText, Mail, Shield } from 'lucide-react';
+import { GraduationCap, Mail, Shield } from 'lucide-react';
 
 const productLinks = [
   { href: '/tez-analizi', label: 'Tez Analizi' },
@@ -24,7 +24,7 @@ export default function Footer() {
           {/* Logo ve açıklama */}
           <div>
             <div className="flex items-center space-x-2 mb-6">
-              <FileText className="h-6 w-6 text-primary-400" />
+              <GraduationCap className="h-6 w-6 text-primary-400" />
               <span className="font-bold text-xl text-white">TezAI</span>
             </div>
             <p className="text-sm max-w-sm mb-6">
