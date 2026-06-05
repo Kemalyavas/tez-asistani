@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Book, Link, Copy, Check, Lock, AlertCircle, Coins } from 'lucide-react';
+import { Copy, Check, AlertCircle, Coins } from 'lucide-react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useCredits } from '../hooks/useCredits';
 import { CREDIT_COSTS } from '../lib/pricing';
@@ -12,6 +13,7 @@ export default function CitationFormatter() {
   const [result, setResult] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [remainingFree, setRemainingFree] = useState<number | null>(null);
 
   const { user, credits, checkCredits, refresh } = useCredits();
   const creditCost = CREDIT_COSTS.citation_format.creditsRequired;
@@ -22,11 +24,13 @@ export default function CitationFormatter() {
       return;
     }
 
-    // Kredi kontrolü
-    const creditCheck = checkCredits('citation_format');
-    if (!creditCheck.allowed) {
-      toast.error(creditCheck.reason || 'Yetersiz kredi');
-      return;
+    // Kredi kontrolü yalnız GİRİŞLİ kullanıcı için (anonim ücretsiz deneme backend kotasıyla yönetilir)
+    if (user) {
+      const creditCheck = checkCredits('citation_format');
+      if (!creditCheck.allowed) {
+        toast.error(creditCheck.reason || 'Yetersiz kredi');
+        return;
+      }
     }
 
     setLoading(true);
@@ -40,15 +44,24 @@ export default function CitationFormatter() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Anonim kota doldu / deneme kapalı → kayıt yönlendirmesi
+        if (data?.requireAuth) {
+          setRemainingFree(0);
+          toast.error(data.error || 'Ücretsiz deneme hakkın doldu. Üye ol.');
+          return;
+        }
         throw new Error(data.error || 'Formatlama başarısız');
       }
 
       setResult(data.formatted);
 
-      // Kredi bakiyesini güncelle (API zaten kredi kesti)
-      await refresh();
-
-      toast.success(`Kaynak formatlandı! (${creditCost} kredi kullanıldı)`);
+      if (data.anonymous) {
+        setRemainingFree(typeof data.remainingFree === 'number' ? data.remainingFree : null);
+        toast.success('Kaynak formatlandı!');
+      } else {
+        await refresh();
+        toast.success(`Kaynak formatlandı! (${creditCost} kredi kullanıldı)`);
+      }
     } catch (error: any) {
       toast.error(error.message || 'Formatlama başarısız');
     } finally {
@@ -165,7 +178,7 @@ export default function CitationFormatter() {
 
       <button
         onClick={handleFormat}
-        disabled={loading || !user || !checkCredits('citation_format').allowed}
+        disabled={loading || (!!user && !checkCredits('citation_format').allowed)}
         className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? (
@@ -174,10 +187,7 @@ export default function CitationFormatter() {
             <span>Formatlanıyor...</span>
           </div>
         ) : !user ? (
-          <div className="flex items-center justify-center space-x-2">
-            <Lock className="h-4 w-4" />
-            <span>Giriş Yap</span>
-          </div>
+          'Ücretsiz Formatla'
         ) : !checkCredits('citation_format').allowed ? (
           <div className="flex items-center justify-center space-x-2">
             <Coins className="h-4 w-4" />
@@ -187,6 +197,25 @@ export default function CitationFormatter() {
           `Formatla (${creditCost} kredi)`
         )}
       </button>
+
+      {/* Anonim deneme: kayıt teşviki */}
+      {!user && (
+        <div className="rounded-lg bg-primary-50 border border-primary-100 p-4 text-sm text-primary-800 flex items-center justify-between gap-3">
+          <span>
+            {remainingFree !== null
+              ? remainingFree > 0
+                ? `Ücretsiz deneme: ${remainingFree} hakkın kaldı.`
+                : 'Ücretsiz deneme hakkın doldu.'
+              : 'Kayıtlı kullanıcılar sınırsız formatlama + atıf geçmişi kazanır.'}
+          </span>
+          <Link
+            href="/auth?mode=signup"
+            className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition"
+          >
+            Üye Ol
+          </Link>
+        </div>
+      )}
 
       {/* Result */}
       {result && (

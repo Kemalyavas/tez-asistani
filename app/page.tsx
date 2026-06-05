@@ -130,9 +130,9 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12 animate-slide-in">
               <button
-                onClick={scrollToApp}
+                onClick={() => { setActiveTab('citation'); scrollToApp(); }}
                 className="btn-primary text-lg px-8 py-4 min-w-[200px]"
-                aria-label="TezAI araçlarını ücretsiz dene"
+                aria-label="Atıf aracını ücretsiz dene"
               >
                 Ücretsiz Dene
               </button>
