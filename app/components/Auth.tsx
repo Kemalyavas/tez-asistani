@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -21,7 +21,8 @@ const RATE_LIMITS = {
 };
 
 export default function AuthComponent() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const searchParams = useSearchParams();
+  const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'signup');
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -99,10 +100,6 @@ export default function AuthComponent() {
       return false;
     }
     if (isSignUp) {
-      if (!formData.username) {
-        toast.error('Kullanıcı adı zorunludur');
-        return false;
-      }
       if (formData.password !== formData.confirmPassword) {
         toast.error('Şifreler eşleşmiyor');
         return false;
@@ -156,7 +153,7 @@ export default function AuthComponent() {
           password: formData.password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/confirm`,
-            data: { username: formData.username, display_name: formData.username }
+            data: (() => { const u = formData.username.trim() || formData.email.split('@')[0]; return { username: u, display_name: u }; })()
           }
         });
 
@@ -235,6 +232,24 @@ export default function AuthComponent() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth/confirm` },
+      });
+      if (error) {
+        toast.error('Google ile giriş başlatılamadı');
+        setLoading(false);
+      }
+      // başarılıysa tarayıcı Google'a yönlendirilir; setLoading(false) gerekmez
+    } catch {
+      toast.error('Google ile giriş başlatılamadı');
+      setLoading(false);
+    }
+  };
+
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setIsForgotPassword(false);
@@ -250,6 +265,30 @@ export default function AuthComponent() {
   return (
     <div className="max-w-md mx-auto">
       <form onSubmit={handleAuth} className="space-y-6">
+
+        {/* Google ile giriş (şifre sıfırlama modunda gizli) */}
+        {!isForgotPassword && (
+          <>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
+              </svg>
+              Google ile devam et
+            </button>
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+              <div className="relative flex justify-center text-xs"><span className="bg-white px-2 text-gray-400">veya</span></div>
+            </div>
+          </>
+        )}
 
         {/* Şifre sıfırlama başlığı */}
         {isForgotPassword && (
@@ -290,13 +329,12 @@ export default function AuthComponent() {
         {isSignUp && !isForgotPassword && (
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Kullanıcı Adı
+              Kullanıcı Adı <span className="text-gray-400 font-normal">(opsiyonel)</span>
             </label>
             <input
               type="text"
               name="username"
               id="username"
-              required
               value={formData.username}
               onChange={handleInputChange}
               className="input-modern"

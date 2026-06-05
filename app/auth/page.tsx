@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import AuthComponent from '../components/Auth';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -22,7 +23,9 @@ export default function AuthPage() {
           </p>
         </div>
 
-        <AuthComponent />
+        <Suspense fallback={<div className="text-center text-gray-400">Yükleniyor...</div>}>
+          <AuthComponent />
+        </Suspense>
 
         <div className="text-center text-sm text-gray-500">
           Kayıt olarak <Link href="/privacy-policy" className="text-primary-600 hover:underline">Gizlilik Politikamızı</Link> kabul etmiş olursunuz.

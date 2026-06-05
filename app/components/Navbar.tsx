@@ -204,7 +204,7 @@ export default function Navbar() {
                   </>
                 ) : (
                   <Link
-                    href="/auth"
+                    href="/auth?mode=signup"
                     onClick={() => setIsMenuOpen(false)}
                     className="block text-primary-600 hover:bg-primary-50 font-medium transition-colors duration-200 py-2"
                   >
