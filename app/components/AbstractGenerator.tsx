@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Loader2, Languages, Lock, AlertCircle, Coins } from 'lucide-react';
+import { Loader2, Languages, AlertCircle, Coins } from 'lucide-react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useCredits } from '../hooks/useCredits';
 import { CREDIT_COSTS } from '../lib/pricing';
@@ -11,6 +12,7 @@ export default function AbstractGenerator() {
   const [wordCount, setWordCount] = useState('200-300');
   const [abstract, setAbstract] = useState('');
   const [loading, setLoading] = useState(false);
+  const [remainingFree, setRemainingFree] = useState<number | null>(null);
 
   const { user, credits, checkCredits, refresh } = useCredits();
   const creditCost = CREDIT_COSTS.abstract_generate.creditsRequired;
@@ -21,11 +23,13 @@ export default function AbstractGenerator() {
       return;
     }
 
-    // Kredi kontrolü
-    const creditCheck = checkCredits('abstract_generate');
-    if (!creditCheck.allowed) {
-      toast.error(creditCheck.reason || 'Yetersiz kredi');
-      return;
+    // Kredi kontrolü yalnız GİRİŞLİ kullanıcı için (anonim ücretsiz deneme backend kotasıyla yönetilir)
+    if (user) {
+      const creditCheck = checkCredits('abstract_generate');
+      if (!creditCheck.allowed) {
+        toast.error(creditCheck.reason || 'Yetersiz kredi');
+        return;
+      }
     }
 
     setLoading(true);
@@ -39,15 +43,24 @@ export default function AbstractGenerator() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Anonim kota doldu / deneme kapalı → kayıt yönlendirmesi
+        if (data?.requireAuth) {
+          setRemainingFree(0);
+          toast.error(data.error || 'Ücretsiz deneme hakkın doldu. Üye ol.');
+          return;
+        }
         throw new Error(data.error || 'Failed to generate abstract');
       }
 
       setAbstract(data.abstract);
 
-      // Kredi bakiyesini güncelle (API zaten kredi kesti)
-      await refresh();
-
-      toast.success(`Özet oluşturuldu! (${creditCost} kredi kullanıldı)`);
+      if (data.anonymous) {
+        setRemainingFree(typeof data.remainingFree === 'number' ? data.remainingFree : null);
+        toast.success('Özet oluşturuldu!');
+      } else {
+        await refresh();
+        toast.success(`Özet oluşturuldu! (${creditCost} kredi kullanıldı)`);
+      }
     } catch (error: any) {
       toast.error(error.message || 'Özet oluşturulamadı');
     } finally {
@@ -148,7 +161,7 @@ export default function AbstractGenerator() {
 
       <button
         onClick={generateAbstract}
-        disabled={loading || !text || !user || !checkCredits('abstract_generate').allowed}
+        disabled={loading || !text || (!!user && !checkCredits('abstract_generate').allowed)}
         className="w-full btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? (
@@ -158,8 +171,8 @@ export default function AbstractGenerator() {
           </>
         ) : !user ? (
           <>
-            <Lock className="h-5 w-5 mr-2" />
-            Giriş Yap
+            <Languages className="h-5 w-5 mr-2" />
+            Ücretsiz Özet Oluştur
           </>
         ) : !checkCredits('abstract_generate').allowed ? (
           <>
@@ -173,6 +186,25 @@ export default function AbstractGenerator() {
           </>
         )}
       </button>
+
+      {/* Anonim deneme: kayıt teşviki */}
+      {!user && (
+        <div className="rounded-lg bg-primary-50 border border-primary-100 p-4 text-sm text-primary-800 flex items-center justify-between gap-3">
+          <span>
+            {remainingFree !== null
+              ? remainingFree > 0
+                ? `Ücretsiz deneme: ${remainingFree} hakkın kaldı.`
+                : 'Ücretsiz deneme hakkın doldu.'
+              : 'Kayıtlı kullanıcılar daha fazla özet + tüm araçlara erişim kazanır.'}
+          </span>
+          <Link
+            href="/auth?mode=signup"
+            className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition"
+          >
+            Üye Ol
+          </Link>
+        </div>
+      )}
 
       {/* Generated Abstract */}
       {abstract && (

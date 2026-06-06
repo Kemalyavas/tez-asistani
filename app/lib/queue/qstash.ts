@@ -44,6 +44,15 @@ export const citationAnonRateLimiter = new Ratelimit({
   prefix: 'ratelimit:citation-anon',
 });
 
+// Girişsiz (anonim) ücretsiz özet denemesi: IP başına günde 2 (özet, atıftan
+// daha pahalı olduğu için daha düşük). fail-closed kullanımı route tarafında.
+export const abstractAnonRateLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(2, '1 d'),
+  analytics: true,
+  prefix: 'ratelimit:abstract-anon',
+});
+
 export const apiRateLimiter = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(60, '1 m'), // Dakikada 60 genel API
