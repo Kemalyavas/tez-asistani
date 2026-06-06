@@ -237,7 +237,7 @@ export default function AuthComponent() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/confirm` },
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
       if (error) {
         toast.error('Google ile giriş başlatılamadı');
