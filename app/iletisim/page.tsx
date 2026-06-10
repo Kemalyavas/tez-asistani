@@ -33,12 +33,12 @@ export default function IletisimPage() {
         <div className="container mx-auto px-4 max-w-3xl">
           <div className="grid sm:grid-cols-3 gap-6 mb-12">
             <a
-              href="mailto:kemalyavaas@outlook.com"
+              href="mailto:destek.tezai@gmail.com"
               className="card text-center hover:border-primary-200"
             >
               <Mail className="h-7 w-7 text-primary-600 mx-auto mb-3" />
               <h2 className="font-bold text-gray-800 mb-1">E-posta</h2>
-              <p className="text-sm text-gray-600 break-all">kemalyavaas@outlook.com</p>
+              <p className="text-sm text-gray-600 break-all">destek.tezai@gmail.com</p>
             </a>
             <div className="card text-center">
               <Phone className="h-7 w-7 text-primary-600 mx-auto mb-3" />

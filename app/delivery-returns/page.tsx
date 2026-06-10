@@ -86,7 +86,7 @@ export default function DeliveryReturns() {
                 </ul>
                 <div className="bg-primary-50 border-l-4 border-primary-400 p-4">
                   <p className="text-primary-800 text-sm">
-                    <strong>Not:</strong> Ödeme sonrası 5 dakika içinde krediler görünmezse kemalyavaas@outlook.com adresinden bize ulaşın.
+                    <strong>Not:</strong> Ödeme sonrası 5 dakika içinde krediler görünmezse destek.tezai@gmail.com adresinden bize ulaşın.
                   </p>
                 </div>
               </div>
@@ -172,7 +172,7 @@ export default function DeliveryReturns() {
                 </ul>
                 <h3 className="text-lg font-semibold mb-3">İade Talebi Nasıl Yapılır</h3>
                 <ol className="list-decimal pl-6 space-y-2">
-                  <li><strong>kemalyavaas@outlook.com</strong> adresine e-posta gönderin</li>
+                  <li><strong>destek.tezai@gmail.com</strong> adresine e-posta gönderin</li>
                   <li>Kayıtlı e-posta adresinizi ve ödeme tarihini belirtin</li>
                   <li>İade talebinizin nedenini açıklayın</li>
                   <li><strong>3 iş günü</strong> içinde yanıt veririz</li>
@@ -192,7 +192,7 @@ export default function DeliveryReturns() {
                   Teslimat, kredi veya iade konularındaki sorularınız için:
                 </p>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>E-posta:</strong> kemalyavaas@outlook.com</p>
+                  <p><strong>E-posta:</strong> destek.tezai@gmail.com</p>
                   <p><strong>Yanıt Süresi:</strong> 24-48 saat içinde</p>
                 </div>
               </div>

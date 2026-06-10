@@ -137,8 +137,8 @@ function PaymentStatusContent() {
         {!isSuccess && (
           <p className="text-center text-sm text-gray-500 mt-6">
             Ücretlendirildiyseniz ancak kredi almadıysanız lütfen{' '}
-            <a href="mailto:kemalyavaas@outlook.com" className="text-primary-600 hover:underline">
-              kemalyavaas@outlook.com
+            <a href="mailto:destek.tezai@gmail.com" className="text-primary-600 hover:underline">
+              destek.tezai@gmail.com
             </a>{' '}
             ile iletişime geçin.
           </p>

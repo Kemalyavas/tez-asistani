@@ -240,7 +240,7 @@ export default function PrivacyPolicy() {
                   Kişisel verilerinizle ilgili soru, talep veya şikayetleriniz için:
                 </p>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>E-posta:</strong> kemalyavaas@outlook.com</p>
+                  <p><strong>E-posta:</strong> destek.tezai@gmail.com</p>
                   <p><strong>Adres:</strong> Kocaeli/İzmit</p>
                   <p><strong>Veri Sorumlusu:</strong> Ali Kemal Yavaş</p>
                 </div>

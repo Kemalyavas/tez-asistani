@@ -10,7 +10,7 @@ export const SITE_NAME = 'TezAI';
 export const SITE_LOCALE = 'tr_TR';
 export const SITE_LANG = 'tr-TR';
 export const TWITTER_HANDLE = '@tezasistani';
-export const CONTACT_EMAIL = 'kemalyavaas@outlook.com';
+export const CONTACT_EMAIL = 'destek.tezai@gmail.com';
 
 // Tam URL üretici (canonical, OG, sitemap için)
 export function absoluteUrl(path = ''): string {

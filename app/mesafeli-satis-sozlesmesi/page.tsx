@@ -16,7 +16,7 @@ export default function MesafeliSatisSozlesmesi() {
               <p><strong>Satıcı:</strong></p>
               <p>Ünvan: Tez Asistanı</p>
               <p>Adres: Kocaeli/İzmit</p>
-              <p>E-posta: kemalyavaas@outlook.com</p>
+              <p>E-posta: destek.tezai@gmail.com</p>
               <p>Telefon: 554 969 00 11</p>
 
               <p className="mt-4"><strong>Alıcı:</strong></p>
