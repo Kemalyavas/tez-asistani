@@ -41,7 +41,7 @@ export const CREDIT_PACKAGES: Record<string, CreditPackage> = {
       '50 kredi',
       '~5 atıf biçimlendirme VEYA',
       '~16 özet oluşturma VEYA',
-      '~2 temel tez analizi',
+      '~2 kısa tez analizi',
       'Süresiz geçerli'
     ]
   },
@@ -59,8 +59,8 @@ export const CREDIT_PACKAGES: Record<string, CreditPackage> = {
     features: [
       '200 + 40 bonus kredi',
       '~24 özet oluşturma VEYA',
-      '~9 standart analiz VEYA',
-      '~4 kapsamlı analiz',
+      '~9 standart tez analizi VEYA',
+      '~4 uzun tez analizi',
       'Süresiz geçerli'
     ]
   },
@@ -78,8 +78,8 @@ export const CREDIT_PACKAGES: Record<string, CreditPackage> = {
     features: [
       '400 + 100 bonus kredi',
       '~166 özet oluşturma VEYA',
-      '~20 standart analiz VEYA',
-      '~10 kapsamlı analiz',
+      '~20 standart tez analizi VEYA',
+      '~10 uzun tez analizi',
       'Öncelikli işleme',
       'Süresiz geçerli'
     ]
@@ -98,8 +98,8 @@ export const CREDIT_PACKAGES: Record<string, CreditPackage> = {
     features: [
       '1000 + 250 bonus kredi',
       '~416 özet oluşturma VEYA',
-      '~50 standart analiz VEYA',
-      '~25 kapsamlı analiz',
+      '~50 standart tez analizi VEYA',
+      '~25 uzun tez analizi',
       'Öncelikli işleme',
       'Premium destek',
       'Süresiz geçerli'
@@ -133,19 +133,19 @@ export const CREDIT_COSTS: Record<string, CreditCost> = {
   thesis_basic: {
     actionType: 'thesis_basic',
     creditsRequired: 10,
-    description: 'Temel analiz (1-50 sayfa) - Yapı ve kaynak kontrolü',
+    description: 'Tez analizi (1-50 sayfa) - Tam kapsamlı değerlendirme',
     category: 'thesis'
   },
   thesis_standard: {
     actionType: 'thesis_standard',
     creditsRequired: 25,
-    description: 'Standart analiz (51-100 sayfa) - Multi-Agent detaylı analiz',
+    description: 'Tez analizi (51-100 sayfa) - Tam kapsamlı değerlendirme',
     category: 'thesis'
   },
   thesis_comprehensive: {
     actionType: 'thesis_comprehensive',
     creditsRequired: 50,
-    description: 'Kapsamlı analiz (101+ sayfa) - Çapraz doğrulama dahil',
+    description: 'Tez analizi (101+ sayfa) - Tam kapsamlı değerlendirme',
     category: 'thesis'
   },
   pdf_report: {
@@ -168,53 +168,44 @@ export interface AnalysisTier {
   features: string[];
 }
 
+// NOT (dürüstlük): Üç seviyede de ANALİZ AYNIDIR — aynı model, aynı 50 kriterlik
+// rubrik, aynı derinlik. Seviye yalnızca tezin SAYFA HACMİNE göre ücreti belirler
+// (uzun tez = daha fazla işlenen içerik = daha fazla kredi). Feature listeleri bu
+// yüzden bilinçli olarak aynıdır; eski "Flash/Multi-Agent/Claude çapraz doğrulama"
+// metinleri pasif mimariden kalmaydı ve gerçeği yansıtmıyordu.
+const FULL_ANALYSIS_FEATURES = [
+  '50 kriterlik tam akademik değerlendirme',
+  'Yapı, metodoloji, literatür ve kaynak analizi',
+  'Sayfa referanslı, kanıta dayalı bulgular',
+  'Önceliklendirilmiş düzeltme önerileri',
+  'YÖK standartları uyumluluk kontrolü',
+  'Ücretsiz PDF rapor',
+];
+
 export const ANALYSIS_TIERS: AnalysisTier[] = [
   {
     id: 'basic',
-    name: 'Temel Analiz',
+    name: 'Kısa Tez Analizi',
     minPages: 1,
     maxPages: 50,
     credits: 10,
-    features: [
-      'Yapı ve organizasyon kontrolü',
-      'Temel yazım kalitesi analizi',
-      'Kaynak formatı kontrolü',
-      'Hızlı AI değerlendirmesi (Gemini Flash)',
-      'Temel skor ve öneriler'
-    ]
+    features: FULL_ANALYSIS_FEATURES
   },
   {
     id: 'standard',
-    name: 'Standart Analiz',
+    name: 'Standart Tez Analizi',
     minPages: 51,
     maxPages: 100,
     credits: 25,
-    features: [
-      'Temel Analizin tüm özellikleri',
-      'Multi-Agent derinlemesine analiz',
-      'Metodoloji değerlendirmesi',
-      'Literatür tutarlılığı kontrolü',
-      'Argümantasyon analizi',
-      'Detaylı kategori puanları',
-      'Bölüm bazlı geri bildirim'
-    ]
+    features: FULL_ANALYSIS_FEATURES
   },
   {
     id: 'comprehensive',
-    name: 'Kapsamlı Analiz',
+    name: 'Uzun Tez Analizi',
     minPages: 101,
     maxPages: 999,
     credits: 50,
-    features: [
-      'Standart Analizin tüm özellikleri',
-      'Claude ile çapraz doğrulama',
-      'Gemini + Claude hibrit değerlendirme',
-      'Özgünlük ve katkı analizi',
-      'Profesör düzeyinde geri bildirim',
-      'Yayın hazırlığı değerlendirmesi',
-      'Kalibre edilmiş skorlar',
-      'Öncelikli işleme'
-    ]
+    features: FULL_ANALYSIS_FEATURES
   }
 ];
 

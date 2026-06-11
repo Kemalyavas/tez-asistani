@@ -115,9 +115,9 @@ export default function AnalysesContent() {
 
   const getAnalysisTypeLabel = (type: string) => {
     switch (type) {
-      case 'basic': return 'Temel';
-      case 'standard': return 'Standart';
-      case 'comprehensive': return 'Kapsamlı';
+      case 'basic': return 'Kısa Tez';
+      case 'standard': return 'Standart Tez';
+      case 'comprehensive': return 'Uzun Tez';
       default: return type;
     }
   };

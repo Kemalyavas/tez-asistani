@@ -91,8 +91,8 @@ export default function TezAnaliziPage() {
         <div className="container mx-auto px-4 max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-4">Analiz seviyeleri</h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            Tezinin sayfa sayısına göre uygun analiz seviyesi otomatik belirlenir. Kapsam arttıkça
-            değerlendirme derinleşir.
+            Ücret yalnızca tezinin sayfa sayısına göre otomatik belirlenir. Hangi seviyede olursa
+            olsun her tez, aynı tam kapsamlı 50 kriterlik değerlendirmeden geçer.
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {ANALYSIS_TIERS.map((tier) => (

@@ -345,8 +345,8 @@ export default function AnalysisDetailContent({ analysisId }: AnalysisDetailCont
                   })}
                 </span>
                 <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                  {analysis.analysis_type === 'basic' ? 'Temel' :
-                   analysis.analysis_type === 'standard' ? 'Standart' : 'Kapsamlı'} Analiz
+                  {analysis.analysis_type === 'basic' ? 'Kısa Tez' :
+                   analysis.analysis_type === 'standard' ? 'Standart Tez' : 'Uzun Tez'} Analizi
                 </span>
               </div>
             </div>
