@@ -158,6 +158,20 @@ export const structuredData = {
     ],
   },
 
+  // Helper to generate a page-specific FAQPage schema (AI/GEO citability)
+  generateFAQ: (items: Array<{ question: string; answer: string }>) => ({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  }),
+
   // Helper to generate BreadcrumbList dynamically
   generateBreadcrumb: (items: Array<{ name: string; url: string }>) => ({
     '@context': 'https://schema.org',
