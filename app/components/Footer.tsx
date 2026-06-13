@@ -25,13 +25,15 @@ export default function Footer() {
           {/* Logo ve açıklama */}
           <div>
             <Link href="/" className="inline-block mb-6">
-              <Image
-                src="/logo_white.png"
-                alt="TezAI"
-                width={120}
-                height={120}
-                className="h-16 w-auto"
-              />
+              <span className="inline-flex items-center justify-center bg-white rounded-2xl p-3 shadow-sm">
+                <Image
+                  src="/logo.png"
+                  alt="TezAI"
+                  width={96}
+                  height={96}
+                  className="h-16 w-auto"
+                />
+              </span>
             </Link>
             <p className="text-sm max-w-sm mb-6">
               Yapay zeka destekli tez analizi, otomatik kaynakça ve özet araçlarıyla tezini güvenle
