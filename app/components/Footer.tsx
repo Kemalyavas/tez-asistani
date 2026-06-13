@@ -22,19 +22,8 @@ export default function Footer() {
     <footer className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
-          {/* Logo ve açıklama */}
+          {/* Açıklama */}
           <div>
-            <Link href="/" className="inline-block mb-6">
-              <span className="inline-flex items-center justify-center bg-white rounded-2xl p-3 shadow-sm">
-                <Image
-                  src="/logo.png"
-                  alt="TezAI"
-                  width={96}
-                  height={96}
-                  className="h-16 w-auto"
-                />
-              </span>
-            </Link>
             <p className="text-sm max-w-sm mb-6">
               Yapay zeka destekli tez analizi, otomatik kaynakça ve özet araçlarıyla tezini güvenle
               tamamla.
