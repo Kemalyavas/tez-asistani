@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { GraduationCap, Mail, Shield } from 'lucide-react';
+import { Mail, Shield } from 'lucide-react';
 
 const productLinks = [
   { href: '/tez-analizi', label: 'Tez Analizi' },
@@ -24,10 +24,15 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Logo ve açıklama */}
           <div>
-            <div className="flex items-center space-x-2 mb-6">
-              <GraduationCap className="h-6 w-6 text-primary-400" />
-              <span className="font-bold text-xl text-white">TezAI</span>
-            </div>
+            <Link href="/" className="inline-block mb-6">
+              <Image
+                src="/logo_white.png"
+                alt="TezAI"
+                width={120}
+                height={120}
+                className="h-16 w-auto"
+              />
+            </Link>
             <p className="text-sm max-w-sm mb-6">
               Yapay zeka destekli tez analizi, otomatik kaynakça ve özet araçlarıyla tezini güvenle
               tamamla.

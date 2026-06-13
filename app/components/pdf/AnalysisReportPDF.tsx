@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   // Header
   header: { marginBottom: 18, borderBottomWidth: 2, borderBottomColor: '#E5E7EB', paddingBottom: 12 },
-  logo: { fontSize: 20, fontWeight: 'bold', color: '#2563EB', lineHeight: 1.15, marginBottom: 2 },
+  logo: { fontSize: 20, fontWeight: 'bold', color: '#4F46E5', lineHeight: 1.15, marginBottom: 2 },
   headerSub: { fontSize: 11, color: '#6B7280', marginTop: 0, lineHeight: 1.2 },
   headerMeta: { fontSize: 9, color: '#9CA3AF', marginTop: 4 },
 

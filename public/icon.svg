@@ -7,5 +7,12 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#tezai-bg)"/>
-  <path d="M150 168 h212 v46 h-82 v176 h-48 v-176 h-82 z" fill="#ffffff"/>
+  <!-- Mezuniyet kepi (logo ile aynı motif) -->
+  <!-- Kep tablası (rhombus) -->
+  <path d="M256 150 L412 212 L256 274 L100 212 Z" fill="#ffffff"/>
+  <!-- Kep alt gövdesi -->
+  <path d="M168 240 L168 300 Q256 356 344 300 L344 240 L256 277 Z" fill="#ffffff"/>
+  <!-- Püskül ipi + boncuk (marka sarısı) -->
+  <path d="M256 212 L360 256 L360 320" fill="none" stroke="#fbbf24" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="360" cy="340" r="20" fill="#fbbf24"/>
 </svg>

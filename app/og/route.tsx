@@ -50,12 +50,10 @@ export async function GET(req: Request) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#111827',
-              fontWeight: 800,
-              fontSize: 32,
+              fontSize: 36,
             }}
           >
-            T
+            {'🎓'}
           </div>
           <div style={{ fontSize: 28, opacity: 0.95 }}>tezai.com.tr</div>
         </div>
