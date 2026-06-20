@@ -35,6 +35,12 @@ const FAQ = [
   },
 ];
 
+const STEPS = [
+  { icon: BookOpen, t: 'Kaynak türünü seç', d: 'Kitap, makale veya web sitesi.' },
+  { icon: Zap, t: 'Formatı seç', d: 'APA 7, MLA 9, Chicago veya IEEE.' },
+  { icon: ShieldCheck, t: 'Bilgileri gir', d: 'Yazar, başlık, yıl; sonuç anında hazır.' },
+];
+
 export default function ApaKaynakcaOlusturucuPage() {
   const url = `${SITE_URL}/apa-kaynakca-olusturucu`;
   const appSchema = {
@@ -69,103 +75,140 @@ export default function ApaKaynakcaOlusturucuPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
-      <header className="gradient-bg border-b border-slate-100">
-        <div className="container mx-auto px-4 py-14 max-w-3xl text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Ücretsiz APA Kaynakça Oluşturucu
+      <section className="relative overflow-hidden border-b border-line">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-[150px] left-1/2 -translate-x-1/2 h-[440px] w-[720px] rounded-full opacity-65 blur-[14px]"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, #dde4f4, transparent 70%)',
+          }}
+        />
+        <div className="relative z-10 mx-auto max-w-3xl px-6 pt-[68px] pb-[52px] text-center">
+          <div className="mb-5 inline-flex items-center gap-[9px]">
+            <span className="h-px w-[30px] bg-primary-600" />
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary-700">
+              Ücretsiz araç
+            </span>
+            <span className="h-px w-[30px] bg-primary-600" />
+          </div>
+          <h1 className="mb-[18px] font-serif text-[2.6rem] sm:text-5xl font-medium leading-[1.08] tracking-[-0.02em] text-ink">
+            Ücretsiz APA kaynakça oluşturucu
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Kitap, makale veya web sitesi bilgilerini gir; <strong>APA 7, MLA 9, Chicago</strong> ve{' '}
-            <strong>IEEE</strong> formatında saniyeler içinde doğru kaynakça oluştur. Üyelik gerekmez.
+          <p className="mx-auto max-w-[600px] text-lg leading-relaxed text-ink/60">
+            Kitap, makale veya web sitesi bilgilerini gir;{' '}
+            <strong className="font-semibold text-ink">APA 7, MLA 9, Chicago</strong> ve{' '}
+            <strong className="font-semibold text-ink">IEEE</strong> formatında saniyeler içinde doğru
+            kaynakça oluştur. Üyelik gerekmez.
           </p>
         </div>
-      </header>
+      </section>
 
-      {/* Araç */}
-      <section className="container mx-auto px-4 -mt-6 max-w-3xl">
-        <div className="bg-white rounded-2xl shadow-xl ring-1 ring-slate-100 p-6 sm:p-8">
+      {/* Araç — gerçek CitationFormatter aracı editöryel kart içinde */}
+      <section className="mx-auto max-w-3xl px-6 pt-9">
+        <div className="rounded-[5px] border border-line bg-white p-6 shadow-[0_26px_60px_-40px_rgba(28,26,23,0.42)] sm:p-8">
           <CitationFormatter />
         </div>
       </section>
 
       {/* Nasıl kullanılır */}
-      <section className="container mx-auto px-4 py-14 max-w-3xl">
-        <h2 className="text-2xl font-bold text-slate-900 mb-6 text-center">Nasıl kullanılır?</h2>
-        <div className="grid sm:grid-cols-3 gap-5">
-          {[
-            { icon: BookOpen, t: 'Kaynak türünü seç', d: 'Kitap, makale veya web sitesi.' },
-            { icon: Zap, t: 'Formatı seç', d: 'APA 7, MLA 9, Chicago veya IEEE.' },
-            { icon: ShieldCheck, t: 'Bilgileri gir', d: 'Yazar, başlık, yıl; sonuç anında hazır.' },
-          ].map((s, i) => (
-            <div key={i} className="bg-slate-50 rounded-xl p-5 text-center">
-              <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-100 text-primary-600 mb-3">
+      <section className="reveal mx-auto max-w-3xl px-6 py-14">
+        <h2 className="mb-7 text-center font-serif text-3xl font-medium tracking-[-0.015em] text-ink">
+          Nasıl kullanılır?
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <div key={i} className="rounded-[5px] border border-line bg-white p-6 text-center">
+              <div className="mx-auto mb-3.5 inline-flex h-[46px] w-[46px] items-center justify-center rounded-xl bg-primary-50 text-primary-700">
                 <s.icon className="h-5 w-5" />
               </div>
-              <h3 className="font-semibold text-slate-900 mb-1">{s.t}</h3>
-              <p className="text-sm text-slate-500">{s.d}</p>
+              <h3 className="mb-1 text-base font-bold text-ink">{s.t}</h3>
+              <p className="text-sm leading-relaxed text-ink/55">{s.d}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Bilgi içeriği */}
-      <section className="container mx-auto px-4 pb-6 max-w-3xl">
-        <div className="prose prose-slate max-w-none prose-headings:text-slate-900 prose-a:text-primary-600 prose-a:no-underline hover:prose-a:underline">
-          <h2>APA kaynakça nedir?</h2>
-          <p>
-            APA kaynakça, Amerikan Psikoloji Derneği&apos;nin (APA) yazar-tarih sistemine göre düzenlenen
-            kaynak listesidir. Özellikle sosyal bilimler, eğitim ve sağlık alanlarında yaygındır.
-            Her kaynak; yazar soyadı, yıl, eser başlığı ve yayın bilgisi sırasıyla, alfabetik ve asılı
-            girintili biçimde listelenir. Bu araç, girdiğin bilgileri seçtiğin formatın kurallarına göre
-            otomatik biçimlendirir.
+      <section className="reveal border-y border-line bg-primary-50">
+        <div className="mx-auto max-w-[740px] px-6 py-14">
+          <h2 className="mb-4 font-serif text-[1.75rem] font-semibold tracking-[-0.015em] text-ink">
+            APA kaynakça nedir?
+          </h2>
+          <p className="mb-4 text-base leading-[1.7] text-ink/70">
+            APA kaynakça, Amerikan Psikoloji Derneği&apos;nin (APA) yazar-tarih sistemine göre
+            düzenlenen kaynak listesidir. Özellikle sosyal bilimler, eğitim ve sağlık alanlarında
+            yaygındır. Her kaynak; yazar soyadı, yıl, eser başlığı ve yayın bilgisi sırasıyla,
+            alfabetik ve asılı girintili biçimde listelenir. Bu araç, girdiğin bilgileri seçtiğin
+            formatın kurallarına göre otomatik biçimlendirir.
           </p>
-          <p>
+          <p className="text-base leading-[1.7] text-ink/70">
             Atıf kurallarının ayrıntılı anlatımı, örnek atıflar ve sık yapılan hatalar için{' '}
-            <Link href="/blog/apa-7-kaynakca-nasil-yapilir">APA 7 kaynakça nasıl yapılır rehberimize</Link>{' '}
+            <Link
+              href="/blog/apa-7-kaynakca-nasil-yapilir"
+              className="font-bold text-primary-700 underline-offset-2 hover:underline"
+            >
+              APA 7 kaynakça nasıl yapılır rehberimize
+            </Link>{' '}
             göz atabilir; farklı stillerin karşılaştırması için{' '}
-            <Link href="/blog/atif-formatlari-apa-mla-chicago-ieee">atıf formatları karşılaştırmasını</Link>{' '}
+            <Link
+              href="/blog/atif-formatlari-apa-mla-chicago-ieee"
+              className="font-bold text-primary-700 underline-offset-2 hover:underline"
+            >
+              atıf formatları karşılaştırmasını
+            </Link>{' '}
             inceleyebilirsin.
           </p>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="container mx-auto px-4 pb-10 max-w-3xl">
-        <h2 className="text-2xl font-bold text-slate-900 mb-5">Sık Sorulan Sorular</h2>
-        <div className="space-y-3">
+      {/* FAQ — statik açık kartlar (server component + metadata korunur) */}
+      <section className="reveal mx-auto max-w-[740px] px-6 py-14">
+        <h2 className="mb-7 text-center font-serif text-3xl font-medium tracking-[-0.015em] text-ink">
+          Sık sorulan sorular
+        </h2>
+        <div className="flex flex-col gap-3">
           {FAQ.map((f, i) => (
-            <details key={i} className="group bg-slate-50 rounded-xl px-5 py-4">
-              <summary className="font-semibold text-slate-800 cursor-pointer list-none flex items-center justify-between gap-3">
-                {f.q}
-                <span className="text-primary-500 group-open:rotate-45 transition-transform text-xl leading-none flex-shrink-0">
-                  +
-                </span>
-              </summary>
-              <p className="mt-3 text-slate-600 leading-relaxed">{f.a}</p>
-            </details>
+            <div key={i} className="rounded-[5px] border border-line bg-white p-[22px]">
+              <h3 className="mb-2 text-base font-bold text-ink">{f.q}</h3>
+              <p className="text-[0.95rem] leading-[1.62] text-ink/60">{f.a}</p>
+            </div>
           ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="container mx-auto px-4 pb-16 max-w-3xl">
-        <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-2">Sadece kaynakça değil, tüm tezini kontrol et</h2>
-          <p className="text-primary-100 mb-6 max-w-xl mx-auto">
-            TezAI; yapı, metodoloji, kaynak tutarlılığı ve formatı yapay zeka ile analiz eder. Kayıt olana 10 ücretsiz kredi.
-          </p>
-          <Link
-            href="/tez-analizi"
-            className="inline-flex items-center gap-2 bg-white text-primary-700 font-semibold px-6 py-3 rounded-lg hover:bg-primary-50 transition"
-          >
-            Tez Analizini Dene <ArrowRight className="h-5 w-5" />
-          </Link>
+      <section className="reveal px-6 pb-[72px]">
+        <div className="relative mx-auto max-w-[740px] overflow-hidden rounded-[5px] bg-gradient-to-br from-[#14224f] to-[#2a52a8] px-10 py-14 text-center">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-20 -right-12 h-[300px] w-[300px] rounded-full"
+            style={{
+              background:
+                'radial-gradient(circle, rgba(150,178,236,0.16), transparent 70%)',
+            }}
+          />
+          <div className="relative">
+            <h2 className="mb-3 font-serif text-[2rem] font-medium tracking-[-0.015em] text-white">
+              Sadece kaynakça değil, tüm tezini kontrol et
+            </h2>
+            <p className="mx-auto mb-7 max-w-xl text-[1.05rem] text-primary-100">
+              TezAI; yapı, metodoloji, kaynak tutarlılığı ve formatı yapay zeka ile analiz eder.
+              Kayıt olana 10 ücretsiz kredi.
+            </p>
+            <Link
+              href="/tez-analizi"
+              className="inline-flex items-center gap-2 rounded-md bg-white px-7 py-3.5 font-bold text-primary-700 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.4)] transition hover:-translate-y-px"
+            >
+              Tez Analizini Dene <ArrowRight className="h-[17px] w-[17px]" />
+            </Link>
+          </div>
         </div>
       </section>
     </div>
