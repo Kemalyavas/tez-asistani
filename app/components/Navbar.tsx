@@ -80,9 +80,9 @@ export default function Navbar() {
       <Image
         src="/logo.png"
         alt="TezAI"
-        width={72}
-        height={72}
-        className="h-14 w-auto group-hover:scale-105 transition-transform duration-300"
+        width={88}
+        height={88}
+        className="h-[68px] w-auto group-hover:scale-105 transition-transform duration-300"
         priority
       />
     </Link>
@@ -114,7 +114,7 @@ export default function Navbar() {
     return (
       <header className="sticky top-0 z-50 bg-paper-cool/85 backdrop-blur-md border-b border-line-cool">
         <div className="max-w-6xl mx-auto px-5 sm:px-7">
-          <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex items-center justify-between h-20 gap-4">
             {logo}
             <div className="flex items-center gap-3 sm:gap-4">
               {creditChip}
@@ -153,7 +153,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-paper/85 backdrop-blur-md border-b border-line">
       <nav className="max-w-6xl mx-auto px-5 sm:px-9">
-        <div className="flex items-center justify-between h-[72px] gap-6">
+        <div className="flex items-center justify-between h-20 gap-6">
           {logo}
 
           {/* Desktop links */}
