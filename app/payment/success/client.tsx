@@ -10,47 +10,44 @@ export default function PaymentSuccessClient() {
   const packageName = searchParams.get('package')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-primary-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Check className="w-10 h-10 text-green-600" />
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#eaf3ed' }}>
+      <div className="max-w-md w-full bg-white border border-line-cool rounded-[18px] shadow-[0_30px_64px_-38px_rgba(20,28,55,0.45)] p-9 text-center">
+        <div className="w-[74px] h-[74px] bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pop">
+          <Check className="w-9 h-9" strokeWidth={2.6} style={{ color: '#15803d' }} />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          🎉 Ödeme Başarılı!
+        <h1 className="font-serif text-[28px] font-semibold tracking-tight text-ink mb-2.5">
+          Ödeme başarılı
         </h1>
-        <p className="text-gray-600 mb-4">
-          Kredileriniz hesabınıza eklendi.
+        <p className="text-[15.5px] text-ink/60 mb-6">
+          Kredilerin hesabına eklendi.
         </p>
 
         {/* Credit Info */}
         {credits && (
-          <div className="bg-primary-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-center space-x-2 text-primary-700">
+          <div className="bg-primary-50 rounded-xl p-[18px] mb-6">
+            <div className="flex items-center justify-center gap-2.5 text-primary-700">
               <Coins className="h-6 w-6" />
-              <span className="text-2xl font-bold">+{credits}</span>
-              <span className="text-lg">kredi</span>
+              <span className="font-serif text-[30px] font-semibold">+{credits}</span>
+              <span className="text-[17px]">kredi</span>
             </div>
-            {balance && (
-              <p className="text-sm text-primary-600 mt-2">
-                Yeni bakiye: <strong>{balance}</strong> kredi
-              </p>
-            )}
-            {packageName && (
-              <p className="text-sm text-gray-500 mt-1">
-                Paket: {packageName}
+            {(balance || packageName) && (
+              <p className="text-[13.5px] text-primary-700/80 mt-2">
+                {balance && <>Yeni bakiye: <strong>{balance}</strong> kredi</>}
+                {balance && packageName && ' · '}
+                {packageName}
               </p>
             )}
           </div>
         )}
 
-        <div className="space-y-3">
-          <Link href="/" className="btn-primary w-full flex items-center justify-center group">
-            Kredileri Kullanmaya Başla
-            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+        <div className="flex flex-col gap-3">
+          <Link href="/" className="btn-primary w-full group">
+            Kredileri kullanmaya başla
+            <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
-          <Link href="/profile" className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center">
-            <Home className="mr-2 h-4 w-4" />
-            Profilimi Görüntüle
+          <Link href="/profile" className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+            <Home className="h-4 w-4" />
+            Profilimi görüntüle
           </Link>
         </div>
       </div>

@@ -4,20 +4,12 @@ import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import {
-  User,
-  Mail,
-  Calendar,
-  Shield,
   Edit3,
   Save,
   X,
   Eye,
   EyeOff,
-  ArrowLeft,
   FileText,
-  Award,
-  Clock,
-  CheckCircle,
   Coins,
   Zap,
   TrendingUp,
@@ -242,20 +234,29 @@ export default function ProfileContent() {
 
   const displayCredits = isAdminUser ? '∞' : (profile?.credits ?? 0);
 
+  const getInitials = (name: string) =>
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'K';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-paper-cool flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary-600/20 border-t-primary-600"></div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center">
+      <div className="min-h-screen bg-paper-cool flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Profil bulunamadı</h1>
-          <Link href="/" className="text-primary-600 hover:text-primary-800">
+          <h1 className="font-serif text-2xl font-semibold text-ink mb-4">Profil bulunamadı</h1>
+          <Link href="/" className="text-primary-700 hover:underline">
             Ana Sayfaya Dön
           </Link>
         </div>
@@ -263,140 +264,103 @@ export default function ProfileContent() {
     );
   }
 
+  const initials = getInitials(profile.full_name || profile.username || '');
+
+  const stats = [
+    { label: 'Analiz edilen tez', value: profile.thesis_analyses_count ?? 0, topBorder: false },
+    { label: 'Oluşturulan özet', value: profile.abstracts_count ?? 0, topBorder: false },
+    { label: 'Formatlanan kaynak', value: profile.citations_count ?? 0, topBorder: false },
+    { label: 'Satın alınan kredi', value: profile.total_credits_purchased ?? 0, topBorder: true },
+    { label: 'Kullanılan kredi', value: profile.total_credits_used ?? 0, topBorder: false },
+    {
+      label: 'Üyelik tarihi',
+      value: new Date(profile.created_at).toLocaleDateString('tr-TR'),
+      topBorder: true,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <Link 
-              href="/"
-              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Ana Sayfaya Dön</span>
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Profilim</h1>
-            <div className="w-32"></div> {/* Spacer */}
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-paper-cool">
+      <div className="max-w-5xl mx-auto px-6 py-10">
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Left Sidebar - Profile Summary */}
-          <div className="lg:col-span-1">
-            {/* Profile Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <div className="text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="h-12 w-12 text-white" />
+        <h1 className="font-serif font-medium text-[42px] leading-[1.05] tracking-[-0.02em] text-ink mb-7">
+          Profilim
+        </h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-[22px] items-start">
+
+          {/* ===== LEFT SIDEBAR ===== */}
+          <div className="flex flex-col gap-[18px]">
+
+            {/* Profile card */}
+            <div className="bg-white border border-line-cool rounded-2xl shadow-[0_16px_36px_-30px_rgba(20,28,55,0.4)] p-6 text-center">
+              <div className="w-[84px] h-[84px] rounded-full bg-gradient-to-br from-[#2a52a8] to-[#14224f] flex items-center justify-center mx-auto mb-[14px]">
+                <span className="font-serif text-[34px] font-semibold text-white">{initials}</span>
+              </div>
+              <h2 className="text-[19px] font-bold text-ink mb-0.5">{profile.full_name || profile.username}</h2>
+              <p className="text-[13.5px] text-ink/55 mb-[18px] truncate">{profile.email}</p>
+
+              {/* Credit box */}
+              <div className="bg-primary-50 rounded-xl p-4">
+                <div className="flex items-center justify-center gap-2">
+                  <Coins className="h-[22px] w-[22px] text-primary-700" strokeWidth={2} />
+                  <span className="font-serif text-[32px] font-semibold text-primary-700 leading-none">{displayCredits}</span>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">{profile.full_name || profile.username}</h2>
-                <p className="text-gray-600">{profile.email}</p>
+                <p className="text-[13px] text-ink/55 mt-1.5 mb-3.5">Mevcut kredi</p>
+                {isAdminUser && (
+                  <p className="text-[11px] text-primary-700/70 -mt-2 mb-3">Admin sınırsız</p>
+                )}
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1.5 bg-primary-700 text-white text-[13.5px] font-bold px-4 py-[9px] rounded-[9px] transition-colors hover:bg-[#15296b]"
+                >
+                  <Zap className="h-[14px] w-[14px]" strokeWidth={2.2} />
+                  Kredi Satın Al
+                </Link>
+              </div>
+            </div>
 
-                {/* Credit Balance */}
-                <div className="mt-4 bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl p-4">
-                  <div className="flex items-center justify-center space-x-2">
-                    <Coins className="h-6 w-6 text-primary-600" />
-                    <span className="text-3xl font-bold text-primary-600">{displayCredits}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">Mevcut Kredi</p>
-                  {isAdminUser && (
-                    <p className="text-xs text-primary-500 mt-1">Admin sınırsız</p>
-                  )}
-                  <Link
-                    href="/pricing"
-                    className="mt-3 inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
+            {/* Usage stats */}
+            <div className="bg-white border border-line-cool rounded-2xl shadow-[0_16px_36px_-32px_rgba(20,28,55,0.4)] p-6">
+              <h3 className="text-[15px] font-bold text-ink mb-4">Kullanım istatistikleri</h3>
+              <div className="flex flex-col gap-[13px]">
+                {stats.map((s) => (
+                  <div
+                    key={s.label}
+                    className={`flex items-center justify-between ${s.topBorder ? 'pt-[13px] border-t border-line-cool' : ''}`}
                   >
-                    <Zap className="h-4 w-4 mr-1" />
-                    Kredi Satın Al
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Usage Statistics */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Kullanım İstatistikleri</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-primary-600" />
-                    <span className="text-sm text-gray-600">Analiz Edilen Tez</span>
+                    <span className="text-[13.5px] text-ink/60">{s.label}</span>
+                    <span className="text-[15px] font-bold text-ink">{s.value}</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{profile.thesis_analyses_count}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Award className="h-4 w-4 text-primary-600" />
-                    <span className="text-sm text-gray-600">Oluşturulan Özet</span>
-                  </div>
-                  <span className="font-semibold text-gray-900">{profile.abstracts_count}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-gray-600">Formatlanan Kaynak</span>
-                  </div>
-                  <span className="font-semibold text-gray-900">{profile.citations_count}</span>
-                </div>
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Coins className="h-4 w-4 text-amber-600" />
-                      <span className="text-sm text-gray-600">Satın Alınan Kredi</span>
-                    </div>
-                    <span className="font-semibold text-gray-900">{profile.total_credits_purchased}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center space-x-2">
-                      <Coins className="h-4 w-4 text-red-500" />
-                      <span className="text-sm text-gray-600">Kullanılan Kredi</span>
-                    </div>
-                    <span className="font-semibold text-gray-900">{profile.total_credits_used}</span>
-                  </div>
-                </div>
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">Üyelik Tarihi</span>
-                    </div>
-                    <span className="font-semibold text-gray-900">
-                      {new Date(profile.created_at).toLocaleDateString('tr-TR')}
-                    </span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Right Content - Profile Details */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Profile Information */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Profil Bilgileri</h3>
+          {/* ===== RIGHT CONTENT ===== */}
+          <div className="flex flex-col gap-[18px]">
+
+            {/* Profile information */}
+            <div className="bg-white border border-line-cool rounded-2xl shadow-[0_16px_36px_-30px_rgba(20,28,55,0.4)] p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-serif text-[19px] font-semibold text-ink">Profil bilgileri</h3>
                 {!editing ? (
                   <button
                     onClick={() => setEditing(true)}
-                    className="flex items-center space-x-1 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-[7px] text-[13.5px] font-bold text-primary-700 px-2.5 py-1.5 rounded-lg transition-colors hover:bg-primary-50"
                   >
-                    <Edit3 className="h-4 w-4" />
-                    <span>Düzenle</span>
+                    <Edit3 className="h-[15px] w-[15px]" strokeWidth={2} />
+                    Düzenle
                   </button>
                 ) : (
-                  <div className="flex space-x-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={handleSaveProfile}
                       disabled={saving}
-                      className="flex items-center space-x-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-primary-700 text-white text-[13.5px] font-bold px-3.5 py-2 rounded-lg disabled:opacity-50 transition-colors hover:bg-[#15296b]"
                     >
-                      <Save className="h-4 w-4" />
-                      <span>{saving ? 'Kaydediliyor...' : 'Kaydet'}</span>
+                      <Save className="h-[14px] w-[14px]" strokeWidth={2.2} />
+                      {saving ? 'Kaydediliyor...' : 'Kaydet'}
                     </button>
                     <button
                       onClick={() => {
@@ -406,34 +370,34 @@ export default function ProfileContent() {
                           full_name: profile.full_name || ''
                         });
                       }}
-                      className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                      className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-ink/55 px-3 py-2 rounded-lg transition-colors hover:bg-[#f3f4f2]"
                     >
-                      <X className="h-4 w-4" />
-                      <span>İptal</span>
+                      <X className="h-[14px] w-[14px]" strokeWidth={2.2} />
+                      İptal
                     </button>
                   </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 gap-6">
+              <div className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Kullanıcı Adı
+                  <label className="block text-[13px] font-semibold text-ink/60 mb-[7px]">
+                    Kullanıcı adı
                   </label>
                   {editing ? (
                     <input
                       type="text"
                       value={editForm.username}
                       onChange={(e) => setEditForm({...editForm, username: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-line-cool rounded-[9px] px-3 py-2.5 text-[14.5px] text-ink outline-none focus:border-primary-600 focus:ring-[3px] focus:ring-primary-600/15"
                     />
                   ) : (
-                    <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.username}</p>
+                    <div className="px-3 py-2.5 bg-[#f6f8f7] rounded-[9px] text-[14.5px] text-ink">{profile.username}</div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[13px] font-semibold text-ink/60 mb-[7px]">
                     Ad Soyad
                   </label>
                   {editing ? (
@@ -441,75 +405,75 @@ export default function ProfileContent() {
                       type="text"
                       value={editForm.full_name}
                       onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-line-cool rounded-[9px] px-3 py-2.5 text-[14.5px] text-ink outline-none focus:border-primary-600 focus:ring-[3px] focus:ring-primary-600/15"
                     />
                   ) : (
-                    <p className="px-3 py-2 bg-gray-50 rounded-lg">{profile.full_name || 'Belirtilmemiş'}</p>
+                    <div className="px-3 py-2.5 bg-[#f6f8f7] rounded-[9px] text-[14.5px] text-ink">{profile.full_name || 'Belirtilmemiş'}</div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[13px] font-semibold text-ink/60 mb-[7px]">
                     E-posta
                   </label>
-                  <p className="px-3 py-2 bg-gray-50 rounded-lg text-gray-600">{profile.email}</p>
+                  <div className="px-3 py-2.5 bg-[#f6f8f7] rounded-[9px] text-[14.5px] text-ink/55">{profile.email}</div>
                 </div>
               </div>
             </div>
 
-            {/* Change Password */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Şifre Değiştir</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Yeni Şifre
+            {/* Change password */}
+            <div className="bg-white border border-line-cool rounded-2xl shadow-[0_16px_36px_-32px_rgba(20,28,55,0.4)] p-6">
+              <h3 className="font-serif text-[19px] font-semibold text-ink mb-[18px]">Şifre değiştir</h3>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-[13px] font-semibold text-ink/60 mb-[7px]">
+                    Yeni şifre
                   </label>
                   <div className="relative">
                     <input
                       type={showPasswords.new ? 'text' : 'password'}
                       value={passwordForm.new_password}
                       onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Yeni şifrenizi girin"
+                      className="w-full border border-line-cool rounded-[9px] pl-3 pr-10 py-2.5 text-[14.5px] text-ink outline-none focus:border-primary-600 focus:ring-[3px] focus:ring-primary-600/15"
+                      placeholder="Yeni şifreni gir"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      className="absolute top-0 right-0 bottom-0 w-10 flex items-center justify-center text-ink/40"
                     >
-                      {showPasswords.new ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      {showPasswords.new ? <EyeOff className="h-[17px] w-[17px]" /> : <Eye className="h-[17px] w-[17px]" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Yeni Şifre (Tekrar)
+                <div>
+                  <label className="block text-[13px] font-semibold text-ink/60 mb-[7px]">
+                    Yeni şifre (tekrar)
                   </label>
                   <div className="relative">
                     <input
                       type={showPasswords.confirm ? 'text' : 'password'}
                       value={passwordForm.confirm_password}
                       onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Yeni şifrenizi tekrar girin"
+                      className="w-full border border-line-cool rounded-[9px] pl-3 pr-10 py-2.5 text-[14.5px] text-ink outline-none focus:border-primary-600 focus:ring-[3px] focus:ring-primary-600/15"
+                      placeholder="Yeni şifreni tekrar gir"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPasswords({...showPasswords, confirm: !showPasswords.confirm})}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      className="absolute top-0 right-0 bottom-0 w-10 flex items-center justify-center text-ink/40"
                     >
-                      {showPasswords.confirm ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      {showPasswords.confirm ? <EyeOff className="h-[17px] w-[17px]" /> : <Eye className="h-[17px] w-[17px]" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="md:col-span-2">
+                <div>
                   <button
                     onClick={handleChangePassword}
                     disabled={changingPassword || !passwordForm.new_password || !passwordForm.confirm_password}
-                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="bg-primary-700 text-white text-[14px] font-bold px-[22px] py-[11px] rounded-[9px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover:bg-[#15296b]"
                   >
                     {changingPassword ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
                   </button>
@@ -517,106 +481,82 @@ export default function ProfileContent() {
               </div>
             </div>
 
-            {/* Credit Purchase History Link */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Krediler</h3>
-              <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-primary-600">{displayCredits} kredi</p>
-                    <p className="text-sm text-gray-600">Mevcut bakiye</p>
-                    {isAdminUser && (
-                      <p className="text-xs text-primary-500 mt-1">Admin sınırsız</p>
-                    )}
-                  </div>
-                  <Link
-                    href="/pricing"
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center"
-                  >
-                    <Zap className="h-4 w-4 mr-2" />
-                    Kredi Satın Al
-                  </Link>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-4">
-                Krediler asla sona ermez. Tez analizi, özet oluşturma veya kaynak formatlama için istediğiniz zaman kullanın.
-              </p>
-            </div>
-
-            {/* Recent Analyses */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            {/* Recent analyses */}
+            <div className="bg-white border border-line-cool rounded-2xl shadow-[0_16px_36px_-32px_rgba(20,28,55,0.4)] p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Son Analizler</h3>
+                <h3 className="font-serif text-[19px] font-semibold text-ink">Son analizler</h3>
                 {recentAnalyses.length > 0 && (
                   <Link
                     href="/analyses"
-                    className="text-primary-600 hover:text-primary-800 text-sm font-medium flex items-center"
+                    className="inline-flex items-center gap-1 text-[13px] font-bold text-primary-700 hover:underline"
                   >
-                    Tümünü Gör
-                    <ChevronRight className="h-4 w-4 ml-1" />
+                    Tümünü gör
+                    <ChevronRight className="h-[14px] w-[14px]" strokeWidth={2.2} />
                   </Link>
                 )}
               </div>
 
               {analysesLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary-700" />
                 </div>
               ) : recentAnalyses.length === 0 ? (
                 <div className="text-center py-8">
-                  <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">Henüz analiz yok</p>
+                  <BarChart3 className="h-12 w-12 text-ink/20 mx-auto mb-3" />
+                  <p className="text-ink/55 mb-4">Henüz analiz yok</p>
                   <Link
                     href="/"
-                    className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
+                    className="inline-flex items-center gap-2 bg-primary-700 text-white text-[13.5px] font-bold px-4 py-2.5 rounded-[9px] transition-colors hover:bg-[#15296b]"
                   >
-                    <FileText className="h-4 w-4 mr-2" />
+                    <FileText className="h-4 w-4" />
                     İlk Tezini Analiz Et
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="flex flex-col gap-2.5">
                   {recentAnalyses.map((analysis) => (
                     <Link
                       key={analysis.id}
                       href={`/analyses/${analysis.id}`}
-                      className="block bg-gray-50 hover:bg-gray-100 rounded-xl p-4 transition-colors"
+                      className="flex items-center justify-between gap-3.5 bg-[#f6f8f7] rounded-[11px] px-4 py-3.5 transition-colors hover:bg-paper-cool"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 truncate">
-                            {analysis.filename}
-                          </p>
-                          <div className="flex items-center space-x-3 mt-1 text-sm text-gray-500">
-                            <span>{analysis.page_count} sayfa</span>
-                            <span>•</span>
-                            <span>{new Date(analysis.created_at).toLocaleDateString('tr-TR')}</span>
-                          </div>
+                      <div className="min-w-0">
+                        <div className="text-[14.5px] font-bold text-ink truncate">
+                          {analysis.filename}
                         </div>
-                        <div className="ml-4 flex-shrink-0">
-                          {analysis.status === 'processing' ? (
-                            <div className="flex items-center text-amber-600">
-                              <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                              <span className="text-sm">İşleniyor</span>
-                            </div>
-                          ) : analysis.status === 'failed' ? (
-                            <div className="flex items-center text-red-600">
-                              <AlertCircle className="h-4 w-4 mr-1" />
-                              <span className="text-sm">Başarısız</span>
-                            </div>
-                          ) : analysis.overall_score !== null ? (
-                            <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              analysis.overall_score >= 80 ? 'bg-green-100 text-green-700' :
-                              analysis.overall_score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
-                              <TrendingUp className="h-4 w-4 mr-1" />
-                              {analysis.overall_score}/100
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">Puan yok</span>
-                          )}
+                        <div className="text-[13px] text-ink/55 mt-0.5">
+                          {analysis.page_count} sayfa · {new Date(analysis.created_at).toLocaleDateString('tr-TR')}
                         </div>
+                      </div>
+                      <div className="flex-none">
+                        {analysis.status === 'processing' ? (
+                          <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#b45309]">
+                            <span className="w-[14px] h-[14px] rounded-full border-2 border-[#e7d3b0] border-t-[#b45309] animate-spin"></span>
+                            İşleniyor
+                          </span>
+                        ) : analysis.status === 'failed' ? (
+                          <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#be123c]">
+                            <AlertCircle className="h-[14px] w-[14px]" />
+                            Başarısız
+                          </span>
+                        ) : analysis.overall_score !== null ? (
+                          <span
+                            className="inline-flex items-center gap-1.5 text-[13px] font-bold px-[11px] py-[5px] rounded-full"
+                            style={{
+                              color:
+                                analysis.overall_score >= 80 ? '#15803d' :
+                                analysis.overall_score >= 60 ? '#a16207' : '#be123c',
+                              backgroundColor:
+                                analysis.overall_score >= 80 ? '#e7f3ec' :
+                                analysis.overall_score >= 60 ? '#f7f0df' : '#fbe9ee',
+                            }}
+                          >
+                            <TrendingUp className="h-[13px] w-[13px]" strokeWidth={2.2} />
+                            {analysis.overall_score}/100
+                          </span>
+                        ) : (
+                          <span className="text-[13px] text-ink/40">Puan yok</span>
+                        )}
                       </div>
                     </Link>
                   ))}
