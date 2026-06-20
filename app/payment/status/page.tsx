@@ -16,53 +16,51 @@ function PaymentStatusContent() {
   const isSuccess = status === 'success';
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b ${isSuccess ? 'from-green-50' : 'from-red-50'} to-white flex items-center justify-center p-4`}>
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: isSuccess ? '#eaf3ed' : '#f6eeee' }}>
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+        <div className={`bg-white border border-line-cool rounded-[18px] p-9 text-center ${isSuccess ? 'shadow-[0_30px_64px_-38px_rgba(20,28,55,0.45)]' : 'shadow-[0_30px_64px_-38px_rgba(45,20,20,0.4)]'}`}>
           {/* Status Icon */}
           <div className="mb-6">
             {isSuccess ? (
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="h-12 w-12 text-green-600" />
+              <div className="w-[74px] h-[74px] bg-green-100 rounded-full flex items-center justify-center mx-auto animate-pop">
+                <CheckCircle className="h-9 w-9" strokeWidth={2.4} style={{ color: '#15803d' }} />
               </div>
             ) : (
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                <XCircle className="h-12 w-12 text-red-600" />
+              <div className="w-[74px] h-[74px] bg-red-100 rounded-full flex items-center justify-center mx-auto animate-pop">
+                <XCircle className="h-9 w-9" strokeWidth={2.4} style={{ color: '#be123c' }} />
               </div>
             )}
           </div>
 
           {/* Status Title */}
-          <h1 className={`text-2xl font-bold mb-2 ${isSuccess ? 'text-green-800' : 'text-red-800'}`}>
-            {isSuccess ? 'Ödeme Başarılı!' : 'Ödeme Başarısız'}
+          <h1 className="font-serif text-[26px] font-semibold tracking-tight text-ink mb-2.5">
+            {isSuccess ? 'Ödeme başarılı' : 'Ödeme başarısız'}
           </h1>
 
           {/* Status Description */}
           {isSuccess ? (
-            <p className="text-gray-600 mb-6">
-              Kredileriniz hesabınıza eklendi.
+            <p className="text-[15.5px] text-ink/60 mb-6">
+              Kredilerin hesabına eklendi.
             </p>
           ) : (
-            <p className="text-gray-600 mb-4">
-              {error || 'Ödemeniz işleme alınamadı.'}
+            <p className="text-[15.5px] text-ink/60 mb-5">
+              {error || 'Ödemen işleme alınamadı.'}
             </p>
           )}
 
           {/* Success Details */}
           {isSuccess && (
-            <div className="space-y-4 mb-6">
+            <div className="space-y-3 mb-6">
               {/* Credits Added */}
               {credits && (
-                <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-xl p-4">
-                  <div className="flex items-center justify-center space-x-3">
-                    <Coins className="h-8 w-8 text-primary-600" />
-                    <div>
-                      <span className="text-3xl font-bold text-primary-700">+{credits}</span>
-                      <span className="text-primary-600 ml-2">kredi</span>
-                    </div>
+                <div className="bg-primary-50 rounded-xl p-[18px]">
+                  <div className="flex items-center justify-center gap-2.5 text-primary-700">
+                    <Coins className="h-6 w-6" />
+                    <span className="font-serif text-[30px] font-semibold">+{credits}</span>
+                    <span className="text-[17px]">kredi</span>
                   </div>
                   {packageName && (
-                    <p className="text-sm text-primary-600 mt-2">
+                    <p className="text-[13.5px] text-primary-700/80 mt-2">
                       {packageName} Paketi
                     </p>
                   )}
@@ -71,9 +69,9 @@ function PaymentStatusContent() {
 
               {/* New Balance */}
               {balance && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-600">
-                    Yeni Bakiye: <strong className="text-gray-900">{balance} kredi</strong>
+                <div className="bg-[#f6f8f7] rounded-lg p-2.5">
+                  <p className="text-[13.5px] text-ink/60">
+                    Yeni bakiye: <strong className="text-ink">{balance} kredi</strong>
                   </p>
                 </div>
               )}
@@ -82,10 +80,10 @@ function PaymentStatusContent() {
 
           {/* Error Details */}
           {!isSuccess && error && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-amber-800 text-left">
+            <div className="bg-[#fdf6e8] border border-[#f3e2bd] rounded-xl p-4 mb-6">
+              <div className="flex items-start gap-3 text-left">
+                <AlertTriangle className="h-[18px] w-[18px] mt-0.5 flex-shrink-0" style={{ color: '#b45309' }} />
+                <p className="text-[13.5px] leading-relaxed" style={{ color: '#92591a' }}>
                   {error}
                 </p>
               </div>
@@ -93,40 +91,40 @@ function PaymentStatusContent() {
           )}
 
           {/* Action Buttons */}
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             {isSuccess ? (
               <>
                 <Link
                   href="/"
-                  className="w-full btn-primary flex items-center justify-center"
+                  className="w-full btn-primary group"
                 >
-                  Analiz Etmeye Başla
-                  <ArrowRight className="h-5 w-5 ml-2" />
+                  Analiz etmeye başla
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 <Link
                   href="/profile"
-                  className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition flex items-center justify-center"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
                 >
-                  Profilimi Görüntüle
+                  Profilimi görüntüle
                 </Link>
               </>
             ) : (
               <>
                 <Link
                   href="/pricing"
-                  className="w-full btn-primary flex items-center justify-center"
+                  className="w-full btn-primary"
                 >
-                  <RefreshCw className="h-5 w-5 mr-2" />
-                  Tekrar Dene
+                  <RefreshCw className="h-4 w-4" />
+                  Tekrar dene
                 </Link>
 
                 <Link
                   href="/"
-                  className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition flex items-center justify-center"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
                 >
-                  <Home className="h-5 w-5 mr-2" />
-                  Ana Sayfaya Dön
+                  <Home className="h-4 w-4" />
+                  Ana sayfaya dön
                 </Link>
               </>
             )}
@@ -135,9 +133,9 @@ function PaymentStatusContent() {
 
         {/* Help Text */}
         {!isSuccess && (
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-ink/50 mt-6">
             Ücretlendirildiyseniz ancak kredi almadıysanız lütfen{' '}
-            <a href="mailto:destek.tezai@gmail.com" className="text-primary-600 hover:underline">
+            <a href="mailto:destek.tezai@gmail.com" className="text-primary-700 hover:underline">
               destek.tezai@gmail.com
             </a>{' '}
             ile iletişime geçin.
@@ -151,8 +149,11 @@ function PaymentStatusContent() {
 export default function PaymentStatusPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-paper-cool flex items-center justify-center px-6">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-line-cool border-t-primary-600 mx-auto mb-4"></div>
+          <p className="text-ink/60">Ödeme doğrulanıyor…</p>
+        </div>
       </div>
     }>
       <PaymentStatusContent />

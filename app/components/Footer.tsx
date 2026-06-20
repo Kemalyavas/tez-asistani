@@ -1,50 +1,60 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, Shield } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 const productLinks = [
-  { href: '/tez-analizi', label: 'Tez Analizi' },
-  { href: '/akademik-formatlar', label: 'Akademik Formatlar' },
-  { href: '/ozellikler', label: 'Özellikler' },
+  { href: '/apa-kaynakca-olusturucu', label: 'Kaynakça oluşturucu' },
+  { href: '/akademik-formatlar', label: 'Akademik formatlar' },
   { href: '/pricing', label: 'Fiyatlar' },
 ];
 
 const companyLinks = [
-  { href: '/blog', label: 'Blog' },
   { href: '/hakkimizda', label: 'Hakkımızda' },
-  { href: '/sss', label: 'Sık Sorulan Sorular' },
+  { href: '/blog', label: 'Blog' },
   { href: '/iletisim', label: 'İletişim' },
-  { href: '/auth', label: 'Giriş Yap' },
+];
+
+const legalLinks = [
+  { href: '/privacy-policy', label: 'Gizlilik Politikası' },
+  { href: '/mesafeli-satis-sozlesmesi', label: 'Mesafeli Satış' },
+  { href: '/delivery-returns', label: 'Teslimat ve İade' },
+  { href: '/sss', label: 'Sık Sorulan Sorular' },
 ];
 
 export default function Footer() {
+  const pathname = usePathname() || '/';
+  // Auth ve ödeme sayfalarının kendi tam-ekran düzeni var; footer gösterme.
+  if (pathname.startsWith('/auth') || pathname.startsWith('/payment')) return null;
+
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-4 gap-8">
-          {/* Açıklama */}
-          <div>
-            <p className="text-sm max-w-sm mb-6">
-              Yapay zeka destekli tez analizi, otomatik kaynakça ve özet araçlarıyla tezini güvenle
-              tamamla.
+    <footer className="bg-paper border-t border-line">
+      <div className="max-w-6xl mx-auto px-6 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+          {/* Marka */}
+          <div className="col-span-2 md:col-span-1">
+            <Link href="/" className="inline-block mb-4" aria-label="TezAI ana sayfa">
+              <Image src="/logo.png" alt="TezAI" width={80} height={80} className="h-[68px] w-auto" />
+            </Link>
+            <p className="text-sm leading-relaxed text-ink/60 max-w-[250px]">
+              Akademik tez yazarları için format, kaynak ve özet asistanı.
             </p>
-            <p className="text-xs text-gray-400 mb-2">Güvenli Ödeme</p>
-            <Image
-              src="/logo_band_colored@3x.png"
-              alt="Kabul edilen ödemeler: iyzico, Mastercard, Visa, American Express, Troy"
-              width={320}
-              height={40}
-              className="w-full max-w-[280px]"
-            />
+            <a
+              href="mailto:destek.tezai@gmail.com"
+              className="inline-block mt-4 text-sm font-semibold text-primary-700 hover:text-primary-800 transition-colors break-all"
+            >
+              destek.tezai@gmail.com
+            </a>
           </div>
 
           {/* Ürün */}
           <div>
-            <h2 className="font-semibold text-white mb-4">Ürün</h2>
-            <ul className="space-y-2 text-sm">
+            <h2 className="font-serif text-sm font-semibold text-ink mb-4">Ürün</h2>
+            <ul className="space-y-3">
               {productLinks.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="hover:text-primary-400 transition">
+                  <Link href={l.href} className="text-sm text-ink/60 hover:text-primary-700 transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -52,13 +62,13 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Kurumsal */}
+          {/* Şirket */}
           <div>
-            <h2 className="font-semibold text-white mb-4">Kurumsal</h2>
-            <ul className="space-y-2 text-sm">
+            <h2 className="font-serif text-sm font-semibold text-ink mb-4">Şirket</h2>
+            <ul className="space-y-3">
               {companyLinks.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="hover:text-primary-400 transition">
+                  <Link href={l.href} className="text-sm text-ink/60 hover:text-primary-700 transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -68,37 +78,22 @@ export default function Footer() {
 
           {/* Yasal */}
           <div>
-            <h2 className="font-semibold text-white mb-4">Yasal</h2>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/privacy-policy" className="hover:text-primary-400 transition flex items-center">
-                  <Shield className="h-3 w-3 mr-1" />
-                  Gizlilik Politikası
-                </Link>
-              </li>
-              <li>
-                <Link href="/mesafeli-satis-sozlesmesi" className="hover:text-primary-400 transition">
-                  Mesafeli Satış Sözleşmesi
-                </Link>
-              </li>
-              <li>
-                <Link href="/delivery-returns" className="hover:text-primary-400 transition">
-                  Teslimat ve İade
-                </Link>
-              </li>
-              <li className="flex items-center pt-2">
-                <Mail className="h-3 w-3 mr-2" />
-                <a href="mailto:destek.tezai@gmail.com" className="hover:text-primary-400 transition break-all">
-                  destek.tezai@gmail.com
-                </a>
-              </li>
+            <h2 className="font-serif text-sm font-semibold text-ink mb-4">Yasal</h2>
+            <ul className="space-y-3">
+              {legalLinks.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="text-sm text-ink/60 hover:text-primary-700 transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-10 pt-6 text-xs text-gray-500 flex flex-col sm:flex-row justify-between gap-2">
+        <div className="border-t border-line mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-ink/40">
           <span>© {new Date().getFullYear()} TezAI. Tüm hakları saklıdır.</span>
-          <span>KVKK & GDPR uyumlu</span>
+          <span>KVKK &amp; GDPR uyumlu · tezai.com.tr</span>
         </div>
       </div>
     </footer>

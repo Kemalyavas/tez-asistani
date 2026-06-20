@@ -1,66 +1,50 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import FileUploader from './components/FileUploader';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
-import { Zap, CheckCircle, BookOpen, FileSearch, Check, Coins, Gift, Sparkles } from 'lucide-react';
+import CtaBand from './components/CtaBand';
+import { ArrowRight } from 'lucide-react';
 import { CREDIT_PACKAGES, CREDIT_COSTS, ANALYSIS_TIERS } from './lib/pricing';
 import { structuredData } from './lib/structuredData';
 import Script from 'next/script';
-import toast from 'react-hot-toast';
+
+const RUBRIC_CRITERIA = [
+  'Problem tanımının netliği', 'Araştırma sorusu / hipotez', 'Literatür taramasının kapsamı',
+  'Kaynak güncelliği', 'Yöntem uygunluğu', 'Örneklem tanımı', 'Veri analizi tutarlılığı',
+  'Bulguların sunumu', 'Tartışmanın derinliği', 'Sonuç ve öneriler', 'Akademik dil ve üslup',
+  'Atıf doğruluğu (APA 7)', 'Kaynakça biçimi', 'Başlık hiyerarşisi', 'Tablo ve şekil düzeni',
+  'Özet yeterliliği', 'Anahtar kelimeler', 'Etik beyan', 'Biçim ve şablon uyumu', 'Bütünlük ve akış',
+];
+
+const FAQS = [
+  { q: 'Başlamak için kredi kartı gerekiyor mu?', a: 'Hayır. Kayıt olunca anında 10 ücretsiz kredi kazanırsın. Bu, kısa bir tezin temel analizine ya da birkaç kaynak ve özet denemesine yeter.' },
+  { q: 'Krediler sona erer mi?', a: 'Hayır, kredilerin asla sona ermez. Bir kez satın al, ihtiyaç duyduğunda kullan. Aylık ücret, abonelik veya baskı yok.' },
+  { q: 'Hangi kredi paketini seçmeliyim?', a: 'Tek bir tez için Starter veya Standart genellikle yeterli. Birden fazla proje için en iyi değeri Pro paketi (500 kredi) sunar.' },
+  { q: 'Tezim güvende mi?', a: 'Evet. Dosyaların diğer kullanıcılarla asla paylaşılmaz, analiz sonrası otomatik silinir, yapay zekâ modeli eğitiminde kullanılmaz ve SSL ile şifrelenir.' },
+];
+
+const STEPS = [
+  { n: 'I', title: 'Tezini yükle', desc: 'PDF veya DOCX dosyanı güvenli sisteme yükle. Format otomatik algılanır.' },
+  { n: 'II', title: 'Yapay zekâ inceler', desc: 'Akademik standartlara göre her bölüm tek tek, rubriğe dayalı kontrol edilir.' },
+  { n: 'III', title: 'Raporunu al', desc: 'Sayfa bazlı bulgular, önceliklendirilmiş düzeltme önerileri ve PDF raporla tezini güçlendir.' },
+];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('upload');
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'upload' | 'citation' | 'abstract'>('upload');
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const supabase = createClientComponentClient();
 
-    useEffect(() => {
-    setIsHydrated(true);
-
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-    };
-    getUser();
-
+  useEffect(() => {
+    // oturum bilgisi ileride gerekirse diye hazır; CTA'lar anchor scroll kullanıyor
+    supabase.auth.getSession();
   }, [supabase]);
 
-  // Scroll refs
-  const howItWorksRef = useRef<HTMLDivElement>(null);
-  const mainAppRef = useRef<HTMLDivElement>(null);
-  const pricingRef = useRef<HTMLDivElement>(null);
-
-  // Scroll helpers
-  const scrollToHowItWorks = () => {
-    howItWorksRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const scrollToApp = () => {
-    mainAppRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const scrollToPricing = () => {
-    pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const features = [
-    { icon: <FileSearch className="h-6 w-6" />, title: 'Format Kontrolü', desc: 'Akademik standartlara göre format doğrulama' },
-    { icon: <BookOpen className="h-6 w-6" />, title: 'Kaynaklar', desc: 'APA, MLA veya Chicago, tek tıkla' },
-    { icon: <Zap className="h-6 w-6" />, title: 'Özetler', desc: 'Düzenleyebileceğin net ve kısa özetler' },
-    { icon: <CheckCircle className="h-6 w-6" />, title: 'Hızlı Sonuç', desc: 'Saatler değil, saniyeler içinde sonuç' },
-  ];
-
-  // Credit cost info for display
   const creditCostInfo = [
     { action: 'Kaynak Formatlama', credits: CREDIT_COSTS.citation_format.creditsRequired, note: 'APA, MLA, Chicago, IEEE' },
-    { action: 'Özet Oluşturma', credits: CREDIT_COSTS.abstract_generate.creditsRequired, note: 'Türkçe, İngilizce veya Her İkisi' },
-    // Sayfa aralıkları TEK KAYNAKTAN (ANALYSIS_TIERS) türetiliyor — landing ile
-    // gerçek ücretlendirme her zaman tutarlı (eskiden 1-30/31-60/60+ hardcode'du, yanlıştı).
+    { action: 'Özet Oluşturma', credits: CREDIT_COSTS.abstract_generate.creditsRequired, note: 'Türkçe / İngilizce' },
     ...ANALYSIS_TIERS.map((t) => ({
       action: `Tez Analizi (${t.maxPages >= 999 ? `${t.minPages}+` : `${t.minPages}-${t.maxPages}`} sayfa)`,
       credits: t.credits,
@@ -68,366 +52,186 @@ export default function Home() {
     })),
   ];
 
-  const handleSelectPackage = async (packageId: string) => {
-
-    if (!user) {
-      toast.error('Lütfen önce giriş yapın');
-      router.push('/auth');
-      return;
-    }
-
-    setLoadingPlan(packageId);
-
-    try {
-      const response = await fetch('/api/iyzico/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          packageId,
-          user_id: user.id,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Ödeme başlatılamadı');
-      }
-
-      window.location.href = data.url;
-
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      toast.error(error.message || 'Ödeme başlatılamadı');
-    } finally {
-      setLoadingPlan(null);
-    }
-  };
+  const tabs: { key: typeof activeTab; label: string }[] = [
+    { key: 'upload', label: 'Tez Analizi' },
+    { key: 'citation', label: 'Kaynak Formatla' },
+    { key: 'abstract', label: 'Özet Oluştur' },
+  ];
 
   return (
-    <main className="min-h-screen">
-      {/* Hero Section */}
-      <section className="gradient-bg py-24 relative overflow-hidden">
-        {/* Zarif modern arka plan: yumuşak indigo ışıma + ince ızgara deseni
-            (eski generic 3-blob yerine; derinlik verir ama sade kalır) */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[820px] h-[520px] bg-primary-200/45 rounded-full blur-3xl"></div>
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_75%_60%_at_50%_20%,#000_55%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_75%_60%_at_50%_20%,#000_55%,transparent_100%)]"></div>
-        </div>
+    <main className="min-h-screen bg-paper text-ink">
+      <Script id="structured-data-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData.faq) }} />
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center max-w-4xl mx-auto animate-fade-in">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-              Tezini kusursuz tamamla
+      {/* ===== HERO ===== */}
+      <section className="relative overflow-hidden">
+        <div className="absolute -top-36 right-[-60px] w-[560px] h-[460px] rounded-full bg-primary-100/80 blur-3xl animate-glow-drift pointer-events-none" aria-hidden="true" />
+        <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-[78px] grid lg:grid-cols-[1.06fr_0.94fr] gap-12 items-center">
+          <div>
+            <div className="reveal mb-6">
+              <span className="text-xs font-bold tracking-[0.16em] uppercase text-primary-700">Akademik yazım asistanı</span>
+            </div>
+            <h1 className="font-serif font-medium text-5xl md:text-[62px] leading-[1.06] tracking-[-0.018em] mb-6">
+              Tezini{' '}
+              <span className="italic text-primary-700 underline decoration-primary-700/60 decoration-[3px] underline-offset-[8px]">kusursuz</span>{' '}
+              tamamla.
             </h1>
-            <p className="text-lg md:text-xl text-gray-700 mb-10 max-w-3xl mx-auto leading-relaxed">
-              TezAI format hatalarını gösterir, kaynakları düzeltir ve özetleri cilalamana yardımcı olur; böylece sen araştırmana odaklanabilirsin.
+            <p className="reveal text-lg md:text-xl leading-relaxed text-ink/60 mb-8 max-w-[490px]">
+              Format hatalarını bulur, kaynaklarını düzeltir ve özetlerini cilalar. Böylece sen yalnızca araştırmana odaklanırsın.
             </p>
-
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12 animate-slide-in">
-              <button
-                onClick={() => { setActiveTab('citation'); scrollToApp(); }}
-                className="btn-primary text-lg px-8 py-4 min-w-[200px]"
-                aria-label="Atıf aracını ücretsiz dene"
-              >
-                Ücretsiz Dene
-              </button>
-              <button
-                onClick={scrollToHowItWorks}
-                className="btn-secondary text-lg px-8 py-4 min-w-[200px]"
-              >
-                Nasıl Çalışır?
-              </button>
+            <div className="reveal flex flex-wrap gap-3 mb-9">
+              <a href="#tools" className="inline-flex items-center gap-2 bg-primary-600 text-white text-base font-semibold px-7 py-3.5 rounded-md shadow-[0_12px_26px_-12px_rgba(30,58,138,0.6)] hover:bg-primary-700 hover:-translate-y-0.5 transition-all">
+                Ücretsiz başla <ArrowRight className="h-4 w-4" />
+              </a>
+              <a href="#how" className="inline-flex items-center bg-transparent text-ink text-base font-semibold px-7 py-3.5 rounded-md border border-line hover:border-primary-600 hover:bg-primary-50 transition-colors">
+                Nasıl çalışır?
+              </a>
             </div>
-
-            {/* Security Guarantee */}
-            <div className="max-w-2xl mx-auto animate-fade-in">
-              <div className="bg-white/80 backdrop-blur-sm border border-white/40 rounded-2xl p-8 shadow-2xl">
-                <div className="flex items-center justify-center mb-4">
-                  <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
-                  <h3 className="text-2xl font-bold text-gray-800">Güvenli ve gizli</h3>
-                </div>
-                <p className="text-gray-700 mb-6 leading-relaxed">
-                  Tez dosyaların SSL şifrelemesiyle korunur, analiz sonrası otomatik silinir ve hiçbir üçüncü tarafla paylaşılmaz.{' '}
-                  <button
-                    onClick={() => document.getElementById('privacy-policy')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-200 cursor-pointer underline"
-                  >
-                    Gizlilik Politikası
-                  </button>
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div className="flex items-center text-green-600">
-                    <Check className="h-4 w-4 mr-2" />
-                    <span>SSL Güvenliği</span>
-                  </div>
-                  <div className="flex items-center text-green-600">
-                    <Check className="h-4 w-4 mr-2" />
-                    <span>Otomatik Silme</span>
-                  </div>
-                  <div className="flex items-center text-green-600">
-                    <Check className="h-4 w-4 mr-2" />
-                    <span>GDPR Uyumlu</span>
-                  </div>
-                  <div className="flex items-center text-green-600">
-                    <Check className="h-4 w-4 mr-2" />
-                    <span>Paylaşılmaz</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">Daha hızlı, daha az hatayla</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Belirsiz &quot;yapay zeka sihri&quot; değil, somut kontroller ve öneriler.
+            <p className="reveal text-[15px] text-ink/55">
+              Lisans, yüksek lisans ve doktora tezleri için — <span className="text-ink font-semibold">Türkçe akademik dile özel.</span>
             </p>
           </div>
-          <div className="grid md:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="feature-card text-center group">
-                <div className="text-primary-600 flex justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <div className="p-4 bg-primary-50 rounded-xl">
-                    {feature.icon}
-                  </div>
-                </div>
-                <h3 className="font-bold text-lg mb-3 text-gray-800">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
+
+          {/* Report card */}
+          <div className="reveal relative">
+            <div className="absolute -inset-3 left-6 bg-primary-50 rounded-md -z-0" aria-hidden="true" />
+            <div className="relative bg-white border border-line rounded-md shadow-[0_30px_64px_-34px_rgba(28,26,23,0.4)] p-7 animate-float-y">
+              <div className="flex justify-between items-center pb-4 border-b border-line">
+                <span className="font-serif text-[17px] font-semibold">Analiz Raporu</span>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.08em] uppercase text-green-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-600" /> Tamamlandı
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how-it-works" ref={howItWorksRef} className="py-24 gradient-bg">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">Nasıl çalışır?</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">Üç adımda rehberlik al.</p>
-          </div>
-
-          <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-12">
-
-              <div className="text-center group animate-slide-in">
-                <div className="mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-500 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
-                    1
-                  </div>
+              <div className="flex items-end gap-4 py-5">
+                <span className="font-serif text-[60px] font-semibold leading-[0.9] text-primary-700">87</span>
+                <div className="pb-1.5">
+                  <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-ink/40 mb-0.5">Genel skor / 100</div>
+                  <div className="font-serif italic text-lg">İyi durumda, az düzeltme</div>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800">Tezini yükle</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Tez belgenini PDF veya DOCX formatında güvenli sistemimize yükle.
-                  <span className="text-primary-600 font-semibold"> Otomatik format tespiti</span> hızlıca başlatır.
-                </p>
               </div>
-
-              <div className="text-center group animate-slide-in animation-delay-200">
-                <div className="mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
-                    2
-                  </div>
+              <svg viewBox="0 0 320 64" preserveAspectRatio="none" className="w-full h-16 mb-4">
+                <defs>
+                  <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1e3a8a" stopOpacity="0.14" />
+                    <stop offset="100%" stopColor="#1e3a8a" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M0,50 L40,44 L80,47 L120,33 L160,36 L200,23 L240,27 L280,13 L320,16 L320,64 L0,64 Z" fill="url(#sf)" />
+                <path d="M0,50 L40,44 L80,47 L120,33 L160,36 L200,23 L240,27 L280,13 L320,16" fill="none" stroke="#1e3a8a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ strokeDasharray: 760, strokeDashoffset: 760, animation: 'drawLine 1.7s cubic-bezier(.4,0,.2,1) .4s forwards' }} />
+              </svg>
+              <div className="flex flex-col border-t border-line">
+                <div className="flex justify-between items-center py-3 border-b border-line/60">
+                  <span className="text-sm text-ink/80">Kaynakça (APA 7)</span>
+                  <span className="font-serif text-[17px] font-semibold text-amber-700">74</span>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800">Yapay zeka ile incele</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Gelişmiş yapay zeka tezini <span className="text-primary-600 font-semibold">akademik standartlara</span> göre ayrıntılı olarak analiz eder ve format kontrolü yapar.
-                </p>
-              </div>
-
-              <div className="text-center group animate-slide-in animation-delay-400">
-                <div className="mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-2xl flex items-center justify-center mx-auto text-3xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-500">
-                    3
-                  </div>
+                <div className="flex justify-between items-center py-3">
+                  <span className="text-sm text-ink/80">Akademik dil</span>
+                  <span className="font-serif text-[17px] font-semibold text-green-700">88</span>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800">Raporunu al</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Kapsamlı analiz raporu, <span className="text-green-600 font-semibold">düzeltme önerileri</span> ve profesyonel formatlama tavsiyeleriyle tezini mükemmelleştir.
-                </p>
-              </div>
-            </div>
-
-            {/* Call to Action */}
-            <div className="text-center mt-16 animate-fade-in">
-              <button
-                onClick={scrollToApp}
-                className="btn-primary text-lg px-10 py-4"
-              >
-                Ücretsiz Başla
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main App */}
-      <section id="app" ref={mainAppRef} className="py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">Tez asistanın</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">Araçları ücretsiz dene.</p>
-          </div>
-
-          <div className="max-w-5xl mx-auto">
-            {/* Modern Tabs */}
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-12 bg-gray-100 rounded-2xl p-2">
-              <button
-                onClick={() => setActiveTab('upload')}
-                className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                  activeTab === 'upload'
-                    ? 'bg-white text-primary-600 shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-primary-600 hover:bg-white/50'
-                }`}
-              >
-                Tez Yükle
-              </button>
-              <button
-                onClick={() => setActiveTab('citation')}
-                className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                  activeTab === 'citation'
-                    ? 'bg-white text-primary-600 shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-primary-600 hover:bg-white/50'
-                }`}
-              >
-                Kaynak Formatla
-              </button>
-              <button
-                onClick={() => setActiveTab('abstract')}
-                className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                  activeTab === 'abstract'
-                    ? 'bg-white text-primary-600 shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-primary-600 hover:bg-white/50'
-                }`}
-              >
-                Özet Oluştur
-              </button>
-            </div>
-
-            {/* Tab Content */}
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-              <div className="p-8">
-                {activeTab === 'upload' && (
-                  <div className="animate-fade-in">
-                    <FileUploader />
-                  </div>
-                )}
-                {activeTab === 'citation' && (
-                  <div className="animate-fade-in">
-                    <CitationFormatter />
-                  </div>
-                )}
-                {activeTab === 'abstract' && (
-                  <div className="animate-fade-in">
-                    <AbstractGenerator />
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PRICING SECTION - CREDIT-BASED */}
-      <section id="pricing" ref={pricingRef} className="py-24 gradient-bg">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">
-              Sadece Kullandığın Kadar <span className="text-gradient">Öde</span>
+      {/* ===== STATS BAND (honest facts only) ===== */}
+      <section className="reveal bg-primary-700">
+        <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4">
+          {[
+            { value: '50+', label: 'akademik kriter' },
+            { value: '4', label: 'atıf formatı' },
+            { value: '10', label: 'kayıtta ücretsiz kredi' },
+            { value: 'Sayfa', label: 'bazlı kanıt' },
+          ].map((s, i) => (
+            <div key={i} className={`px-6 text-center ${i < 3 ? 'md:border-r border-white/15' : ''}`}>
+              <div className="font-serif text-[34px] font-semibold text-white leading-none">{s.value}</div>
+              <div className="text-[13px] text-primary-100 mt-2">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== STATEMENT ===== */}
+      <section className="bg-primary-50 border-b border-line">
+        <div className="reveal max-w-3xl mx-auto px-6 py-20 text-center">
+          <span className="font-serif text-[60px] leading-[0] text-primary-700 inline-block h-7">“</span>
+          <p className="font-serif font-medium text-[28px] md:text-[34px] leading-[1.34] tracking-[-0.01em] mt-4">
+            Asıl güç analizde: tezini{' '}
+            <span className="italic text-primary-700">50&apos;den fazla akademik ölçüte göre, sayfa sayfa ve tutarlı biçimde değerlendiririz.</span>{' '}
+            Mekanik yükü TezAI üstlenir, sen fikrine odaklanırsın.
+          </p>
+        </div>
+      </section>
+
+      {/* ===== ANALYSIS ===== */}
+      <section className="max-w-6xl mx-auto px-6 py-20 md:py-[88px]">
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-center">
+          <div className="reveal">
+            <div className="text-xs font-bold tracking-[0.16em] uppercase text-primary-700 mb-4">Analiz kalitesi</div>
+            <h2 className="font-serif font-medium text-4xl md:text-[42px] leading-[1.1] tracking-[-0.015em] mb-4">
+              Satır satır <span className="italic text-primary-700">kanıtlı</span> değerlendirme
             </h2>
-            <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
-              Abonelik yok. Aylık ücret yok. Krediler asla sona ermez.
+            <p className="text-[17px] leading-relaxed text-ink/60 mb-6">
+              Asıl gücümüz analizde. Tahmine değil, kurallara dayalı bir rubriğe göre değerlendiririz ve her bulguyu tezdeki yerine bağlarız.
             </p>
-            <p className="text-sm text-gray-500">
-              Yeni kullanıcılar kayıt olunca <strong>10 ücretsiz kredi</strong> kazanır!
-            </p>
-          </div>
-
-          {/* Credit Packages Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-16">
-            {Object.values(CREDIT_PACKAGES).map((pkg) => (
-              <div
-                key={pkg.id}
-                className={`relative bg-white rounded-2xl shadow-xl p-6 ${
-                  pkg.popular ? 'ring-2 ring-primary-600 transform scale-105 z-10' : 'hover:shadow-2xl transition-shadow'
-                }`}
-              >
-                {pkg.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 py-1.5 rounded-full text-sm font-semibold flex items-center">
-                      <Sparkles className="h-4 w-4 mr-1" />
-                      En İyi Değer
-                    </span>
-                  </div>
-                )}
-
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold mb-4">{pkg.name}</h3>
-
-                  {/* Price */}
-                  <div className="text-4xl font-bold mb-2">₺{pkg.priceUsd}</div>
-
-                  {/* Credits */}
-                  <div className="bg-primary-50 rounded-lg py-3 px-4">
-                    <div className="flex items-center justify-center">
-                      <Coins className="h-5 w-5 text-primary-600 mr-2" />
-                      <span className="text-2xl font-bold text-primary-600">{pkg.credits}</span>
-                      <span className="text-primary-600 ml-1">kredi</span>
-                    </div>
-                    {pkg.bonusCredits > 0 && (
-                      <div className="flex items-center justify-center mt-1 text-green-600 text-sm">
-                        <Gift className="h-4 w-4 mr-1" />
-                        +{pkg.bonusCredits} bonus!
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-
-                {/* What you can do */}
-                <div className="space-y-2 mb-6 text-sm">
-                  <p className="font-medium text-gray-700">{pkg.totalCredits} kredi ile:</p>
-                  <div className="text-gray-600 space-y-1 text-xs">
-                    <p>• ~{Math.floor(pkg.totalCredits / CREDIT_COSTS.thesis_standard.creditsRequired)} tez analizi</p>
-                    <p>• ~{Math.floor(pkg.totalCredits / CREDIT_COSTS.abstract_generate.creditsRequired)} özet</p>
-                    <p>• ~{pkg.totalCredits} kaynak</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleSelectPackage(pkg.id)}
-                  disabled={loadingPlan === pkg.id}
-                  className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
-                    pkg.popular
-                      ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                  }`}
-                >
-                  {loadingPlan === pkg.id ? 'Yönlendiriliyor…' : `${pkg.totalCredits} Kredi Satın Al`}
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Credit Cost Table */}
-          <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8">
-            <h3 className="text-xl font-bold text-center mb-6">Kredi Maliyetleri</h3>
-            <div className="space-y-3">
-              {creditCostInfo.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+            <div className="flex flex-col">
+              {[
+                { n: '01', t: 'Rubrik temelli, tutarlı skor', d: 'Aynı tez her zaman aynı sonucu alır; sübjektiflik en aza iner.' },
+                { n: '02', t: 'Sayfa bazlı kanıt', d: 'Her bulgu tezdeki ilgili sayfaya bağlanır; nereye bakacağını bilirsin.' },
+                { n: '03', t: 'Çoklu model, çapraz doğrulama', d: 'Tek bir modele bağlı değildir; sonuçlar birden çok modelle doğrulanır.' },
+              ].map((f, i) => (
+                <div key={f.n} className={`flex gap-4 py-4 border-t border-line ${i === 2 ? 'border-b' : ''}`}>
+                  <span className="font-serif text-lg font-semibold text-primary-700 shrink-0 w-7">{f.n}</span>
                   <div>
-                    <span className="text-gray-700">{item.action}</span>
-                    {item.note && <span className="text-xs text-gray-400 ml-2">({item.note})</span>}
+                    <div className="text-[15px] font-bold mb-0.5">{f.t}</div>
+                    <div className="text-sm text-ink/55 leading-relaxed">{f.d}</div>
                   </div>
-                  <span className="font-semibold text-primary-600">{item.credits} kredi</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* page-grounded evidence */}
+          <div className="reveal flex gap-5 items-center bg-white border border-line rounded-md shadow-[0_28px_64px_-42px_rgba(28,26,23,0.42)] p-7">
+            <div className="relative w-[168px] h-[230px] shrink-0 bg-paper border border-line rounded-md p-4 overflow-hidden">
+              {[70, 100, 100, 88, 100, 62, 100, 94, 100, 78].map((w, i) => (
+                <div key={i} className="h-[5px] rounded-sm bg-line/70 mb-2" style={{ width: `${w}%`, marginBottom: i === 0 ? 13 : (i === 5 ? 15 : 8), height: i === 0 ? 7 : 5 }} />
+              ))}
+              <div className="absolute left-0 right-0 h-7 bg-gradient-to-b from-transparent via-primary-50 to-transparent border-t-2 border-primary-600" style={{ animation: 'pScan 3.8s ease-in-out infinite' }} />
+              <div className="absolute left-2.5 top-[70px] w-3.5 h-3.5 rounded-full bg-amber-600 border-2 border-white shadow" />
+              <div className="absolute left-2.5 top-[162px] w-3.5 h-3.5 rounded-full bg-green-600 border-2 border-white shadow" />
+            </div>
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="bg-white border border-amber-200 rounded-md px-3.5 py-3">
+                <div className="text-[13px] font-bold">Kaynakça <span className="text-amber-700">· s. 12</span></div>
+                <div className="text-[12.5px] text-ink/50 leading-snug">APA 7 biçim hatası, düzeltme önerisi sunuldu</div>
+              </div>
+              <div className="bg-white border border-green-200 rounded-md px-3.5 py-3">
+                <div className="text-[13px] font-bold">Yöntem <span className="text-green-700">· s. 28</span></div>
+                <div className="text-[12.5px] text-ink/50 leading-snug">Örneklem net tanımlı, ölçüt karşılanıyor</div>
+              </div>
+              <div className="text-xs text-ink/40 pl-0.5">Her bulgu, tezdeki ilgili sayfaya bağlıdır.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 50+ criteria marquee */}
+        <div className="reveal mt-[54px] grid lg:grid-cols-[0.62fr_1fr] gap-11 items-center border-t border-line pt-12">
+          <div>
+            <h3 className="font-serif font-medium text-3xl leading-tight tracking-[-0.015em] mb-3">50&apos;den fazla akademik kriter</h3>
+            <p className="text-base leading-relaxed text-ink/60">
+              Giriş, literatür, yöntem, bulgular, tartışma, dil ve biçim; her boyut ayrı ayrı, tek bir yapılandırılmış değerlendirmeyle denetlenir.
+            </p>
+          </div>
+          <div className="relative h-[220px] overflow-hidden bg-white border border-line rounded-md">
+            <div className="absolute top-0 inset-x-0 h-11 bg-gradient-to-b from-white to-transparent z-10" />
+            <div className="absolute bottom-0 inset-x-0 h-11 bg-gradient-to-t from-white to-transparent z-10" />
+            <div className="px-6" style={{ animation: 'mScroll 14s linear infinite' }}>
+              {[...RUBRIC_CRITERIA, ...RUBRIC_CRITERIA].map((c, i) => (
+                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-line/60">
+                  <span className="w-5 h-5 shrink-0 rounded-full bg-primary-50 flex items-center justify-center">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                  </span>
+                  <span className="text-sm text-ink/80 font-medium">{c}</span>
                 </div>
               ))}
             </div>
@@ -435,86 +239,121 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-16 bg-white">
-        <Script
-          id="structured-data-faq"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData.faq) }}
-        />
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              Sık Sorulan Sorular
-            </h2>
+      {/* ===== TOOLS (real components) ===== */}
+      <section id="tools" className="max-w-6xl mx-auto px-6 py-20 md:py-[88px]">
+        <div className="reveal text-center max-w-2xl mx-auto mb-10">
+          <div className="text-xs font-bold tracking-[0.16em] uppercase text-primary-700 mb-4">Araçlar</div>
+          <h2 className="font-serif font-medium text-4xl md:text-[44px] leading-[1.1] tracking-[-0.015em] mb-3.5">Tek panelde üç araç</h2>
+          <p className="text-lg text-ink/60">Tez analizi, kaynak formatlama ve özet — hepsi burada.</p>
+        </div>
 
-            <div className="space-y-6">
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-semibold mb-2">
-                  Başlamak için kredi kartı gerekiyor mu?
-                </h3>
-                <p className="text-gray-600">
-                  Hayır! Kayıt olunca anında <strong>10 ücretsiz kredi</strong> kazanırsın. Bu, kısa bir tezin temel analizine ya da birkaç kaynak ve özet denemesine yeter.
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-semibold mb-2">
-                  Krediler sona erer mi?
-                </h3>
-                <p className="text-gray-600">
-                  Hayır, kredilerin <strong>asla sona ermez</strong>. Bir kez satın al, ihtiyaç duyduğunda kullan. Aylık ücret, abonelik veya baskı yok.
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-semibold mb-2">
-                  Hangi kredi paketini seçmeliyim?
-                </h3>
-                <p className="text-gray-600">
-                  Tek bir tez için <strong>Starter</strong> veya <strong>Standart</strong> paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, <strong>Pro</strong> paketi 500 kredi sunuyor.
-                </p>
-              </div>
-
-              <div id="privacy-policy" className="bg-gradient-to-r from-green-50 to-primary-50 border border-green-200 rounded-lg p-6">
-                <h3 className="font-semibold mb-2 text-green-800 flex items-center">
-                  🔒 Tezim güvende mi? Gizliliğim korunuyor mu?
-                </h3>
-                <p className="text-gray-700 mb-3">
-                  <strong>%100 güvenli ve gizli!</strong> Yüklenen tez dosyaların:
-                </p>
-                <ul className="text-gray-600 space-y-1 mb-3">
-                  <li>• Diğer kullanıcılarla asla paylaşılmaz</li>
-                  <li>• Analiz sonrası otomatik olarak silinir</li>
-                  <li>• Yapay zeka modellerini eğitmek için kullanılmaz</li>
-                  <li>• SSL şifrelemesiyle korunur</li>
-                </ul>
-                <p className="text-sm text-gray-600">
-                  Daha fazla bilgi için <a href="/privacy-policy" className="text-primary-600 hover:underline font-medium">Gizlilik Politikası</a>&apos;na bakabilirsin.
-                </p>
-              </div>
-            </div>
+        <div className="reveal max-w-3xl mx-auto">
+          <div className="relative flex justify-center gap-2 border-b border-line mb-7">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`flex-1 px-2 py-3.5 text-[15px] font-bold transition-colors border-b-2 -mb-px ${
+                  activeTab === t.key ? 'text-ink border-primary-700' : 'text-ink/40 border-transparent hover:text-ink/70'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="bg-white border border-line rounded-md shadow-[0_26px_60px_-40px_rgba(28,26,23,0.4)] p-6 md:p-8">
+            {activeTab === 'upload' && <FileUploader />}
+            {activeTab === 'citation' && <CitationFormatter />}
+            {activeTab === 'abstract' && <AbstractGenerator />}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-500">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Tez Yazımına Bugün Başla
-          </h2>
-          <p className="text-xl text-primary-100 mb-8">
-            Ücretsiz analizini hemen kullan
-          </p>
-          <button
-            onClick={scrollToApp}
-            className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition text-lg"
-          >
-            Ücretsiz Başla
-          </button>
+      {/* ===== HOW ===== */}
+      <section id="how" className="bg-white border-y border-line">
+        <div className="max-w-6xl mx-auto px-6 py-20 md:py-[88px]">
+          <div className="reveal max-w-xl mx-auto mb-14 text-center">
+            <div className="text-xs font-bold tracking-[0.16em] uppercase text-primary-700 mb-4">Nasıl çalışır</div>
+            <h2 className="font-serif font-medium text-4xl md:text-[44px] leading-[1.1] tracking-[-0.015em]">Üç adımda hazır</h2>
+          </div>
+          <div className="grid md:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <div key={s.n} className={`reveal px-8 ${i < 2 ? 'md:border-r border-line' : ''}`}>
+                <div className="font-serif text-4xl font-medium text-primary-700 leading-none mb-4">{s.n}</div>
+                <h3 className="font-serif text-xl font-semibold mb-2.5">{s.title}</h3>
+                <p className="text-[15px] leading-relaxed text-ink/55">{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
+
+      {/* ===== PRICING ===== */}
+      <section id="pricing" className="max-w-6xl mx-auto px-6 py-20 md:py-[88px]">
+        <div className="reveal text-center max-w-2xl mx-auto mb-12">
+          <div className="text-xs font-bold tracking-[0.16em] uppercase text-primary-700 mb-4">Fiyatlandırma</div>
+          <h2 className="font-serif font-medium text-4xl md:text-[44px] leading-[1.1] tracking-[-0.015em] mb-3.5">Sadece kullandığın kadar öde</h2>
+          <p className="text-lg text-ink/60">Abonelik yok, aylık ücret yok. Kredilerin asla sona ermez.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-line rounded-md overflow-hidden bg-white">
+          {Object.values(CREDIT_PACKAGES).map((pkg, i) => (
+            <div key={pkg.id} className={`reveal relative flex flex-col p-7 border-line ${i < 3 ? 'lg:border-r' : ''} ${i < 2 ? 'sm:border-r lg:border-r' : ''} ${i < 2 ? 'border-b sm:border-b-0' : ''} ${pkg.popular ? 'bg-primary-50' : ''}`}>
+              {pkg.popular && <span className="absolute top-0 inset-x-0 h-[3px] bg-primary-700" />}
+              <div className="text-[13px] font-bold tracking-[0.05em] uppercase mb-4" style={{ color: pkg.popular ? '#1e3a8a' : 'rgba(28,26,23,0.5)' }}>{pkg.name}</div>
+              <div className="font-serif text-[42px] font-semibold leading-none mb-1.5">₺{pkg.priceUsd}</div>
+              <div className="text-sm text-ink/60 mb-1"><strong className="text-primary-700 font-bold">{pkg.totalCredits}</strong> kredi</div>
+              <div className="text-[12.5px] font-semibold text-green-700 min-h-[18px] mb-5">{pkg.bonusCredits > 0 ? `+${pkg.bonusCredits} bonus dahil` : ''}</div>
+              <div className="flex flex-col gap-2 mb-6 flex-1">
+                <div className="flex gap-2 text-[13.5px] text-ink/60"><span className="text-primary-700 font-bold">·</span>~{Math.floor(pkg.totalCredits / CREDIT_COSTS.thesis_standard.creditsRequired)} tez analizi</div>
+                <div className="flex gap-2 text-[13.5px] text-ink/60"><span className="text-primary-700 font-bold">·</span>~{Math.floor(pkg.totalCredits / CREDIT_COSTS.abstract_generate.creditsRequired)} özet</div>
+                <div className="flex gap-2 text-[13.5px] text-ink/60"><span className="text-primary-700 font-bold">·</span>~{pkg.totalCredits} kaynak</div>
+              </div>
+              <Link href="/pricing" className={`text-center py-3 rounded-md text-sm font-bold transition-all hover:-translate-y-0.5 ${pkg.popular ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-ink text-white hover:opacity-90'}`}>Satın Al</Link>
+            </div>
+          ))}
+        </div>
+
+        <div className="reveal max-w-xl mx-auto mt-11">
+          <h3 className="font-serif text-xl font-semibold text-center mb-4">Kredi maliyetleri</h3>
+          {creditCostInfo.map((c, i) => (
+            <div key={i} className="flex justify-between items-center py-3 border-b border-line last:border-0">
+              <div><span className="text-[14.5px] text-ink/80">{c.action}</span>{c.note && <span className="text-[12.5px] text-ink/40 ml-2">{c.note}</span>}</div>
+              <span className="font-serif text-base font-semibold text-primary-700 whitespace-nowrap">{c.credits} kredi</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== FAQ ===== */}
+      <section className="bg-white border-t border-line">
+        <div className="max-w-2xl mx-auto px-6 py-20">
+          <h2 className="reveal font-serif font-medium text-3xl md:text-[38px] leading-[1.1] tracking-[-0.015em] text-center mb-11">Sık sorulan sorular</h2>
+          <div>
+            {FAQS.map((f, i) => (
+              <div key={i} className="reveal border-b border-line">
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between gap-4 py-5 text-left">
+                  <span className="font-serif text-lg font-semibold">{f.q}</span>
+                  <span className={`text-2xl text-primary-700 leading-none transition-transform ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
+                </button>
+                <div className="overflow-hidden transition-all duration-300" style={{ maxHeight: openFaq === i ? 240 : 0, opacity: openFaq === i ? 1 : 0 }}>
+                  <p className="text-[15px] leading-relaxed text-ink/60 pb-5">{f.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== CTA ===== */}
+      <div className="reveal">
+        <CtaBand
+          title="Tez yazımına bugün başla"
+          subtitle="Kayıt ol, 10 ücretsiz kredini hemen kullan."
+          ctaLabel="Ücretsiz başla"
+          ctaHref="/auth?mode=signup"
+        />
+      </div>
     </main>
   );
 }

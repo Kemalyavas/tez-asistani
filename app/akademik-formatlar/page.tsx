@@ -43,68 +43,135 @@ const formats = [
 
 export default function AkademikFormatlarPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-paper">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
       />
 
-      <section className="gradient-bg py-20">
-        <div className="container mx-auto px-4 text-center max-w-3xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Akademik Atıf Formatları: APA, MLA, Chicago, IEEE
-          </h1>
-          <p className="text-lg text-gray-700 mb-8">
-            Doğru kaynak gösterimi, akademik bir çalışmanın güvenilirliğinin temelidir. TezAI; APA,
-            MLA, Chicago ve IEEE formatlarında atıf ve kaynakçayı otomatik olarak oluşturur. Hangi
-            formatın hangi alanda kullanıldığını aşağıda bulabilirsin.
-          </p>
-          <Link href="/#app" className="btn-primary">Kaynakçanı Ücretsiz Oluştur</Link>
-        </div>
-      </section>
-
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {formats.map((f) => (
-              <div key={f.name} className="card">
-                <h2 className="text-2xl font-bold text-primary-600 mb-1">{f.name}</h2>
-                <p className="text-sm text-gray-500 mb-4">{f.full}</p>
-                <p className="text-gray-700 leading-relaxed mb-4">{f.detail}</p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Yaygın kullanım alanları:</span> {f.fields}
-                </p>
-              </div>
-            ))}
+      {/* ===== HERO ===== */}
+      <section className="reveal relative overflow-hidden border-b border-line">
+        <div
+          className="pointer-events-none absolute left-1/2 top-[-150px] z-0 h-[480px] w-[760px] -translate-x-1/2 rounded-full opacity-70 blur-[14px]"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, #dde4f4, transparent 70%)',
+          }}
+          aria-hidden="true"
+        />
+        <div className="relative z-10 mx-auto max-w-[880px] px-6 pb-16 pt-[74px] text-center sm:px-9">
+          <div className="mb-[22px] inline-flex items-center gap-[9px]">
+            <span className="h-px w-8 bg-primary-600" />
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary-700">
+              Kaynak rehberi
+            </span>
+            <span className="h-px w-8 bg-primary-600" />
           </div>
+          <h1 className="mb-5 font-serif text-4xl font-medium leading-[1.08] tracking-[-0.02em] text-ink sm:text-5xl md:text-[52px]">
+            Akademik atıf formatları:{' '}
+            <span className="italic text-primary-700">APA, MLA, Chicago, IEEE</span>
+          </h1>
+          <p className="mx-auto mb-[30px] max-w-[620px] text-lg leading-relaxed text-ink/60">
+            Doğru kaynak gösterimi, akademik bir çalışmanın güvenilirliğinin temelidir. Hangi
+            formatın hangi alanda kullanıldığını aşağıda bulabilir, kaynakçanı TezAI ile saniyeler
+            içinde oluşturabilirsin.
+          </p>
+          <Link
+            href="/auth"
+            className="inline-flex items-center gap-[9px] rounded-md bg-primary-600 px-7 py-[15px] text-base font-semibold text-white shadow-[0_12px_26px_-12px_rgba(30,58,138,0.9)] transition hover:bg-primary-700"
+          >
+            Kaynakçanı ücretsiz oluştur
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </Link>
         </div>
       </section>
 
-      <section className="py-16 gradient-bg">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <h2 className="text-3xl font-bold text-center mb-6">TezAI ile kaynakça nasıl oluşturulur?</h2>
-          <p className="text-lg text-gray-700 leading-relaxed mb-4">
-            Kaynak bilgisini gir veya tezini yükle; istediğin formatı seç; TezAI atıfı ve kaynakça
+      {/* ===== FORMAT CARDS ===== */}
+      <section className="reveal mx-auto max-w-[1080px] px-6 py-[72px] sm:px-9">
+        <div className="grid gap-[22px] md:grid-cols-2">
+          {formats.map((f) => (
+            <div
+              key={f.name}
+              className="rounded-[5px] border border-line bg-white p-[30px] shadow-[0_18px_40px_-34px_rgba(28,26,23,0.4)] transition hover:-translate-y-1 hover:shadow-[0_28px_56px_-38px_rgba(28,26,23,0.45)]"
+            >
+              <div className="mb-1 flex items-baseline gap-3">
+                <h2 className="font-serif text-3xl font-semibold tracking-[-0.01em] text-primary-700">
+                  {f.name}
+                </h2>
+                <span className="h-[7px] w-[7px] rounded-full bg-primary-100" />
+              </div>
+              <p className="mb-[18px] text-[13px] font-semibold text-ink/40">{f.full}</p>
+              <p className="mb-[18px] text-[15px] leading-relaxed text-ink/70">{f.detail}</p>
+              <div className="border-t border-line pt-4">
+                <span className="text-xs font-bold uppercase tracking-[0.06em] text-ink/40">
+                  Kullanım alanları
+                </span>
+                <p className="mt-[5px] text-sm text-ink/60">{f.fields}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== HOW ===== */}
+      <section className="reveal border-y border-line bg-primary-50">
+        <div className="mx-auto max-w-[780px] px-6 py-[72px] text-center sm:px-9">
+          <h2 className="mb-5 font-serif text-3xl font-medium leading-[1.1] tracking-[-0.015em] text-ink md:text-4xl">
+            TezAI ile kaynakça nasıl oluşturulur?
+          </h2>
+          <p className="mb-4 text-[17px] leading-relaxed text-ink/70">
+            Kaynak bilgisini gir veya tezini yükle, istediğin formatı seç. TezAI atıfı ve kaynakça
             girişini saniyeler içinde, biçim kurallarına uygun olarak üretir. Tek bir kaynak
             biçimlendirmek yalnızca 1 kredi harcar.
           </p>
-          <p className="text-gray-600 text-center">
+          <p className="text-[15.5px] text-ink/55">
             Tezinin tamamını kaynak tutarlılığı açısından kontrol ettirmek mi istiyorsun?{' '}
-            <Link href="/tez-analizi" className="text-primary-600 font-semibold hover:underline">
-              Tez analizi sayfasına göz at
+            <Link
+              href="/tez-analizi"
+              className="font-bold text-primary-700 hover:underline"
+            >
+              Tez analizi sayfasına göz at →
             </Link>
-            .
           </p>
         </div>
       </section>
 
-      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-center">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-white mb-4">Doğru kaynakça, tek tıkla</h2>
-          <p className="text-primary-100 mb-8">Kayıt olana 10 ücretsiz kredi.</p>
-          <Link href="/#app" className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
-            Hemen Dene
-          </Link>
+      {/* ===== CTA ===== */}
+      <section className="reveal mt-[72px] px-6 pb-[72px] sm:px-9">
+        <div className="relative mx-auto max-w-[1080px] overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_40px_80px_-40px_rgba(20,34,79,0.7)] bg-gradient-to-br from-[#16265c] via-[#1e3a8a] to-[#2f54a6] px-10 py-16 text-center">
+          <div
+            className="pointer-events-none absolute right-[-50px] top-[-80px] h-[300px] w-[300px] rounded-full"
+            style={{
+              background:
+                'radial-gradient(circle, rgba(150,178,236,0.18), transparent 70%)',
+            }}
+            aria-hidden="true"
+          />
+          <div className="relative">
+            <h2 className="mb-3 font-serif text-3xl font-medium tracking-[-0.015em] text-white md:text-[38px]">
+              Doğru kaynakça, tek tıkla
+            </h2>
+            <p className="mb-7 text-lg text-[#c2cbe6]">Kayıt olana 10 ücretsiz kredi.</p>
+            <Link
+              href="/auth"
+              className="inline-block rounded-md bg-white px-8 py-[15px] text-base font-bold text-primary-700 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.4)] transition hover:bg-paper"
+            >
+              Hemen Dene
+            </Link>
+          </div>
         </div>
       </section>
     </div>
