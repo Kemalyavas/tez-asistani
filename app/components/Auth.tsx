@@ -262,10 +262,23 @@ export default function AuthComponent() {
     setFormData({ email: formData.email, password: '', confirmPassword: '', username: '' });
   };
 
-  return (
-    <div className="max-w-md mx-auto">
-      <form onSubmit={handleAuth} className="space-y-6">
+  const title = isForgotPassword ? 'Şifre sıfırlama' : isSignUp ? 'Hesap oluştur' : 'Tekrar hoş geldin';
+  const subtitle = isForgotPassword
+    ? 'E-posta adresini gir, sıfırlama bağlantısı gönderelim.'
+    : isSignUp
+      ? 'Kayıt ol, 10 ücretsiz kredini hemen kullan.'
+      : 'Devam etmek için hesabına giriş yap.';
+  const submitLabel = isForgotPassword ? 'Sıfırlama Bağlantısı Gönder' : isSignUp ? 'Kayıt Ol' : 'Giriş Yap';
 
+  const inputCls =
+    'w-full px-3.5 py-3 border border-line-cool rounded-[10px] text-[14.5px] text-ink bg-white outline-none transition-shadow focus:border-primary-600 focus:ring-[3px] focus:ring-primary-600/15';
+
+  return (
+    <div className="bg-white border border-line-cool rounded-2xl shadow-[0_26px_60px_-38px_rgba(20,28,55,0.45)] p-7 sm:p-[30px]">
+      <h1 className="font-serif text-2xl font-semibold tracking-[-0.01em] text-center mb-1">{title}</h1>
+      <p className="text-sm text-ink/50 text-center mb-6">{subtitle}</p>
+
+      <form onSubmit={handleAuth} className="space-y-4">
         {/* Google ile giriş (şifre sıfırlama modunda gizli) */}
         {!isForgotPassword && (
           <>
@@ -273,72 +286,44 @@ export default function AuthComponent() {
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-line-cool rounded-[10px] font-semibold text-[14.5px] text-ink/80 bg-white hover:bg-paper transition disabled:opacity-50"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
+              <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z" />
               </svg>
               Google ile devam et
             </button>
-            <div className="relative my-2">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-white px-2 text-gray-400">veya</span></div>
+            <div className="flex items-center gap-3.5 py-1">
+              <span className="flex-1 h-px bg-line-cool" />
+              <span className="text-xs text-ink/40">veya</span>
+              <span className="flex-1 h-px bg-line-cool" />
             </div>
           </>
         )}
 
-        {/* Şifre sıfırlama başlığı */}
-        {isForgotPassword && (
-          <div className="text-center mb-4">
-            <button
-              type="button"
-              onClick={() => setIsForgotPassword(false)}
-              className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Geri Dön
-            </button>
-            <h3 className="text-xl font-semibold text-gray-900">Şifre Sıfırlama</h3>
-            <p className="text-sm text-gray-600 mt-2">
-              E-posta adresinizi girin, size şifre sıfırlama bağlantısı göndereceğiz.
-            </p>
-          </div>
-        )}
-
         {/* E-posta */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            E-posta
-          </label>
+          <label htmlFor="email" className="block text-[13px] font-semibold text-ink/60 mb-1.5">E-posta</label>
           <input
-            type="email"
-            name="email"
-            id="email"
-            required
-            value={formData.email}
-            onChange={handleInputChange}
-            className="input-modern"
-            placeholder="ornek@email.com"
+            type="email" name="email" id="email" required
+            value={formData.email} onChange={handleInputChange}
+            className={inputCls} placeholder="ornek@email.com"
           />
         </div>
 
         {/* Kullanıcı adı (sadece kayıt) */}
         {isSignUp && !isForgotPassword && (
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Kullanıcı Adı <span className="text-gray-400 font-normal">(opsiyonel)</span>
+            <label htmlFor="username" className="block text-[13px] font-semibold text-ink/60 mb-1.5">
+              Kullanıcı adı <span className="text-ink/35 font-normal">(opsiyonel)</span>
             </label>
             <input
-              type="text"
-              name="username"
-              id="username"
-              value={formData.username}
-              onChange={handleInputChange}
-              className="input-modern"
-              placeholder="kullanici_adi"
+              type="text" name="username" id="username"
+              value={formData.username} onChange={handleInputChange}
+              className={inputCls} placeholder="kullanici_adi"
             />
           </div>
         )}
@@ -346,26 +331,16 @@ export default function AuthComponent() {
         {/* Şifre */}
         {!isForgotPassword && (
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Şifre
-            </label>
+            <label htmlFor="password" className="block text-[13px] font-semibold text-ink/60 mb-1.5">Şifre</label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                id="password"
-                required
-                value={formData.password}
-                onChange={handleInputChange}
-                className="input-modern pr-10"
-                placeholder="••••••••"
+                type={showPassword ? 'text' : 'password'} name="password" id="password" required
+                value={formData.password} onChange={handleInputChange}
+                className={`${inputCls} pr-11`} placeholder="••••••••"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-ink/40 hover:text-ink/70">
+                {showPassword ? <EyeOff className="h-[17px] w-[17px]" /> : <Eye className="h-[17px] w-[17px]" />}
               </button>
             </div>
           </div>
@@ -374,69 +349,50 @@ export default function AuthComponent() {
         {/* Şifre onayı (sadece kayıt) */}
         {isSignUp && !isForgotPassword && (
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Şifreyi Onayla
-            </label>
+            <label htmlFor="confirmPassword" className="block text-[13px] font-semibold text-ink/60 mb-1.5">Şifreyi onayla</label>
             <div className="relative">
               <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                name="confirmPassword"
-                id="confirmPassword"
-                required
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="input-modern pr-10"
-                placeholder="••••••••"
+                type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" id="confirmPassword" required
+                value={formData.confirmPassword} onChange={handleInputChange}
+                className={`${inputCls} pr-11`} placeholder="••••••••"
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-ink/40 hover:text-ink/70">
+                {showConfirmPassword ? <EyeOff className="h-[17px] w-[17px]" /> : <Eye className="h-[17px] w-[17px]" />}
               </button>
             </div>
           </div>
         )}
 
-        {/* Gönder butonu */}
+        {/* Gönder */}
         <button
-          type="submit"
-          disabled={loading}
-          className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          type="submit" disabled={loading}
+          className="w-full bg-primary-600 text-white font-bold text-[15px] py-3.5 rounded-[10px] shadow-[0_12px_26px_-12px_rgba(30,58,138,0.6)] hover:bg-primary-700 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 mt-0.5"
         >
-          {loading ? 'Yükleniyor...' : (
-            isForgotPassword ? 'Sıfırlama Bağlantısı Gönder' :
-            isSignUp ? 'Kayıt Ol' : 'Giriş Yap'
-          )}
+          {loading ? 'Yükleniyor…' : submitLabel}
         </button>
-
-        {/* Mod geçiş linkleri */}
-        {!isForgotPassword && (
-          <div className="space-y-3">
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={toggleMode}
-                className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-              >
-                {isSignUp ? 'Zaten hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}
-              </button>
-            </div>
-            {!isSignUp && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={toggleForgotPassword}
-                  className="text-gray-500 hover:text-gray-700 text-sm"
-                >
-                  Şifreni mi unuttun?
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </form>
+
+      {/* Mod geçişleri */}
+      {!isForgotPassword ? (
+        <div className="mt-5 flex flex-col items-center gap-2.5">
+          <button type="button" onClick={toggleMode} className="text-sm font-semibold text-primary-700 hover:text-primary-800">
+            {isSignUp ? 'Zaten hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}
+          </button>
+          {!isSignUp && (
+            <button type="button" onClick={toggleForgotPassword} className="text-[13.5px] text-ink/40 hover:text-ink/60">
+              Şifreni mi unuttun?
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="mt-4 text-center">
+          <button type="button" onClick={() => setIsForgotPassword(false)}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800">
+            <ArrowLeft className="h-[15px] w-[15px]" /> Girişe dön
+          </button>
+        </div>
+      )}
     </div>
   );
 }
