@@ -4,9 +4,10 @@
 
 @layer base {
   body {
-    @apply bg-gray-50;
+    /* Editöryel akademik dil: sıcak kâğıt zemin + Hanken Grotesk gövde */
+    @apply bg-paper text-ink font-sans;
   }
-  
+
   * {
     @apply scroll-smooth;
   }
@@ -22,101 +23,102 @@
 }
 
 @layer components {
+  /* Editöryel butonlar — lacivert, ölçülü köşe */
   .btn-primary {
-    @apply bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_12px_26px_-12px_rgba(30,58,138,0.6)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
   }
 
   .btn-secondary {
-    @apply bg-white text-primary-700 px-6 py-3 rounded-lg font-semibold border border-primary-200 hover:bg-primary-50 transition-colors duration-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 bg-white text-ink px-6 py-3 rounded-lg font-semibold border border-line hover:border-primary-600 hover:bg-primary-50 transition-colors duration-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
   }
-  
+
   .card {
-    @apply bg-white rounded-xl shadow-lg p-6 transition-shadow duration-200 hover:shadow-xl;
+    @apply bg-white rounded-xl border border-line-cool shadow-[0_16px_36px_-30px_rgba(20,28,55,0.4)] p-6 transition-shadow duration-200;
   }
-  
+
   .feature-card {
-    @apply bg-white rounded-2xl shadow-md ring-1 ring-slate-100 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:ring-primary-200;
+    @apply bg-white rounded-xl border border-line-cool shadow-[0_16px_36px_-30px_rgba(20,28,55,0.4)] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_-30px_rgba(20,28,55,0.45)];
   }
 
   .input-modern {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 bg-white;
+    @apply w-full px-4 py-3 border border-line-cool rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 bg-white outline-none;
   }
 
+  /* Hero/section yumuşak kâğıt zemin + lacivert tını */
   .gradient-bg {
-    @apply bg-gradient-to-b from-primary-50 to-white;
+    @apply bg-gradient-to-b from-primary-50 to-paper;
   }
 
   .text-gradient {
     @apply bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent;
   }
-  
-  /* Fix for any unwanted text decoration */
+
   h1, h2, h3, h4, h5, h6 {
     text-decoration: none !important;
   }
-  
+
   .no-decoration {
     text-decoration: none !important;
     text-decoration-line: none !important;
     border: none !important;
     outline: none !important;
   }
-  
-  /* Ensure connection lines don't interfere with text */
+
   .connection-line {
     pointer-events: none;
     z-index: 1;
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ===== Scroll-reveal =====
+   JS yoksa içerik GİZLENMEZ (SEO/erişilebilirlik): gizleme yalnızca JS
+   .reveal-ready ekledikten sonra devreye girer, görünürlük .is-visible ile gelir. */
+.reveal.reveal-ready {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.reveal-ready.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal.reveal-ready { opacity: 1; transform: none; }
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-30px); }
-  to { opacity: 1; transform: translateX(0); }
-}
+/* ===== Eski animasyonlar (geriye dönük uyumluluk) ===== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes bounce-gentle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes pulse-gentle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-@keyframes bounce-gentle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
+.animate-fade-in { animation: fadeIn 0.6s ease-out; }
+.animate-slide-in { animation: slideIn 0.8s ease-out; }
+.animate-bounce-gentle { animation: bounce-gentle 2s ease-in-out infinite; }
+.animate-pulse-gentle { animation: pulse-gentle 2s ease-in-out infinite; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-1000 { animation-delay: 1000ms; }
+.animation-delay-2000 { animation-delay: 2000ms; }
 
-@keyframes pulse-gentle {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
+/* ===== Yeni tasarım (editöryel) animasyonları ===== */
+@keyframes drawLine { to { stroke-dashoffset: 0; } }
+@keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.65); } }
+@keyframes growBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes slideKey { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes glowDrift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(18px, -14px) scale(1.06); } }
+@keyframes heroWord { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes heroRule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes panelIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes floatUp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes pop { 0% { transform: scale(0.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pScan { 0% { top: 8%; opacity: 0; } 8% { opacity: 1; } 88% { opacity: 1; } 100% { top: 88%; opacity: 0; } }
+@keyframes mScroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-out;
-}
-
-.animate-slide-in {
-  animation: slideIn 0.8s ease-out;
-}
-
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s ease-in-out infinite;
-}
-
-.animate-pulse-gentle {
-  animation: pulse-gentle 2s ease-in-out infinite;
-}
-
-.animation-delay-200 {
-  animation-delay: 200ms;
-}
-
-.animation-delay-400 {
-  animation-delay: 400ms;
-}
-
-.animation-delay-1000 {
-  animation-delay: 1000ms;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2000ms;
-}
+.animate-float-y { animation: floatY 7s ease-in-out infinite; }
+.animate-float-up { animation: floatUp 5s ease-in-out infinite; }
+.animate-glow-drift { animation: glowDrift 14s ease-in-out infinite; }
+.animate-spin-slow { animation: spin 0.8s linear infinite; }
+.animate-pop { animation: pop 0.5s cubic-bezier(0.34, 1.4, 0.5, 1) both; }

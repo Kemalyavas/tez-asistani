@@ -1,12 +1,13 @@
 // app/layout.tsx
 
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Spectral, Hanken_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ActiveAnalysisBanner from './components/ActiveAnalysisBanner';
+import RevealOnScroll from './components/RevealOnScroll';
 import { homeMetadata } from './lib/metadata';
 import { structuredData } from './lib/structuredData';
 import Script from 'next/script';
@@ -14,10 +15,21 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
 
-const inter = Inter({ 
-  subsets: ['latin'],
+// Editöryel akademik dil: Spectral (serif başlıklar) + Hanken Grotesk (gövde).
+// latin-ext alt kümesi Türkçe glyph'leri (ş ğ İ ı ç ö ü) kapsar.
+const serif = Spectral({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
   display: 'swap',
-  variable: '--font-inter'
+  variable: '--font-serif',
+});
+
+const sans = Hanken_Grotesk({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-sans',
 });
 
 export const metadata: Metadata = homeMetadata;
@@ -28,8 +40,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
-    { media: '(prefers-color-scheme: dark)', color: '#1e40af' }
+    { media: '(prefers-color-scheme: light)', color: '#1e3a8a' },
+    { media: '(prefers-color-scheme: dark)', color: '#15296b' }
   ],
   colorScheme: 'light'
 }
@@ -40,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-  <html lang="tr" className={inter.variable}>
+  <html lang="tr" className={`${serif.variable} ${sans.variable}`}>
       <head>
         {/* Structured Data Scripts */}
         <Script
@@ -60,10 +72,11 @@ export default function RootLayout({
         />
 
         {/* Manifest, favicon ve format-detection metadata API üzerinden yönetiliyor (lib/metadata.ts) */}
-        <meta name="msapplication-TileColor" content="#3b82f6" />
+        <meta name="msapplication-TileColor" content="#1e3a8a" />
       </head>
-      <body className={inter.className}>
+      <body className={sans.className}>
   <Navbar />
+        <RevealOnScroll />
         <main role="main">
           {children}
         </main>
