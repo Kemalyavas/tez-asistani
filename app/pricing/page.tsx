@@ -199,7 +199,7 @@ export default function PricingPage() {
         </div>
 
         {/* Ücretsiz kredi */}
-        <div className="reveal max-w-2xl mx-auto mb-14 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#14224f] to-[#2a52a8] p-10 text-center">
+        <div className="reveal max-w-2xl mx-auto mb-14 relative overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_40px_80px_-40px_rgba(20,34,79,0.7)] bg-gradient-to-br from-[#16265c] via-[#1e3a8a] to-[#2f54a6] p-10 text-center">
           <div className="absolute -top-20 -right-14 w-72 h-72 rounded-full bg-white/10 blur-2xl pointer-events-none" />
           <div className="relative">
             <span className="inline-flex w-13 h-13 p-3.5 rounded-2xl bg-white/12 mb-4">

@@ -110,7 +110,7 @@ export default function BlogHubPage() {
 
       {/* CTA */}
       <section className="reveal px-6 pb-[72px]">
-        <div className="relative mx-auto max-w-[820px] overflow-hidden rounded-md bg-gradient-to-br from-[#14224f] to-[#2a52a8] px-10 py-14 text-center">
+        <div className="relative mx-auto max-w-[820px] overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_40px_80px_-40px_rgba(20,34,79,0.7)] bg-gradient-to-br from-[#16265c] via-[#1e3a8a] to-[#2f54a6] px-10 py-14 text-center">
           <div
             aria-hidden
             className="pointer-events-none absolute -bottom-[90px] -left-10 w-[300px] h-[300px] rounded-full bg-[radial-gradient(circle,rgba(150,178,236,0.16),transparent_70%)]"

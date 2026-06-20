@@ -80,9 +80,9 @@ export default function Navbar() {
       <Image
         src="/logo.png"
         alt="TezAI"
-        width={48}
-        height={48}
-        className="h-11 w-auto group-hover:scale-105 transition-transform duration-300"
+        width={72}
+        height={72}
+        className="h-14 w-auto group-hover:scale-105 transition-transform duration-300"
         priority
       />
     </Link>

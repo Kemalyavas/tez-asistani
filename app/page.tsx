@@ -5,6 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import FileUploader from './components/FileUploader';
 import CitationFormatter from './components/CitationFormatter';
 import AbstractGenerator from './components/AbstractGenerator';
+import CtaBand from './components/CtaBand';
 import { ArrowRight } from 'lucide-react';
 import { CREDIT_PACKAGES, CREDIT_COSTS, ANALYSIS_TIERS } from './lib/pricing';
 import { structuredData } from './lib/structuredData';
@@ -66,16 +67,12 @@ export default function Home() {
         <div className="absolute -top-36 right-[-60px] w-[560px] h-[460px] rounded-full bg-primary-100/80 blur-3xl animate-glow-drift pointer-events-none" aria-hidden="true" />
         <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-[78px] grid lg:grid-cols-[1.06fr_0.94fr] gap-12 items-center">
           <div>
-            <div className="reveal flex items-center gap-3 mb-7">
-              <span className="w-9 h-px bg-primary-600" />
+            <div className="reveal mb-6">
               <span className="text-xs font-bold tracking-[0.16em] uppercase text-primary-700">Akademik yazım asistanı</span>
             </div>
             <h1 className="font-serif font-medium text-5xl md:text-[62px] leading-[1.06] tracking-[-0.018em] mb-6">
               Tezini{' '}
-              <span className="relative italic text-primary-700">
-                kusursuz
-                <span className="absolute left-0 right-0 -bottom-0.5 h-[3px] bg-primary-700/80" />
-              </span>{' '}
+              <span className="italic text-primary-700 underline decoration-primary-700/60 decoration-[3px] underline-offset-[8px]">kusursuz</span>{' '}
               tamamla.
             </h1>
             <p className="reveal text-lg md:text-xl leading-relaxed text-ink/60 mb-8 max-w-[490px]">
@@ -349,16 +346,14 @@ export default function Home() {
       </section>
 
       {/* ===== CTA ===== */}
-      <section className="relative overflow-hidden bg-primary-700">
-        <div className="absolute -top-24 right-[-50px] w-80 h-80 rounded-full bg-white/10 blur-2xl animate-glow-drift pointer-events-none" aria-hidden="true" />
-        <div className="reveal relative max-w-3xl mx-auto px-6 py-20 text-center">
-          <h2 className="font-serif font-medium text-4xl md:text-[46px] leading-[1.1] tracking-[-0.015em] text-white mb-4">Tez yazımına bugün başla</h2>
-          <p className="text-lg md:text-xl text-primary-100 mb-8">Kayıt ol, 10 ücretsiz kredini hemen kullan.</p>
-          <Link href="/auth?mode=signup" className="inline-flex items-center gap-2 bg-white text-primary-700 text-base font-bold px-8 py-4 rounded-md hover:-translate-y-0.5 transition-transform">
-            Ücretsiz başla <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
+      <div className="reveal">
+        <CtaBand
+          title="Tez yazımına bugün başla"
+          subtitle="Kayıt ol, 10 ücretsiz kredini hemen kullan."
+          ctaLabel="Ücretsiz başla"
+          ctaHref="/auth?mode=signup"
+        />
+      </div>
     </main>
   );
 }

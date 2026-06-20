@@ -35,7 +35,7 @@ export default function Footer() {
           {/* Marka */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="inline-block mb-4" aria-label="TezAI ana sayfa">
-              <Image src="/logo.png" alt="TezAI" width={40} height={40} className="h-10 w-auto" />
+              <Image src="/logo.png" alt="TezAI" width={80} height={80} className="h-[68px] w-auto" />
             </Link>
             <p className="text-sm leading-relaxed text-ink/60 max-w-[250px]">
               Akademik tez yazarları için format, kaynak ve özet asistanı.

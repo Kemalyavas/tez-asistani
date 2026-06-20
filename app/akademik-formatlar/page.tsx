@@ -151,7 +151,7 @@ export default function AkademikFormatlarPage() {
 
       {/* ===== CTA ===== */}
       <section className="reveal mt-[72px] px-6 pb-[72px] sm:px-9">
-        <div className="relative mx-auto max-w-[1080px] overflow-hidden rounded-[6px] bg-gradient-to-br from-[#14224f] to-[#2a52a8] px-10 py-16 text-center">
+        <div className="relative mx-auto max-w-[1080px] overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_40px_80px_-40px_rgba(20,34,79,0.7)] bg-gradient-to-br from-[#16265c] via-[#1e3a8a] to-[#2f54a6] px-10 py-16 text-center">
           <div
             className="pointer-events-none absolute right-[-50px] top-[-80px] h-[300px] w-[300px] rounded-full"
             style={{
