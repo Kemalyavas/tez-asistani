@@ -224,6 +224,9 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            <p className="relative mt-4 text-center text-[11.5px] leading-snug text-ink/40">
+              Temsilî örnek — gerçek analiz 50+ akademik ölçütte, sayfa sayfa çok daha kapsamlı ve ayrıntılıdır.
+            </p>
           </div>
         </div>
       </section>
