@@ -222,6 +222,11 @@ export default function Home() {
                     );
                   })}
                 </div>
+                {/* temsilî not — kart içi, üst çizgili (tasarımdan birebir) */}
+                <div className="flex items-center gap-[7px] mt-[13px] pt-3 border-t border-[#f1eee5]">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b3afa3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-none"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+                  <span className="text-[11.5px] leading-[1.4] text-[#a8a499]">Temsili görünüştür; gerçek analiz 50+ ölçüt ve sayfa bazında çok daha kapsamlıdır.</span>
+                </div>
               </div>
             </div>
           </div>
