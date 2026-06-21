@@ -37,10 +37,44 @@ const HERO_SUGGESTIONS = [
   { cat: 'Yöntem', page: 's. 28', warn: false, fix: 'Örneklem tanımı net, ölçüt karşılanıyor. Değişiklik gerekmiyor.' },
 ];
 
+// Araçlar bölümü — kaynak formatlama demosu (tür × stil; çıktı anında değişir).
+const CITATION_DATA: Record<string, { raw: string; apa: string; mla: string; chicago: string; ieee: string }> = {
+  book: {
+    raw: 'yılmaz ahmet, yapay zeka ve egitim, 2021, ankara üniversitesi yayınları',
+    apa: 'Yılmaz, A. (2021). Yapay zekâ ve eğitim. Ankara Üniversitesi Yayınları.',
+    mla: 'Yılmaz, Ahmet. Yapay Zekâ ve Eğitim. Ankara Üniversitesi Yayınları, 2021.',
+    chicago: 'Yılmaz, Ahmet. Yapay Zekâ ve Eğitim. Ankara: Ankara Üniversitesi Yayınları, 2021.',
+    ieee: '[1] A. Yılmaz, Yapay Zekâ ve Eğitim. Ankara: Ankara Üniversitesi Yayınları, 2021.',
+  },
+  article: {
+    raw: 'elif demir, çevrimiçi öğrenmede motivasyon, eğitim araştırmaları dergisi, cilt 12 sayı 3, 2022, sayfa 45-67',
+    apa: 'Demir, E. (2022). Çevrimiçi öğrenmede motivasyon. Eğitim Araştırmaları Dergisi, 12(3), 45–67.',
+    mla: 'Demir, Elif. “Çevrimiçi Öğrenmede Motivasyon.” Eğitim Araştırmaları Dergisi, c. 12, sy. 3, 2022, ss. 45–67.',
+    chicago: 'Demir, Elif. “Çevrimiçi Öğrenmede Motivasyon.” Eğitim Araştırmaları Dergisi 12, sy. 3 (2022): 45–67.',
+    ieee: '[1] E. Demir, “Çevrimiçi öğrenmede motivasyon,” Eğitim Araştırmaları Dergisi, c. 12, sy. 3, ss. 45–67, 2022.',
+  },
+  website: {
+    raw: 'tübitak, açık bilim politikası, 2023, erişim 10 mart 2024, tubitak.gov.tr',
+    apa: 'TÜBİTAK. (2023). Açık bilim politikası. https://www.tubitak.gov.tr',
+    mla: 'TÜBİTAK. “Açık Bilim Politikası.” TÜBİTAK, 2023, www.tubitak.gov.tr. Erişim 10 Mart 2024.',
+    chicago: 'TÜBİTAK. “Açık Bilim Politikası.” Son değişiklik 2023. https://www.tubitak.gov.tr.',
+    ieee: '[1] TÜBİTAK, “Açık bilim politikası,” 2023. [Çevrimiçi]. Erişim: 10 Mart 2024.',
+  },
+};
+const FMT_LABELS: Record<string, string> = { apa: 'APA 7', mla: 'MLA 9', chicago: 'Chicago', ieee: 'IEEE' };
+const ABSTRACT_TR = 'Bu çalışma, yapay zekâ destekli araçların lisansüstü tez yazım sürecindeki rolünü incelemektedir. Karma yöntem deseninde, 240 lisansüstü öğrenciye uygulanan anket ile 18 tez danışmanıyla yapılan yarı yapılandırılmış görüşmeler birlikte değerlendirilmiştir. Bulgular, otomatik format ve kaynak denetiminin yazarların düzeltmeye ayırdığı süreyi belirgin biçimde azalttığını; geri bildirim döngüsünün ise tezlerin biçimsel tutarlılığını ve akademik dil kalitesini artırdığını ortaya koymaktadır. Çalışma, yapay zekâ araçlarının insan danışmanlığının yerini almak yerine onu tamamladığını savunmaktadır.';
+const ABSTRACT_EN = 'This study examines the role of AI-assisted tools in the graduate thesis-writing process. Using a mixed-methods design, survey data from 240 graduate students were analyzed alongside semi-structured interviews with 18 thesis advisors. The findings indicate that automated formatting and citation checks substantially reduce the time authors spend on revisions, while the feedback loop improves both the structural consistency and the academic language quality of theses. The study argues that AI tools complement rather than replace human supervision.';
+const wordCount = (s: string) => s.trim().split(/\s+/).length;
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'upload' | 'citation' | 'abstract'>('upload');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [cardIdx, setCardIdx] = useState(0);
+  // Araçlar demosu: kaynak türü/stili, özet dili, kopyalandı.
+  const [srcType, setSrcType] = useState<'book' | 'article' | 'website'>('book');
+  const [fmt, setFmt] = useState<'apa' | 'mla' | 'chicago' | 'ieee'>('apa');
+  const [absLang, setAbsLang] = useState<'tr' | 'en' | 'both'>('tr');
+  const [copied, setCopied] = useState(false);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -82,6 +116,22 @@ export default function Home() {
         ? { label: 'Kaynak formatlamayı aç', href: '/apa-kaynakca-olusturucu' }
         : { label: 'Özet oluşturucuyu aç', href: '/ozet' };
 
+  // Araçlar demosu — seçili türe/stile/dile göre çıktı.
+  const cit = CITATION_DATA[srcType];
+  const citationText = cit[fmt];
+  const abstracts =
+    absLang === 'both'
+      ? [
+          { label: 'Özet (Türkçe)', text: ABSTRACT_TR },
+          { label: 'Abstract (English)', text: ABSTRACT_EN },
+        ]
+      : [{ label: absLang === 'en' ? 'Abstract (English)' : 'Özet (Türkçe)', text: absLang === 'en' ? ABSTRACT_EN : ABSTRACT_TR }];
+  const handleCopy = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(citationText).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  };
+
   return (
     <main className="min-h-screen bg-paper text-ink">
       <Script id="structured-data-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData.faq) }} />
@@ -99,8 +149,8 @@ export default function Home() {
               <span className="italic text-primary-700 underline decoration-primary-700/60 decoration-[3px] underline-offset-[8px]">kusursuz</span>{' '}
               tamamla.
             </h1>
-            <p className="reveal text-lg md:text-xl leading-relaxed text-ink/60 mb-8 max-w-[490px]">
-              Format hatalarını bulur, kaynaklarını düzeltir ve özetlerini cilalar. Böylece sen yalnızca araştırmana odaklanırsın.
+            <p className="reveal text-lg md:text-xl leading-relaxed text-ink/60 mb-8 max-w-[510px]">
+              Tezini jüri gözüyle, 50&apos;den fazla akademik ölçütte değerlendirir; her eksiği sayfasıyla gösterir ve önce neyi düzelteceğini söyler. Sen yalnızca araştırmana odaklan.
             </p>
             <div className="reveal flex flex-wrap gap-3 mb-9">
               <a href="#tools" className="inline-flex items-center gap-2 bg-primary-600 text-white text-base font-semibold px-7 py-3.5 rounded-md shadow-[0_12px_26px_-12px_rgba(30,58,138,0.6)] hover:bg-primary-700 hover:-translate-y-0.5 transition-all">
@@ -339,42 +389,77 @@ export default function Home() {
               </div>
             )}
 
-            {/* Kaynak Formatla önizleme */}
+            {/* Kaynak Formatla — interaktif */}
             {activeTab === 'citation' && (
-              <div style={{ animation: 'slideKey .4s ease' }}>
-                <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-                  <h3 className="font-serif text-[25px] font-semibold">Kaynağını biçimlendir</h3>
-                  <span className="inline-flex items-center gap-1.5 bg-primary-50 text-primary-700 text-[13px] font-bold px-3.5 py-2 rounded-md">APA 7 · MLA · Chicago · IEEE</span>
+              <div>
+                <h3 className="font-serif text-[25px] font-semibold mb-1.5">Kaynağını biçimlendir</h3>
+                <p className="text-[15px] leading-relaxed text-ink/55 mb-5">Kaynak türünü ve atıf stilini seç; çıktı anında güncellenir.</p>
+
+                <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink/40 mb-2">Kaynak türü</div>
+                <div className="flex gap-2 flex-wrap mb-5">
+                  {([['book', 'Kitap'], ['article', 'Makale'], ['website', 'Web Sitesi']] as const).map(([k, lbl]) => {
+                    const a = srcType === k;
+                    return (
+                      <button key={k} onClick={() => { setSrcType(k); setCopied(false); }} className={`text-[13.5px] font-bold px-4 py-2.5 rounded-md border-[1.5px] transition-all ${a ? 'bg-primary-50 text-primary-800 border-primary-600' : 'bg-white text-ink/60 border-line hover:border-ink/30'}`}>{lbl}</button>
+                    );
+                  })}
                 </div>
-                <div className="grid md:grid-cols-[1fr_auto_1fr] gap-3.5 items-center">
+
+                <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink/40 mb-2">Atıf stili</div>
+                <div className="flex gap-2 flex-wrap mb-6">
+                  {([['apa', 'APA 7'], ['mla', 'MLA 9'], ['chicago', 'Chicago'], ['ieee', 'IEEE']] as const).map(([k, lbl]) => {
+                    const a = fmt === k;
+                    return (
+                      <button key={k} onClick={() => { setFmt(k); setCopied(false); }} className={`text-[13.5px] font-bold px-5 py-2.5 rounded-md border-[1.5px] transition-all ${a ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-ink/60 border-line hover:border-ink/30'}`}>{lbl}</button>
+                    );
+                  })}
+                </div>
+
+                <div className="grid md:grid-cols-[1fr_46px_1fr] gap-3.5 items-stretch">
                   <div className="bg-paper border border-dashed border-line rounded-md p-4">
-                    <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink/40 mb-2">Girdi</div>
-                    <div className="text-[13.5px] leading-relaxed text-ink/60">yılmaz, ahmet. yapay zeka ve egitim. 2021, ankara üniversitesi yayınları sayfa 45-60</div>
+                    <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink/40 mb-2">Girdi (dağınık)</div>
+                    <div key={`in-${srcType}`} className="text-[13.5px] leading-relaxed text-ink/55" style={{ animation: 'slideKey .4s cubic-bezier(.2,.8,.25,1)' }}>{cit.raw}</div>
                   </div>
-                  <div className="flex justify-center"><span className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center"><ArrowRight className="h-4 w-4 text-white" /></span></div>
+                  <div className="flex items-center justify-center">
+                    <span className="w-[42px] h-[42px] rounded-full bg-primary-600 flex items-center justify-center shadow-[0_10px_22px_-8px_rgba(30,58,138,0.6)]"><ArrowRight className="h-[19px] w-[19px] text-white" /></span>
+                  </div>
                   <div className="bg-primary-50 border border-primary-100 rounded-md p-4">
-                    <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-primary-700 mb-2">Çıktı · APA 7</div>
-                    <div className="font-serif text-sm leading-relaxed">Yılmaz, A. (2021). <em>Yapay zekâ ve eğitim</em> (ss. 45-60). Ankara Üniversitesi Yayınları.</div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-bold tracking-[0.06em] uppercase text-primary-700">Çıktı · {FMT_LABELS[fmt]}</span>
+                      <button onClick={handleCopy} className="text-[11.5px] font-bold text-primary-700 hover:text-primary-800">{copied ? '✓ Kopyalandı' : 'Kopyala'}</button>
+                    </div>
+                    <div key={`out-${srcType}-${fmt}`} className="font-serif text-sm leading-relaxed text-ink" style={{ animation: 'slideKey .4s cubic-bezier(.2,.8,.25,1)' }}>{citationText}</div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Özet önizleme */}
+            {/* Özet Oluştur — interaktif */}
             {activeTab === 'abstract' && (
-              <div className="grid md:grid-cols-2 gap-7 items-center" style={{ animation: 'slideKey .4s ease' }}>
+              <div className="grid md:grid-cols-[0.82fr_1.18fr] gap-7 items-start">
                 <div>
                   <h3 className="font-serif text-[25px] font-semibold mb-3">Net, kısa, düzenlenebilir özet</h3>
-                  <p className="text-[15.5px] leading-relaxed text-ink/60 mb-5">Tezinin tamamından Türkçe, İngilizce veya her ikisinde akıcı bir özet üretilir. Kelime sınırına uygun ve düzenlemeye hazır.</p>
-                  <div className="flex gap-2">
-                    {[['Türkçe', true], ['İngilizce', false], ['Her ikisi', false]].map(([l, a]) => (
-                      <span key={l as string} className={`text-[13px] font-bold px-3.5 py-2 rounded ${a ? 'bg-primary-600 text-white' : 'bg-paper text-ink/60'}`}>{l}</span>
-                    ))}
+                  <p className="text-[15px] leading-relaxed text-ink/55 mb-5">Tezinin tamamından Türkçe, İngilizce veya her ikisinde akıcı bir özet üretilir. Dili seç, sonuç anında değişsin.</p>
+                  <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink/40 mb-2">Özet dili</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {([['tr', 'Türkçe'], ['en', 'İngilizce'], ['both', 'Her ikisi']] as const).map(([k, lbl]) => {
+                      const a = absLang === k;
+                      return (
+                        <button key={k} onClick={() => setAbsLang(k)} className={`text-[13.5px] font-bold px-4 py-2.5 rounded-md border-[1.5px] transition-all ${a ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-ink/60 border-line hover:border-ink/30'}`}>{lbl}</button>
+                      );
+                    })}
                   </div>
                 </div>
-                <div className="bg-paper border border-line rounded-md p-5">
-                  <div className="flex justify-between items-center mb-2.5"><span className="text-[11px] font-bold tracking-[0.1em] uppercase text-ink/40">Üretilen özet</span><span className="text-[11.5px] font-bold text-primary-700">198 kelime</span></div>
-                  <p className="font-serif text-[14.5px] leading-relaxed text-ink/80 m-0">Bu çalışma, yapay zekâ destekli araçların lisansüstü tez yazım sürecindeki rolünü incelemektedir. Nicel ve nitel yöntemlerin birlikte kullanıldığı araştırmada, format denetiminin yazarların düzeltmeye ayırdığı süreyi belirgin biçimde azalttığı bulunmuştur.</p>
+                <div key={`lang-${absLang}`} className="flex flex-col gap-3.5" style={{ animation: 'slideKey .42s cubic-bezier(.2,.8,.25,1)' }}>
+                  {abstracts.map((ab, i) => (
+                    <div key={i} className="bg-paper border border-line rounded-md p-5">
+                      <div className="flex justify-between items-center mb-2.5">
+                        <span className="text-[11px] font-bold tracking-[0.08em] uppercase text-ink/40">{ab.label}</span>
+                        <span className="text-[11.5px] font-bold text-primary-700">{wordCount(ab.text)} kelime</span>
+                      </div>
+                      <p className="font-serif text-[14.5px] leading-relaxed text-ink/80 m-0">{ab.text}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
