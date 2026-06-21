@@ -272,7 +272,7 @@ export default function Home() {
           <div className="relative h-[220px] overflow-hidden bg-white border border-line rounded-md">
             <div className="absolute top-0 inset-x-0 h-11 bg-gradient-to-b from-white to-transparent z-10" />
             <div className="absolute bottom-0 inset-x-0 h-11 bg-gradient-to-t from-white to-transparent z-10" />
-            <div className="px-6" style={{ animation: 'mScroll 20s linear infinite' }}>
+            <div className="px-6" style={{ animation: 'mScroll 22s linear infinite' }}>
               {[...RUBRIC_CRITERIA, ...RUBRIC_CRITERIA].map((c, i) => (
                 <div key={i} className="flex items-center gap-3 py-2.5 border-b border-line/60">
                   <span className="w-5 h-5 shrink-0 rounded-full bg-primary-50 flex items-center justify-center">
