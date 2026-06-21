@@ -2,10 +2,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import FileUploader from './components/FileUploader';
-import CitationFormatter from './components/CitationFormatter';
-import AbstractGenerator from './components/AbstractGenerator';
 import CtaBand from './components/CtaBand';
+import CountUp from './components/CountUp';
 import { ArrowRight } from 'lucide-react';
 import { CREDIT_PACKAGES, CREDIT_COSTS, ANALYSIS_TIERS } from './lib/pricing';
 import { structuredData } from './lib/structuredData';
@@ -32,15 +30,33 @@ const STEPS = [
   { n: 'III', title: 'Raporunu al', desc: 'Sayfa bazlı bulgular, önceliklendirilmiş düzeltme önerileri ve PDF raporla tezini güçlendir.' },
 ];
 
+// Hero kartındaki "öne çıkan öneriler" — navy vurgu sırayla bunlar arasında gezer.
+const HERO_SUGGESTIONS = [
+  { cat: 'Kaynakça', page: 's. 12', warn: true, fix: "3 kaynakta yıl parantez dışında. APA 7'ye göre yazar (yıl) biçimine getir." },
+  { cat: 'Başlık düzeni', page: 's. 34', warn: true, fix: '2. düzey başlıkları italik ve girintili yaparak hiyerarşiyi netleştir.' },
+  { cat: 'Yöntem', page: 's. 28', warn: false, fix: 'Örneklem tanımı net, ölçüt karşılanıyor. Değişiklik gerekmiyor.' },
+];
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'upload' | 'citation' | 'abstract'>('upload');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [cardIdx, setCardIdx] = useState(0);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     // oturum bilgisi ileride gerekirse diye hazır; CTA'lar anchor scroll kullanıyor
     supabase.auth.getSession();
   }, [supabase]);
+
+  // Hero kartında navy vurgu, öneriler arasında yumuşakça gezer (sakin döngü).
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setCardIdx(-1);
+      return;
+    }
+    const id = setInterval(() => setCardIdx((i) => (i + 1) % HERO_SUGGESTIONS.length), 1900);
+    return () => clearInterval(id);
+  }, []);
 
   const creditCostInfo = [
     { action: 'Kaynak Formatlama', credits: CREDIT_COSTS.citation_format.creditsRequired, note: 'APA, MLA, Chicago, IEEE' },
@@ -57,6 +73,14 @@ export default function Home() {
     { key: 'citation', label: 'Kaynak Formatla' },
     { key: 'abstract', label: 'Özet Oluştur' },
   ];
+
+  // Araç önizlemeleri landing'de; gerçek araç kendi sayfasında çalışır.
+  const toolCta =
+    activeTab === 'upload'
+      ? { label: "Tez Analizi'ne başla", href: '/upload' }
+      : activeTab === 'citation'
+        ? { label: 'Kaynak formatlamayı aç', href: '/apa-kaynakca-olusturucu' }
+        : { label: 'Özet oluşturucuyu aç', href: '/ozet' };
 
   return (
     <main className="min-h-screen bg-paper text-ink">
@@ -86,46 +110,67 @@ export default function Home() {
                 Nasıl çalışır?
               </a>
             </div>
-            <p className="reveal text-[15px] text-ink/55">
-              Lisans, yüksek lisans ve doktora tezleri için — <span className="text-ink font-semibold">Türkçe akademik dile özel.</span>
-            </p>
+            <div className="reveal flex items-center gap-3.5">
+              <div className="flex">
+                {[{ t: 'AY', bg: '#1e3a8a' }, { t: 'EK', bg: '#166534' }, { t: 'MŞ', bg: '#b45309' }, { t: 'ZB', bg: '#9f1239' }].map((a) => (
+                  <span key={a.t} className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold border-[2.5px] border-paper -ml-2 first:ml-0" style={{ background: a.bg }}>{a.t}</span>
+                ))}
+              </div>
+              <span className="text-[14.5px] text-ink/60">
+                <strong className="text-ink font-bold"><CountUp to={1000} />+</strong> tez analiz edildi
+              </span>
+            </div>
           </div>
 
           {/* Report card */}
           <div className="reveal relative">
             <div className="absolute -inset-3 left-6 bg-primary-50 rounded-md -z-0" aria-hidden="true" />
             <div className="relative bg-white border border-line rounded-md shadow-[0_30px_64px_-34px_rgba(28,26,23,0.4)] p-7 animate-float-y">
-              <div className="flex justify-between items-center pb-4 border-b border-line">
+              {/* header */}
+              <div className="flex justify-between items-center">
                 <span className="font-serif text-[17px] font-semibold">Analiz Raporu</span>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.08em] uppercase text-green-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-600" /> Tamamlandı
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.08em] uppercase text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                  Tamamlandı
                 </span>
               </div>
-              <div className="flex items-end gap-4 py-5">
-                <span className="font-serif text-[60px] font-semibold leading-[0.9] text-primary-700">87</span>
-                <div className="pb-1.5">
-                  <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-ink/40 mb-0.5">Genel skor / 100</div>
-                  <div className="font-serif italic text-lg">İyi durumda, az düzeltme</div>
+              {/* score */}
+              <div className="flex items-end gap-4 py-[18px] mt-3.5 border-t border-line">
+                <div className="flex items-baseline gap-0.5">
+                  <span className="font-serif text-5xl font-semibold leading-[0.82] text-primary-700"><CountUp to={87} duration={1200} group={false} /></span>
+                  <span className="font-serif text-lg font-medium text-ink/40">/100</span>
+                </div>
+                <div className="pb-0.5">
+                  <div className="font-serif italic text-[17px] leading-tight">İyi durumda, 3 küçük düzeltme</div>
+                  <div className="text-xs text-ink/40 mt-0.5">11 kategori incelendi · APA 7</div>
                 </div>
               </div>
-              <svg viewBox="0 0 320 64" preserveAspectRatio="none" className="w-full h-16 mb-4">
-                <defs>
-                  <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1e3a8a" stopOpacity="0.14" />
-                    <stop offset="100%" stopColor="#1e3a8a" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <path d="M0,50 L40,44 L80,47 L120,33 L160,36 L200,23 L240,27 L280,13 L320,16 L320,64 L0,64 Z" fill="url(#sf)" />
-                <path d="M0,50 L40,44 L80,47 L120,33 L160,36 L200,23 L240,27 L280,13 L320,16" fill="none" stroke="#1e3a8a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ strokeDasharray: 760, strokeDashoffset: 760, animation: 'drawLine 1.7s cubic-bezier(.4,0,.2,1) .4s forwards' }} />
-              </svg>
-              <div className="flex flex-col border-t border-line">
-                <div className="flex justify-between items-center py-3 border-b border-line/60">
-                  <span className="text-sm text-ink/80">Kaynakça (APA 7)</span>
-                  <span className="font-serif text-[17px] font-semibold text-amber-700">74</span>
-                </div>
-                <div className="flex justify-between items-center py-3">
-                  <span className="text-sm text-ink/80">Akademik dil</span>
-                  <span className="font-serif text-[17px] font-semibold text-green-700">88</span>
+              {/* öne çıkan öneriler — gezen vurgu */}
+              <div className="border-t border-line pt-3.5">
+                <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-ink/40 mb-2.5">Öne çıkan öneriler</div>
+                <div className="flex flex-col gap-0.5 -mx-2">
+                  {HERO_SUGGESTIONS.map((s, i) => {
+                    const on = cardIdx === i;
+                    return (
+                      <div
+                        key={i}
+                        className="flex gap-3 items-start px-3 py-2.5 rounded-lg transition-all duration-[550ms]"
+                        style={{ background: on ? '#eef1f9' : 'transparent', boxShadow: `inset 2px 0 0 ${on ? '#1e3a8a' : 'transparent'}` }}
+                      >
+                        <span className="w-[22px] h-[22px] flex-none rounded-md flex items-center justify-center mt-px" style={{ background: s.warn ? '#fbeccb' : '#dcefe1' }}>
+                          {s.warn ? (
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
+                          ) : (
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                          )}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13.5px] mb-0.5"><strong className="font-bold">{s.cat}</strong> <span className="text-ink/40 font-medium">· {s.page}</span></div>
+                          <div className="text-[12.5px] leading-snug text-ink/55">{s.fix}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -133,18 +178,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== STATS BAND (honest facts only) ===== */}
-      <section className="reveal bg-primary-700">
-        <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4">
+      {/* ===== STATS BAND ===== */}
+      <section className="reveal relative overflow-hidden bg-gradient-to-br from-[#16265c] via-primary-700 to-[#23408f]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+        <div className="pointer-events-none absolute -top-24 right-[8%] w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(157,184,240,0.22),transparent_70%)]" />
+        <div className="relative max-w-6xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-y-9">
           {[
-            { value: '50+', label: 'akademik kriter' },
-            { value: '4', label: 'atıf formatı' },
-            { value: '10', label: 'kayıtta ücretsiz kredi' },
-            { value: 'Sayfa', label: 'bazlı kanıt' },
+            { node: <><CountUp to={1000} />+</>, label: 'tez analiz edildi' },
+            { node: '~2 dk', label: 'ortalama sonuç süresi' },
+            { node: '4', label: 'atıf formatı' },
+            { node: '10', label: 'kayıtta ücretsiz kredi' },
           ].map((s, i) => (
-            <div key={i} className={`px-6 text-center ${i < 3 ? 'md:border-r border-white/15' : ''}`}>
-              <div className="font-serif text-[34px] font-semibold text-white leading-none">{s.value}</div>
-              <div className="text-[13px] text-primary-100 mt-2">{s.label}</div>
+            <div key={i} className={`px-4 sm:px-6 text-center ${i < 3 ? 'md:border-r border-white/15' : ''}`}>
+              <div className="font-serif text-[44px] md:text-5xl font-semibold text-white leading-none">{s.node}</div>
+              <div className="text-[13px] text-primary-100 mt-2.5 tracking-wide">{s.label}</div>
             </div>
           ))}
         </div>
@@ -239,12 +286,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== TOOLS (real components) ===== */}
+      {/* ===== TOOLS (showcase + yönlendirme) ===== */}
       <section id="tools" className="max-w-6xl mx-auto px-6 py-20 md:py-[88px]">
         <div className="reveal text-center max-w-2xl mx-auto mb-10">
           <div className="text-xs font-bold tracking-[0.16em] uppercase text-primary-700 mb-4">Araçlar</div>
-          <h2 className="font-serif font-medium text-4xl md:text-[44px] leading-[1.1] tracking-[-0.015em] mb-3.5">Tek panelde üç araç</h2>
-          <p className="text-lg text-ink/60">Tez analizi, kaynak formatlama ve özet — hepsi burada.</p>
+          <h2 className="font-serif font-medium text-4xl md:text-[44px] leading-[1.1] tracking-[-0.015em] mb-3.5">Üç araç, üç odaklı alan</h2>
+          <p className="text-lg text-ink/60">Tez analizi, kaynak formatlama ve özet — her biri kendi sayfasında.</p>
         </div>
 
         <div className="reveal max-w-3xl mx-auto">
@@ -261,10 +308,83 @@ export default function Home() {
               </button>
             ))}
           </div>
-          <div className="bg-white border border-line rounded-md shadow-[0_26px_60px_-40px_rgba(28,26,23,0.4)] p-6 md:p-8">
-            {activeTab === 'upload' && <FileUploader />}
-            {activeTab === 'citation' && <CitationFormatter />}
-            {activeTab === 'abstract' && <AbstractGenerator />}
+
+          <div className="bg-white border border-line rounded-md shadow-[0_26px_60px_-40px_rgba(28,26,23,0.4)] p-6 md:p-8 min-h-[300px]">
+            {/* Tez Analizi önizleme */}
+            {activeTab === 'upload' && (
+              <div className="grid md:grid-cols-2 gap-7 items-center" style={{ animation: 'slideKey .4s ease' }}>
+                <div>
+                  <h3 className="font-serif text-[25px] font-semibold mb-3">Sayfa sayfa, kategori kategori</h3>
+                  <p className="text-[15.5px] leading-relaxed text-ink/60 mb-5">Format, kaynakça, akademik dil ve bütünlük ayrı ayrı puanlanır. Her bulgu sayfa numarasıyla işaretlenir.</p>
+                  <div className="flex flex-col gap-3.5">
+                    {[{ l: 'Format & Düzen', p: 92, c: '#15803d' }, { l: 'Kaynakça (APA 7)', p: 74, c: '#b45309' }, { l: 'Akademik Dil', p: 88, c: '#15803d' }, { l: 'Bütünlük', p: 81, c: '#1e3a8a' }].map((b) => (
+                      <div key={b.l}>
+                        <div className="flex justify-between mb-1.5"><span className="text-[13px] font-medium text-ink/80">{b.l}</span><span className="font-serif text-base font-semibold" style={{ color: b.c }}>{b.p}</span></div>
+                        <div className="h-1.5 rounded-sm bg-line/70 overflow-hidden"><div className="h-full rounded-sm" style={{ width: `${b.p}%`, background: b.c }} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-paper border border-line rounded-md p-5">
+                  <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-ink/40 mb-3">Bulgular</div>
+                  <div className="flex flex-col gap-2.5">
+                    {[{ ic: '!', bg: '#fdf0d8', col: '#b45309', bd: '#f5e4c0', t: 'APA kaynak formatı', p: 's. 12', d: 'Üç kaynakta yıl parantez dışında.' }, { ic: '!', bg: '#fdf0d8', col: '#b45309', bd: '#f5e4c0', t: 'Başlık hiyerarşisi', p: 's. 34', d: 'Alt başlıkları italik yapın.' }, { ic: '✓', bg: '#dcefe1', col: '#15803d', bd: '#c4e3cc', t: 'Kenar boşlukları', p: 'tümü', d: 'Yönergeye tamamen uygun.' }].map((f, i) => (
+                      <div key={i} className="flex gap-2.5 items-start bg-white rounded-md px-3 py-2.5" style={{ border: `1px solid ${f.bd}` }}>
+                        <span className="w-[22px] h-[22px] shrink-0 rounded-[5px] flex items-center justify-center text-[13px] font-extrabold" style={{ background: f.bg, color: f.col }}>{f.ic}</span>
+                        <div><div className="text-[13px] font-bold">{f.t} <span className="text-[11px] font-semibold text-ink/40">· {f.p}</span></div><div className="text-[12.5px] leading-snug text-ink/55 mt-0.5">{f.d}</div></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Kaynak Formatla önizleme */}
+            {activeTab === 'citation' && (
+              <div style={{ animation: 'slideKey .4s ease' }}>
+                <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+                  <h3 className="font-serif text-[25px] font-semibold">Kaynağını biçimlendir</h3>
+                  <span className="inline-flex items-center gap-1.5 bg-primary-50 text-primary-700 text-[13px] font-bold px-3.5 py-2 rounded-md">APA 7 · MLA · Chicago · IEEE</span>
+                </div>
+                <div className="grid md:grid-cols-[1fr_auto_1fr] gap-3.5 items-center">
+                  <div className="bg-paper border border-dashed border-line rounded-md p-4">
+                    <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink/40 mb-2">Girdi</div>
+                    <div className="text-[13.5px] leading-relaxed text-ink/60">yılmaz, ahmet. yapay zeka ve egitim. 2021, ankara üniversitesi yayınları sayfa 45-60</div>
+                  </div>
+                  <div className="flex justify-center"><span className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center"><ArrowRight className="h-4 w-4 text-white" /></span></div>
+                  <div className="bg-primary-50 border border-primary-100 rounded-md p-4">
+                    <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-primary-700 mb-2">Çıktı · APA 7</div>
+                    <div className="font-serif text-sm leading-relaxed">Yılmaz, A. (2021). <em>Yapay zekâ ve eğitim</em> (ss. 45-60). Ankara Üniversitesi Yayınları.</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Özet önizleme */}
+            {activeTab === 'abstract' && (
+              <div className="grid md:grid-cols-2 gap-7 items-center" style={{ animation: 'slideKey .4s ease' }}>
+                <div>
+                  <h3 className="font-serif text-[25px] font-semibold mb-3">Net, kısa, düzenlenebilir özet</h3>
+                  <p className="text-[15.5px] leading-relaxed text-ink/60 mb-5">Tezinin tamamından Türkçe, İngilizce veya her ikisinde akıcı bir özet üretilir. Kelime sınırına uygun ve düzenlemeye hazır.</p>
+                  <div className="flex gap-2">
+                    {[['Türkçe', true], ['İngilizce', false], ['Her ikisi', false]].map(([l, a]) => (
+                      <span key={l as string} className={`text-[13px] font-bold px-3.5 py-2 rounded ${a ? 'bg-primary-600 text-white' : 'bg-paper text-ink/60'}`}>{l}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-paper border border-line rounded-md p-5">
+                  <div className="flex justify-between items-center mb-2.5"><span className="text-[11px] font-bold tracking-[0.1em] uppercase text-ink/40">Üretilen özet</span><span className="text-[11.5px] font-bold text-primary-700">198 kelime</span></div>
+                  <p className="font-serif text-[14.5px] leading-relaxed text-ink/80 m-0">Bu çalışma, yapay zekâ destekli araçların lisansüstü tez yazım sürecindeki rolünü incelemektedir. Nicel ve nitel yöntemlerin birlikte kullanıldığı araştırmada, format denetiminin yazarların düzeltmeye ayırdığı süreyi belirgin biçimde azalttığı bulunmuştur.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* yönlendirme CTA */}
+          <div className="text-center mt-7">
+            <Link href={toolCta.href} className="inline-flex items-center gap-2 bg-primary-600 text-white text-base font-semibold px-7 py-3.5 rounded-md shadow-[0_12px_26px_-12px_rgba(30,58,138,0.6)] hover:bg-primary-700 hover:-translate-y-0.5 transition-all">
+              {toolCta.label} <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
