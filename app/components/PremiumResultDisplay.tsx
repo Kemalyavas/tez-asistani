@@ -120,6 +120,14 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
   const yok = result.yokCompliance || { score: 0, compliant: [], nonCompliant: [] };
   const studyType: string = result.studyType || '';
   const likelyPartialUpload: boolean = result.likelyPartialUpload === true;
+  const notThesisFormat: boolean = result.notThesisFormat === true;
+  const docTypeLabel: string =
+    ({
+      proposal: 'proje önerisi / proje raporu',
+      report: 'rapor',
+      article: 'makale',
+      other: 'akademik tez dışında bir belge',
+    } as Record<string, string>)[result.documentType] || 'akademik tez dışında bir belge';
 
   // sıralı kategoriler (yüksek → düşük). applicable=false → bu tez türünde uygulanmadı.
   const sortedCats = Object.entries(sections)
@@ -232,6 +240,21 @@ export default function PremiumResultDisplay({ result, documentId }: PremiumResu
 
   return (
     <div className="flex flex-col gap-8 sm:gap-9">
+      {/* ============ TEZ DEĞİL UYARISI (belge-türü kapısı) ============ */}
+      {notThesisFormat && (
+        <div className="bg-[#fdf0d8] border border-[#f0d9a8] rounded-xl px-5 py-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-[#b45309] flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-ink text-[15px]">Bu belge akademik tez formatında görünmüyor</p>
+            <p className="text-sm text-ink/70 mt-1 leading-relaxed">
+              Yüklediğin belge bir <b>{docTypeLabel}</b> olarak değerlendirildi. Aşağıdaki puan ve not akademik
+              tez rubriğine göre verildiği için bu belge türünde <b>düşük ve yanıltıcıdır</b> — tez notu burada
+              anlamlı değildir. Yapısal ve biçimsel geri bildirimleri yine de inceleyebilirsin; gerçek tezini
+              yüklersen sağlıklı bir değerlendirme alırsın.
+            </p>
+          </div>
+        </div>
+      )}
       {/* ============ KISMİ YÜKLEME UYARISI ============ */}
       {likelyPartialUpload && (
         <div className="bg-white border border-line-cool rounded-xl shadow-[0_16px_36px_-30px_rgba(20,28,55,0.4)] px-5 py-4 flex items-start gap-3">

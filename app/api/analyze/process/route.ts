@@ -390,9 +390,11 @@ export async function POST(request: NextRequest) {
           summary: analysisResult.executiveSummary,
           executiveSummary: analysisResult.executiveSummary,
 
-          // Tez türü + kısmi yükleme bayrağı (rubric pipeline; UI banner/not için)
+          // Tez türü + kısmi yükleme + belge-türü bayrağı (rubric pipeline; UI banner/not için)
           studyType: analysisResult.studyType,
           likelyPartialUpload: analysisResult.likelyPartialUpload,
+          documentType: analysisResult.documentType,
+          notThesisFormat: analysisResult.notThesisFormat,
 
           // Bölüm skorları (hem yeni hem eski format)
           sections: analysisResult.sections,

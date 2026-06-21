@@ -40,6 +40,10 @@ export interface PremiumAnalysisResult {
   // Yüklenen dosya muhtemelen tam bir tez değil (temel bölümler eksik).
   // UI'da "kısmi yükleme" uyarı banner'ı için. Puanı etkilemez.
   likelyPartialUpload?: boolean;
+  // Belge türü (rubric pipeline): 'thesis' | 'proposal' | 'report' | 'article' | 'other'.
+  documentType?: string;
+  // Belge tez formatında değil → genel not sert tavanlandı; UI'da "tez değil" uyarısı.
+  notThesisFormat?: boolean;
 
   // Bölüm Bazlı Skorlar.
   // Rubric pipeline 10 kategori üretebilir; legacy pipeline 6. Her ikisini

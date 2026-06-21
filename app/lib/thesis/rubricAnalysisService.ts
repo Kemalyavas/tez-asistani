@@ -77,9 +77,19 @@ export interface ExtractStatistics {
 // Tespit edilemezse güvenli varsayılan 'empirical' (kriterlere bedava geçiş yok).
 export type StudyType = 'empirical' | 'theoretical' | 'mixed';
 
+// Yüklenen belgenin türü — tez rubriğiyle puanlamanın anlamlı olup olmadığını belirler.
+//   - 'thesis':   akademik yüksek lisans/doktora tezi (asıl hedef).
+//   - 'proposal': proje/araştırma önerisi, Ar-Ge proje raporu — tez DEĞİL.
+//   - 'report':   kurumsal/teknik/staj raporu — tez değil.
+//   - 'article':  akademik makale/bildiri — tez değil.
+//   - 'other':    ödev, sunum, CV vb. — tez değil.
+// 'thesis' dışındaki türlerde genel not sert tavanlanır + UI'da "tez değil" uyarısı.
+export type DocumentType = 'thesis' | 'proposal' | 'report' | 'article' | 'other';
+
 export interface ExtractResult {
   detectedLanguage: 'tr' | 'en';
   thesisType: string;
+  documentType: DocumentType;
   studyType: StudyType;
   items: ExtractedItem[];
   statistics: ExtractStatistics;
@@ -119,6 +129,10 @@ export interface RubricAnalysisResult {
   rubricVersion: string;
   detectedLanguage: 'tr' | 'en';
   thesisType: string;
+  documentType: DocumentType;
+  // Belge tez formatında değil (proposal/report/article/other). Genel not sert
+  // tavanlandı; UI'da "bu bir tez değil" uyarısı gösterilir.
+  notThesisFormat: boolean;
   studyType: StudyType;
   // Genel skor ağırlıklandırmasında kullanılan seviye (master/doctoral).
   thesisLevel: ThesisLevel;
@@ -179,6 +193,12 @@ function buildExtractSchema() {
       thesisType: {
         type: SchemaType.STRING,
         description: "Tez türü, örn. 'Yüksek Lisans Tezi', 'Doktora Tezi'",
+      },
+      documentType: {
+        type: SchemaType.STRING,
+        enum: ['thesis', 'proposal', 'report', 'article', 'other'],
+        description:
+          "Yüklenen belgenin TÜRÜ. 'thesis' = akademik yüksek lisans/doktora tezi (Giriş/Literatür/Yöntem/Bulgular/Sonuç gibi tez yapısı + kapak/özet/kaynakça). 'proposal' = proje/araştırma önerisi veya Ar-Ge proje raporu (iş paketleri, bütçe, takvim, 'proje önerisi' kurgusu). 'report' = kurumsal/teknik/staj raporu. 'article' = akademik makale/bildiri. 'other' = ödev, sunum, CV vb. Belge gerçek bir TEZ DEĞİLSE ASLA 'thesis' deme.",
       },
       studyType: {
         type: SchemaType.STRING,
@@ -248,7 +268,7 @@ function buildExtractSchema() {
         required: ['referenceCount', 'figureCount', 'tableCount'],
       },
     },
-    required: ['detectedLanguage', 'thesisType', 'studyType', 'items', 'statistics'],
+    required: ['detectedLanguage', 'thesisType', 'documentType', 'studyType', 'items', 'statistics'],
   };
 }
 
@@ -288,6 +308,8 @@ Sana ekli olarak bir Türkçe veya İngilizce yüksek lisans / doktora tezi PDF'
 8. **actionHint — SADECE status "partial" veya "not_found" olan kriterler için**: BU TEZE özel, somut, tek cümlelik, uygulanabilir bir düzeltme talimatı yaz (tezin dilinde). "Şu bölüme şunu ekleyin", "Şu sayfadaki tabloya kaynak belirtin" gibi. Genel klişe verme; tezin gerçek durumuna göre yaz. status "found" / "not_applicable" ise actionHint = "" (boş). (Write a thesis-specific one-sentence fix only for partial/not_found; empty for found/not_applicable.)
 9. **statistics — gerçekten say, tahmin etme**: referenceCount (kaynakça girdi sayısı), figureCount (şekil/grafik sayısı), tableCount (tablo/çizelge sayısı). PDF ekliyse görselleri ve kaynakça listesini doğrudan tarayarak say. İlgili bölüm yoksa 0. (Actually count; do not estimate.)
 10. **GERÇEK YAPIYA ATIF — UYDURMA (KRİTİK):** comment ve actionHint'te SADECE tezde GERÇEKTEN var olan bölüm/başlıklara atıf yap. Standart makale şablonunu (Giriş/Yöntem/Bulgular/Tartışma/Sonuç) VARSAYMA — tez farklı yapıda olabilir. Tezde "Tartışma" diye AYRI bir bölüm yoksa "Tartışma bölümü eksik / sayfa X'te yok" gibi ifade KULLANMA; eksikliği gerçek yapıya atıfla anlat (örn. "Sonuç bölümünde bulgular literatürle karşılaştırılmamış"). Var olmayan bölüm adı veya sayfa numarası ÜRETME. NOT: Rubric kategori adları (ör. "Tartışma/Discussion") bir DEĞERLENDİRME EKSENİDİR; tezde aynı adla bir bölüm olmak ZORUNDA değildir. (Refer ONLY to sections that actually exist in this thesis; never invent section names or page numbers; rubric category names are evaluation axes, not required thesis sections.)
+
+**BELGE TÜRÜ — documentType (KRİTİK):** Önce yüklenen belgenin gerçekten akademik bir TEZ olup olmadığını belirle. Tez = Giriş/Literatür/Yöntem/Bulgular/Sonuç gibi akademik tez yapısı + kapak, özet/abstract ve kaynakça içeren yüksek lisans/doktora çalışması. Belge bunun yerine bir PROJE/ARAŞTIRMA ÖNERİSİ ya da Ar-Ge proje raporu (iş paketleri, bütçe, takvim, "proje önerisi" kurgusu) ise documentType='proposal'; kurumsal/teknik/staj raporu ise 'report'; akademik makale/bildiri ise 'article'; ödev/sunum/CV vb. ise 'other' seç. Belge gerçek bir tez DEĞİLSE ASLA documentType='thesis' DEME — bu alan yanlış olursa kullanıcı yanıltıcı bir not alır. NOT: documentType belge TÜRÜDÜR; studyType (empirical/theoretical/mixed) ise tezin YÖNTEM türüdür — ikisini karıştırma. (Classify the document TYPE first; use 'thesis' ONLY for an actual academic thesis.)
 
 **TEZ TÜRÜ VE UYGULANABİLİRLİK — ÇOK ÖNEMLİ (adil değerlendirme):**
 Önce tezin yöntem türünü (studyType) belirle:
@@ -430,14 +452,23 @@ export async function extractRubricItems(
           ? parsed.studyType
           : 'empirical';
 
+      // documentType — geçersiz/eksikse güvenli varsayılan 'thesis' (gerçek tezleri
+      // yanlışlıkla tavanlamamak için; belge-türü kapısı yalnız model AÇIKÇA
+      // tez-değil dediğinde devreye girer).
+      const VALID_DOC_TYPES = ['thesis', 'proposal', 'report', 'article', 'other'];
+      const documentType: DocumentType = VALID_DOC_TYPES.includes(parsed.documentType)
+        ? (parsed.documentType as DocumentType)
+        : 'thesis';
+
       const elapsed = Date.now() - startMs;
       console.log(
-        `[RUBRIC EXTRACT] OK in ${elapsed}ms — ${validItems.length}/${RUBRIC_ITEMS.length} items, lang=${parsed.detectedLanguage}, studyType=${studyType}, refs=${statistics.referenceCount} fig=${statistics.figureCount} tbl=${statistics.tableCount}`
+        `[RUBRIC EXTRACT] OK in ${elapsed}ms — ${validItems.length}/${RUBRIC_ITEMS.length} items, lang=${parsed.detectedLanguage}, docType=${documentType}, studyType=${studyType}, refs=${statistics.referenceCount} fig=${statistics.figureCount} tbl=${statistics.tableCount}`
       );
 
       return {
         detectedLanguage: parsed.detectedLanguage === 'en' ? 'en' : 'tr',
         thesisType: parsed.thesisType || 'Yüksek Lisans Tezi',
+        documentType,
         studyType,
         items: validItems,
         statistics,
@@ -706,15 +737,28 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
   }
 
   // "KAPI" KURALI (Principle A — Mullins & Kiley 2002, Lovitts/Wageningen):
-  // Saf toplama ortalaması, güçlü kategorilerin tek bir KRİTİK eksiği maskelemesine
-  // izin vermemeli ("tek 'kabul edilemez' kriter üst notları engeller"). Bir core
-  // kriter tamamen karşılanmamışsa GENEL NOT bir tavan görür:
-  //   1 kritik → max B (İyi, ≤79); 2 → max C+ (Yeterli, ≤69); 3+ → max C (≤59).
+  // Saf toplama ortalaması, güçlü kategorilerin KRİTİK eksikleri maskelemesine izin
+  // vermemeli ("tek 'kabul edilemez' kriter üst notları engeller"). Bir core kriter
+  // (ağırlık≥5) TAMAMEN karşılanmamışsa GENEL NOT bir tavan görür:
+  //   1 kritik → max ~0.74 (İyi'nin altı, A/B+ kapalı);
+  //   2 kritik → max 0.54 (C "Geliştirilebilir" — artık "Yeterli" değil; iki çekirdek
+  //              eksik = temelden eksik çalışma);
+  //   3+ kritik → max 0.42 (F).
   // Kategori puanları DEĞİŞMEZ; yalnızca genel not sınırlanır.
   let cappedRatio = overallRatio;
-  if (criticalCount >= 3) cappedRatio = Math.min(cappedRatio, 0.59);
-  else if (criticalCount === 2) cappedRatio = Math.min(cappedRatio, 0.69);
-  else if (criticalCount === 1) cappedRatio = Math.min(cappedRatio, 0.79);
+  if (criticalCount >= 3) cappedRatio = Math.min(cappedRatio, 0.42);
+  else if (criticalCount === 2) cappedRatio = Math.min(cappedRatio, 0.54);
+  else if (criticalCount === 1) cappedRatio = Math.min(cappedRatio, 0.74);
+
+  // BELGE TÜRÜ KAPISI: yüklenen belge bir tez değilse (proje önerisi/rapor/makale/
+  // diğer), tez rubriğiyle verilen not yanıltıcıdır. Genel notu sert tavanla (F bandı)
+  // ve UI'da "bu bir tez değil" uyarısı için bayrak set et. Kategori puanları DEĞİŞMEZ;
+  // yapısal/biçimsel geri bildirim kullanıcıya yine gösterilir.
+  // Yalnız MODEL açıkça tez-dışı bir tür döndürdüğünde tetikle; eksik/bilinmeyen
+  // documentType (eski extract'lar) güvenle 'thesis' sayılır, kapı çalışmaz.
+  const notThesisFormat = !!extract.documentType && extract.documentType !== 'thesis';
+  if (notThesisFormat) cappedRatio = Math.min(cappedRatio, 0.45);
+
   const { grade, label } = ratioToOverallGrade(cappedRatio);
 
   // Önceliklendirme: weight'e göre azalan sırada
@@ -743,6 +787,8 @@ export function scoreRubric(extract: ExtractResult): RubricAnalysisResult {
     rubricVersion: RUBRIC_VERSION,
     detectedLanguage: extract.detectedLanguage,
     thesisType: extract.thesisType,
+    documentType: extract.documentType,
+    notThesisFormat,
     studyType: extract.studyType,
     thesisLevel,
     likelyPartialUpload,
@@ -917,9 +963,11 @@ export function toLegacyShape(rubric: RubricAnalysisResult): PremiumAnalysisResu
       color: GRADE_COLORS[rubric.overallGrade],
     },
     executiveSummary: rubric.executiveSummary,
-    // Tez türü + kısmi yükleme bayrağı (UI banner/not için).
+    // Tez türü + kısmi yükleme + belge-türü bayrağı (UI banner/not için).
     studyType: rubric.studyType,
     likelyPartialUpload: rubric.likelyPartialUpload,
+    documentType: rubric.documentType,
+    notThesisFormat: rubric.notThesisFormat,
     // Tüm 10 rubric kategorisi sections object'inde gösterilir.
     // UI Object.entries ile dinamik render ettiği için yeni key eklemek
     // otomatik olarak yeni section bloğu üretir.

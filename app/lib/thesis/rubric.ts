@@ -24,7 +24,9 @@
 //   route'undaki cache lookup rubric_version eşitliği arar).
 // ============================================================================
 
-export const RUBRIC_VERSION = '1.0';
+// 1.1 — belge-türü kapısı (tez olmayan belge sert tavanlanır) + kritik kapısı
+//       sıkılaştırıldı (2 kritik artık "Yeterli" değil). Eski cache invalid olur.
+export const RUBRIC_VERSION = '1.1';
 
 // ----------------------------------------------------------------------------
 // Tipler
