@@ -186,8 +186,8 @@ export default function Home() {
           {[
             { node: <><CountUp to={1000} />+</>, label: 'tez analiz edildi' },
             { node: '~2 dk', label: 'ortalama sonuç süresi' },
-            { node: '4', label: 'atıf formatı' },
-            { node: '10', label: 'kayıtta ücretsiz kredi' },
+            { node: <><CountUp to={50} />+</>, label: 'akademik kriter' },
+            { node: '%100', label: 'gizli & güvenli' },
           ].map((s, i) => (
             <div key={i} className={`px-4 sm:px-6 text-center ${i < 3 ? 'md:border-r border-white/15' : ''}`}>
               <div className="font-serif text-[44px] md:text-5xl font-semibold text-white leading-none">{s.node}</div>
