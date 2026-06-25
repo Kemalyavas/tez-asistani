@@ -38,9 +38,9 @@ export default function MesafeliSatisSozlesmesi() {
               <p className="mt-2 mb-3">TezAI kredi tabanlı bir sistem ile çalışmaktadır. Kullanıcılar kredi paketi satın alır ve çeşitli hizmetler için bu kredileri kullanır:</p>
               <ul className="list-disc pl-6 mt-2">
                 <li>Starter Paketi: 50 kredi - ₺149</li>
-                <li>Standart Paketi: 240 kredi (200 + 40 bonus) - ₺449</li>
-                <li>Pro Paketi: 500 kredi (400 + 100 bonus) - ₺749</li>
-                <li>Ultimate Paketi: 1250 kredi (1000 + 250 bonus) - ₺1499</li>
+                <li>Standart Paketi: 150 kredi (120 + 30 bonus) - ₺379</li>
+                <li>Pro Paketi: 350 kredi (280 + 70 bonus) - ₺749</li>
+                <li>Ultimate Paketi: 700 kredi (500 + 200 bonus) - ₺1299</li>
               </ul>
               <p className="mt-3"><strong>Kredi Kullanımı:</strong></p>
               <ul className="list-disc pl-6 mt-2">

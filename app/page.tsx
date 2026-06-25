@@ -20,7 +20,7 @@ const RUBRIC_CRITERIA = [
 const FAQS = [
   { q: 'Başlamak için kredi kartı gerekiyor mu?', a: 'Hayır. Kayıt olunca anında 10 ücretsiz kredi kazanırsın. Bu, kısa bir tezin temel analizine ya da birkaç kaynak ve özet denemesine yeter.' },
   { q: 'Krediler sona erer mi?', a: 'Hayır, kredilerin asla sona ermez. Bir kez satın al, ihtiyaç duyduğunda kullan. Aylık ücret, abonelik veya baskı yok.' },
-  { q: 'Hangi kredi paketini seçmeliyim?', a: 'Tek bir tez için Starter veya Standart genellikle yeterli. Birden fazla proje için en iyi değeri Pro paketi (500 kredi) sunar.' },
+  { q: 'Hangi kredi paketini seçmeliyim?', a: 'Tek bir tez için Starter veya Standart genellikle yeterli. Birden fazla proje için en iyi değeri Pro paketi (350 kredi) sunar.' },
   { q: 'Tezim güvende mi?', a: 'Evet. Dosyaların diğer kullanıcılarla asla paylaşılmaz, analiz sonrası otomatik silinir, yapay zekâ modeli eğitiminde kullanılmaz ve SSL ile şifrelenir.' },
 ];
 

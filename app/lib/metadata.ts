@@ -164,7 +164,7 @@ export const homeMetadata: Metadata = {
 export const pricingMetadata = buildPageMetadata({
   title: 'Fiyatlar – Kredi Paketleri',
   description:
-    'TezAI kredi paketleri: Starter ₺149, Standart ₺449, Pro ₺749, Ultimate ₺1499. Abonelik yok, krediler asla sona ermez. Sadece kullandığın kadar öde.',
+    'TezAI kredi paketleri: Starter ₺149, Standart ₺379, Pro ₺749, Ultimate ₺1299. Abonelik yok, krediler asla sona ermez. Sadece kullandığın kadar öde.',
   path: '/pricing',
   keywords:
     'tezai fiyat, kredi paketi, tez analizi fiyatı, akademik yazım aracı fiyatı, yapay zeka tez asistanı fiyat',

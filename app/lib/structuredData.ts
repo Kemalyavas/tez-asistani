@@ -87,7 +87,7 @@ export const structuredData = {
       {
         '@type': 'Offer',
         name: 'Standart Paket',
-        price: '449',
+        price: '379',
         priceCurrency: 'TRY',
         category: 'Credits',
         availability: 'https://schema.org/InStock',
@@ -105,7 +105,7 @@ export const structuredData = {
       {
         '@type': 'Offer',
         name: 'Ultimate Paket',
-        price: '1499',
+        price: '1299',
         priceCurrency: 'TRY',
         category: 'Credits',
         availability: 'https://schema.org/InStock',
@@ -143,7 +143,7 @@ export const structuredData = {
         acceptedAnswer: {
           '@type': 'Answer',
           text:
-            'Tek bir tez için Starter veya Standart paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, Pro paketi 500 kredi sunar.',
+            'Tek bir tez için Starter veya Standart paket genellikle yeterli. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan, Pro paketi 350 kredi sunar.',
         },
       },
       {

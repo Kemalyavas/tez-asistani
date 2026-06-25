@@ -42,7 +42,7 @@ const faqs = [
   },
   {
     q: 'Hangi kredi paketini seçmeliyim?',
-    a: 'Tek bir tez için Starter veya Standart paket genellikle yeterlidir. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan Pro paketi 500 kredi sunar. Tüm paketleri Fiyatlar sayfasında görebilirsin.',
+    a: 'Tek bir tez için Starter veya Standart paket genellikle yeterlidir. Birden fazla proje üzerinde çalışıyorsan veya en iyi değeri istiyorsan Pro paketi 350 kredi sunar. Tüm paketleri Fiyatlar sayfasında görebilirsin.',
   },
 ]
 
