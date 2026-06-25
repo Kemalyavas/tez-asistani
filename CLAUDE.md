@@ -54,11 +54,12 @@ thesis_standard (51-100 sayfa): 25 kredi
 thesis_comprehensive (101+ sayfa): 50 kredi
 ```
 
-### Kredi Paketleri (pricing.ts)
-- Starter: 50 kredi - ₺149
-- Standard: 200+40 bonus (240 toplam) - ₺449
-- Pro: 400+100 bonus (500 toplam) - ₺749
-- Ultimate: 1000+250 bonus (1250 toplam) - ₺1499
+### Kredi Paketleri (pricing.ts) — paketler "uzun tez" (50 kredi) birimine göre boyutlandırıldı (Haz 2026)
+- Starter: 50 kredi - ₺149 (~1 uzun tez)
+- Standard: 120+30 bonus (150 toplam) - ₺379 (~3 uzun tez)
+- Pro: 280+70 bonus (350 toplam) - ₺749 (~7 uzun tez) — popüler
+- Ultimate: 500+200 bonus (700 toplam) - ₺1299 (~14 uzun tez)
+- NOT: işlem maliyetleri (yukarıdaki) DEĞİŞMEDİ; sadece paket boyut/fiyatları küçültüldü. DB `credit_packages` tablosu bu değerlerle senkron (salt lookup, FK kaynağı; kredi koddan eklenir).
 
 ## Önemli Dosyalar ve Yapı
 
