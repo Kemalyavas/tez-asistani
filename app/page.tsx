@@ -367,7 +367,8 @@ export default function Home() {
           <div className="bg-white border border-line rounded-md shadow-[0_26px_60px_-40px_rgba(28,26,23,0.4)] p-6 md:p-8 min-h-[300px]">
             {/* Tez Analizi önizleme */}
             {activeTab === 'upload' && (
-              <div className="grid md:grid-cols-2 gap-7 items-center" style={{ animation: 'slideKey .4s ease' }}>
+              <div style={{ animation: 'slideKey .4s ease' }}>
+              <div className="grid md:grid-cols-2 gap-7 items-center">
                 <div>
                   <h3 className="font-serif text-[25px] font-semibold mb-3">Sayfa sayfa, kategori kategori</h3>
                   <p className="text-[15.5px] leading-relaxed text-ink/60 mb-5">Format, kaynakça, akademik dil ve bütünlük ayrı ayrı puanlanır. Her bulgu sayfa numarasıyla işaretlenir.</p>
@@ -391,6 +392,12 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+              </div>
+              {/* temsilî not — kart altı, üst çizgili (hero kartıyla aynı ibare) */}
+              <div className="flex items-center gap-[7px] mt-5 pt-3 border-t border-[#f1eee5]">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b3afa3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-none"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+                <span className="text-[11.5px] leading-[1.4] text-[#a8a499]">Temsili görünüştür; gerçek analiz 50+ ölçüt ve sayfa bazında çok daha kapsamlıdır.</span>
+              </div>
               </div>
             )}
 
