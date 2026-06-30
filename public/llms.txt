@@ -23,9 +23,9 @@ TezAI üç temel hizmet sunar:
 
 Abonelik yoktur. Krediler asla sona ermez. Paketler:
 - Starter: 50 kredi, ₺149
-- Standart: 240 kredi (200 + 40 bonus), ₺449
-- Pro: 500 kredi (400 + 100 bonus), ₺749
-- Ultimate: 1250 kredi (1000 + 250 bonus), ₺1499
+- Standart: 150 kredi (120 + 30 bonus), ₺379
+- Pro: 350 kredi (280 + 70 bonus), ₺749
+- Ultimate: 700 kredi (500 + 200 bonus), ₺1299
 
 Yeni kullanıcılar kayıt sonrası 10 ücretsiz kredi alır. Başlamak için kredi kartı gerekmez.
 

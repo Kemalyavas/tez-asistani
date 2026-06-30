@@ -151,7 +151,7 @@ export default function PricingPage() {
                   <p className={`text-[13px] font-bold mb-2 ${pop ? 'text-[#d7deee]' : 'text-ink/70'}`}>{pkg.totalCredits} kredi ile:</p>
                   <div className="flex flex-col gap-1.5">
                     {[
-                      `~${Math.floor(pkg.totalCredits / CREDIT_COSTS.thesis_comprehensive.creditsRequired)} uzun tez analizi`,
+                      `~${Math.floor(pkg.totalCredits / CREDIT_COSTS.thesis_comprehensive.creditsRequired)} tez analizi`,
                       `~${Math.floor(pkg.totalCredits / CREDIT_COSTS.abstract_generate.creditsRequired)} özet oluşturma`,
                       `~${pkg.totalCredits} kaynak formatlama`,
                     ].map((perk) => (
