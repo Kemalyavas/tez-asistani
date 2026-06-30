@@ -522,7 +522,7 @@ export default function Home() {
               <div className="text-sm text-ink/60 mb-1"><strong className="text-primary-700 font-bold">{pkg.totalCredits}</strong> kredi</div>
               <div className="text-[12.5px] font-semibold text-green-700 min-h-[18px] mb-5">{pkg.bonusCredits > 0 ? `+${pkg.bonusCredits} bonus dahil` : ''}</div>
               <div className="flex flex-col gap-2 mb-6 flex-1">
-                <div className="flex gap-2 text-[13.5px] text-ink/60"><span className="text-primary-700 font-bold">·</span>~{Math.floor(pkg.totalCredits / CREDIT_COSTS.thesis_standard.creditsRequired)} tez analizi</div>
+                <div className="flex gap-2 text-[13.5px] text-ink/60"><span className="text-primary-700 font-bold">·</span>~{Math.floor(pkg.totalCredits / CREDIT_COSTS.thesis_comprehensive.creditsRequired)} uzun tez analizi</div>
                 <div className="flex gap-2 text-[13.5px] text-ink/60"><span className="text-primary-700 font-bold">·</span>~{Math.floor(pkg.totalCredits / CREDIT_COSTS.abstract_generate.creditsRequired)} özet</div>
                 <div className="flex gap-2 text-[13.5px] text-ink/60"><span className="text-primary-700 font-bold">·</span>~{pkg.totalCredits} kaynak</div>
               </div>
